@@ -7,7 +7,7 @@
 - 完整、可獨立安裝的繁中與英文 Skill package
 - 實際派工前的 Controller preflight；沒有來源的推測不得當作已確認
 - 本地或 Remote 啟動唯一 Controller，使用 `C_READY`／`C_ACCEPTED` 完成核實
-- 明確限定 `/CER-start`、`/CER-stop`、`/CER-close`；普通 `開工`／`收工` 不觸發 CER
+- 明確限定 `/CER-start`、`/CER-stop`、`/CER-close`；`/CER-stop` 回到普通單一對話工作，普通 `開工`／`收工` 不觸發 CER
 - `🚀 C:` 作為 Controller 可見命名；E1／R／E2 標籤不變
 - 同成因、同使用者影響的審閱發現收斂為一次受影響邊界修正；真正的新缺陷分開處理
 - 長期工作使用 inline roadmap 和相稱 checkpoint

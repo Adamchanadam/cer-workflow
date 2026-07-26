@@ -7,7 +7,7 @@ This release converges CER into a complete bilingual public version:
 - Complete, independently installable Traditional Chinese and English Skill packages
 - Controller preflight before real dispatch; unsupported assumptions cannot be treated as confirmed
 - Local or Remote startup for one unique Controller, verified with `C_READY` / `C_ACCEPTED`
-- Explicit `/CER-start`, `/CER-stop`, and `/CER-close` boundaries; plain start/finish wording does not trigger CER
+- Explicit `/CER-start`, `/CER-stop`, and `/CER-close` boundaries; `/CER-stop` returns to ordinary single-thread work, and plain start/finish wording does not trigger CER
 - `🚀 C:` as the visible Controller label while E1/R/E2 labels stay unchanged
 - Review findings with the same cause and user impact converge into one affected-boundary repair; genuinely new defects stay separate
 - Inline roadmap and proportionate checkpoints for long-running work

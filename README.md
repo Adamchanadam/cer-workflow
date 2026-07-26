@@ -73,8 +73,6 @@ CER 的代價是啟動前要先證明通訊閉環。只建立 task、改 title �
 
 - [`skills/cer-workflow/`](skills/cer-workflow/)：繁中 CER Core v1 Skill
 - [`skills/cer-workflow-en/`](skills/cer-workflow-en/)：完整英文鏡像 Skill
-- [`ABOUT.md`](ABOUT.md)：簡短產品說明
-- [`ABOUT.en.md`](ABOUT.en.md)：英文產品說明
 - [`RELEASE_NOTES.md`](RELEASE_NOTES.md)：繁中發布說明
 - [`RELEASE_NOTES.en.md`](RELEASE_NOTES.en.md)：英文發布說明
 
