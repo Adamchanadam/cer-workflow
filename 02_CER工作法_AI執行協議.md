@@ -31,6 +31,20 @@ E1 的派工包只包含本批所需的知識底座摘要、來源座標與禁�
 是依同一知識底座獨立反證高風險主張、來源使用、推論和結論，不只檢查格式。
 簡單低風險任務不為知識底座建立文件；必要內容直接放入自足派工或停點說明。
 
+### 操作指令
+
+CER v1 接受自然語言和 slash command 兩種入口。slash command 是穩定文字別名，
+方便在 AI terminal、snippet、Snap 或可搜尋指令面板中保存；平台不支援時，直
+接貼上同一句仍有效。
+
+| 指令 | 自然語言 | 效果 |
+|---|---|---|
+| `/CER-start <任務、限制、優先序>` | `CER 工作法啟動：...` | 啟動 CER v1，由目前使用者 task 成為 C。 |
+| `/CER-stop` | `停止 CER，改用單 thread 繼續。` | 停用 CER mode，不再派新 E1／R；若 E1 已在寫入，先要求 E1 停止或回傳可判定狀態。 |
+| `/CER-close` | `CER 收工。`／`收工。` | 完成 CER 收尾；同一 E1 只按既有真源回寫必要狀態並標 writer closed。 |
+| `/CER-status` | `顯示 CER 狀態。` | 報告 C 已知的目標、C／E1／R 座標、下一停點和阻礙；不得為狀態而輪詢。 |
+| `/CER-help` | `顯示 CER 指令。` | 顯示可用指令與自然語言等價句。 |
+
 ### 啟動
 
 1. C 讀目前安裝的 CER runtime、使用者總任務、明示限制及目標 workspace 實際存在的權威規則。
@@ -95,7 +109,7 @@ E1 的派工包只包含本批所需的知識底座摘要、來源座標與禁�
 CER Core v1 不規定項目文件。它沿用目標專案既有的權威計劃、進度及決策真源；
 沒有持久真源時，不假稱新 session 可恢復完整狀態。
 
-使用者向 C 明示「收工」時：
+使用者向 C 明示「收工」、「CER 收工」或 `/CER-close` 時：
 
 1. C 停止新派工，裁決可安全裁決的候選，整理已接納、未完成、風險、證據和下一步。
 2. C 給同一 E1 一個自足收工批次。
@@ -103,6 +117,17 @@ CER Core v1 不規定項目文件。它沿用目標專案既有的權威計劃�
 4. C 讀回實際交付和必要真源，以 `🟢 階段性交付／最終驗收` 告知使用者結果及延續限制。
 
 不得跑 Kit closeout、重建 Kit mirror 或聲稱 `handoff saved`。新 session 只可從實際存在的目標專案真源恢復；證據不足便標示 continuity limited。若無可核實 E1 座標，先證明原 writer 停止，再建立 E2。
+
+### 停用 CER
+
+使用者明示「停止 CER，改用單 thread 繼續」或 `/CER-stop` 時：
+
+1. C 停止派發新 E1／R 批次。
+2. 若沒有 active writer，C 以普通單 thread 繼續。
+3. 若 E1 已開始寫入，C 先要求 E1 停止、回傳目前成果或 blocker，並標示是否 writer closed。
+4. C 讀回可判定狀態後，才回到單 thread；不能證明 writer 停止時，以 `🔴 重大阻礙` 告知使用者，不假設工作區安全。
+
+`/CER-stop` 不等同 `/CER-close`。前者是停用 CER 協作拓撲；後者是完成 CER 收尾與必要持久化。
 
 ## 使用者停點與路線圖
 
@@ -192,7 +217,7 @@ UAT 必須由使用者在乾淨 project 手動建立新 task。來源專案的 C
 
 ### 完整流程
 
-1. 使用者輸入已有清晰目標／計劃的多批總任務。
+1. 使用者輸入已有清晰目標／計劃的多批總任務，可用 `CER 工作法啟動：...` 或 `/CER-start ...`。
 2. C 以 `C:` 標題或首行標籤識別主 task，完成通訊 preflight，建立或復用已證明可收發的 `E1:` 持久 task，取得含 session／thread 座標的 ready direct-push。
 3. C 映射目標專案既有真源與本任務知識底座，不建立固定 CER 文件。
 4. C 用真正 inline visualization 顯示初始路線圖；刻意確認不是只用 Mermaid。
@@ -200,8 +225,9 @@ UAT 必須由使用者在乾淨 project 手動建立新 task。來源專案的 C
 6. 同一 E1 完成至少兩個實作批次；低風險批次不建立 R。
 7. 一個高風險核心承諾由 `R1:` fresh R 依同一知識底座唯讀反證，且只重審受影響邊界。
 8. C 在重大方向或交付形狀改變時停點，分階段交付可觀察成果，最後取得使用者驗收。
-9. 使用者說收工；同一 E1 更新既有必要真源並標 writer closed；沒有持久真源時不假稱可跨 session 完整恢復。
+9. 使用者說收工或 `/CER-close`；同一 E1 更新既有必要真源並標 writer closed；沒有持久真源時不假稱可跨 session 完整恢復。
 10. 另做組合情景：與 `$project-context-workflow` 同用時不重建文件、不搶共識關卡，也不由後者建立 C／E1／R。
+11. 另做停用情景：使用者輸入 `/CER-stop`；C 不再派新 E1/R，若 E1 正在寫入先收斂到 writer closed 或重大阻礙，再回到單 thread。
 
 ### 失敗條件
 
@@ -220,6 +246,8 @@ UAT 必須由使用者在乾淨 project 手動建立新 task。來源專案的 C
 - 把 Kit 檔案或 Kit closeout 當作 v1 前置。
 - CER 自行建立固定五份項目文件或平行進度。
 - 把 `$project-context-workflow` 當作 CER 安裝前置。
+- `/CER-stop` 後仍繼續派新 E1/R，或未證明 active writer 停止便當作已回到單 thread。
+- `/CER-status` 觸發輪詢或背景監察。
 - 只做到文件或局部技術成功，沒有真實成品。
 
 ## Markdown-only v2 Appendix

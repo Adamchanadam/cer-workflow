@@ -12,7 +12,7 @@ UAT 必須由使用者在乾淨 project 手動建立新 task。來源專案的 C
 
 ## 完整流程
 
-1. 使用者輸入已有清晰目標／計劃的多批總任務。
+1. 使用者輸入已有清晰目標／計劃的多批總任務，可用 `CER 工作法啟動：...` 或 `/CER-start ...`。
 2. C 以 `C:` 標題或首行標籤識別主 task，完成通訊 preflight，建立或復用已證明可收發的 `E1:` 持久 task，取得含 session／thread 座標的 ready direct-push。
 3. C 映射目標專案既有真源與本任務知識底座，不建立固定 CER 文件。
 4. C 用真正 inline visualization 顯示初始路線圖；刻意確認不是只用 Mermaid。
@@ -20,8 +20,9 @@ UAT 必須由使用者在乾淨 project 手動建立新 task。來源專案的 C
 6. 同一 E1 完成至少兩個實作批次；低風險批次不建立 R。
 7. 一個高風險核心承諾由 `R1:` fresh R 依同一知識底座唯讀反證，且只重審受影響邊界。
 8. C 在重大方向或交付形狀改變時停點，分階段交付可觀察成果，最後取得使用者驗收。
-9. 使用者說收工；同一 E1 更新既有必要真源並標 writer closed；沒有持久真源時不假稱可跨 session 完整恢復。
+9. 使用者說收工或 `/CER-close`；同一 E1 更新既有必要真源並標 writer closed；沒有持久真源時不假稱可跨 session 完整恢復。
 10. 另做組合情景：與 `$project-context-workflow` 同用時不重建文件、不搶共識關卡，也不由後者建立 C／E1／R。
+11. 另做停用情景：使用者輸入 `/CER-stop`；C 不再派新 E1/R，若 E1 正在寫入先收斂到 writer closed 或重大阻礙，再回到單 thread。
 
 ## 失敗條件
 
@@ -40,4 +41,6 @@ UAT 必須由使用者在乾淨 project 手動建立新 task。來源專案的 C
 - 把 Kit 檔案或 Kit closeout 當作 v1 前置。
 - CER 自行建立固定五份項目文件或平行進度。
 - 把 `$project-context-workflow` 當作 CER 安裝前置。
+- `/CER-stop` 後仍繼續派新 E1/R，或未證明 active writer 停止便當作已回到單 thread。
+- `/CER-status` 觸發輪詢或背景監察。
 - 只做到文件或局部技術成功，沒有真實成品。

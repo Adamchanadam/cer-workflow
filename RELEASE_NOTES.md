@@ -20,3 +20,10 @@ Known boundary:
 - Agent Handoff Kit adapter work is documented as a v2 boundary and is not part of the installed skill.
 - A real platform run still needs to prove direct-push `ready` and result receipts before claiming full v1 acceptance.
 
+## Documentation Update
+
+- Added Traditional Chinese as the README entry page.
+- Added an English README page.
+- Added a workflow infographic for new users.
+- Added a plain-language comparison with single-thread work and ad hoc sub-agents.
+- Added `/CER-start`, `/CER-stop`, `/CER-close`, `/CER-status`, and `/CER-help` command aliases.

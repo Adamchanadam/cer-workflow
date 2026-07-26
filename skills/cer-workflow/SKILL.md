@@ -1,6 +1,6 @@
 ---
 name: cer-workflow
-description: "Run the standalone CER multi-agent workflow for long-running, multi-batch, or interruption-prone work that needs a Controller, one persistent Executor, risk-based fresh Reviewers, self-contained cross-task delegation, direct return, checkpoints, and staged delivery. Use when the user says CER 工作法啟動, asks to install or use CER, or explicitly requests CER roles and closed-loop execution. It does not prescribe project documents or integrate with Agent Handoff Kit."
+description: "Run the standalone CER multi-agent workflow for long-running, multi-batch, or interruption-prone work that needs a Controller, one persistent Executor, risk-based fresh Reviewers, self-contained cross-task delegation, direct return, checkpoints, and staged delivery. Use when the user says CER 工作法啟動, /CER-start, /CER-stop, /CER-close, asks to install or use CER, or explicitly requests CER roles and closed-loop execution. It does not prescribe project documents or integrate with Agent Handoff Kit."
 ---
 
 # CER 工作法
@@ -9,11 +9,23 @@ CER Core v1 是獨立運行的工作法。它不需要、也不操作 Agent Hand
 
 ## 啟動
 
-使用者明示 `CER 工作法啟動：<總任務、限制、優先序>` 時：
+使用者明示 `CER 工作法啟動：<總任務、限制、優先序>` 或 `/CER-start <總任務、限制、優先序>` 時：
 
 1. 完整讀取 [core-runtime.md](references/core-runtime.md)。
 2. 顯示初始路線圖或四色停點時，完整讀取 [roadmap.md](references/roadmap.md)。
 3. 只有執行安裝驗收或 fresh UAT 時，完整讀取 [uat.md](references/uat.md)。
+
+## 操作指令
+
+slash command 是文字別名。平台支援 slash、snippet 或 Snap 時，可登記成可搜尋指令；平台不支援時，使用者直接貼上同一句也有效。
+
+| 指令 | 自然語言 | 效果 |
+|---|---|---|
+| `/CER-start <任務、限制、優先序>` | `CER 工作法啟動：...` | 啟動 CER v1。 |
+| `/CER-stop` | `停止 CER，改用單 thread 繼續。` | 停用 CER，不再派新 E1/R；若 E1 正在寫入，先收斂到可判定狀態。 |
+| `/CER-close` | `CER 收工。` / `收工。` | 完成 CER 收尾，讓同一 E1 回寫既有必要真源並標 writer closed。 |
+| `/CER-status` | `顯示 CER 狀態。` | 只報告 C 已知狀態、角色座標、下一停點與阻礙；不輪詢。 |
+| `/CER-help` | `顯示 CER 指令。` | 顯示本表。 |
 
 ## 不可破壞規則
 
