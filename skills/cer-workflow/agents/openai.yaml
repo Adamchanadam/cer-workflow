@@ -1,0 +1,4 @@
+interface:
+  display_name: "CER 工作法"
+  short_description: "以 C、E1、R 閉環執行跨 task 長期項目工作"
+  default_prompt: "使用 $cer-workflow 以 C、E1、R 分工和跨 task 直接回傳方式執行這項工作。"
