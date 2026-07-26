@@ -73,7 +73,9 @@ The trade-off is that CER must prove its communication loop before work starts. 
 
 - [`skills/cer-workflow/`](skills/cer-workflow/): Traditional Chinese CER Core v1 Skill
 - [`skills/cer-workflow-en/`](skills/cer-workflow-en/): complete English mirror Skill
-- [`ABOUT.md`](ABOUT.md): concise product description
-- [`RELEASE_NOTES.md`](RELEASE_NOTES.md): published history and the unreleased candidate summary
+- [`ABOUT.en.md`](ABOUT.en.md): concise English product description
+- [`ABOUT.md`](ABOUT.md): Traditional Chinese product description
+- [`RELEASE_NOTES.en.md`](RELEASE_NOTES.en.md): English release notes
+- [`RELEASE_NOTES.md`](RELEASE_NOTES.md): Traditional Chinese release notes
 
 This repository contains only public, installable CER Core v1 content.
