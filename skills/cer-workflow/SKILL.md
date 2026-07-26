@@ -1,15 +1,15 @@
 ---
 name: cer-workflow
-description: "Run the standalone CER multi-agent workflow for long-running, multi-batch, or interruption-prone work that needs a Controller, one persistent Executor, risk-based fresh Reviewers, self-contained cross-task delegation, direct return, checkpoints, and staged delivery. Use when the user says CER 工作法啟動, /CER-start, /CER-stop, /CER-close, asks to install or use CER, or explicitly requests CER roles and closed-loop execution. It does not prescribe project documents or integrate with Agent Handoff Kit."
+description: "執行獨立的 CER 多代理工作法，適用於長期、多批、容易中斷，或需要 Controller、同一持久 Executor、按風險建立 fresh Reviewer、自足跨 task 派工、主動回傳、停點及分階段交付的工作。只在使用者明確帶 CER 的指令或同等語意時使用，例如 /CER-start、CER 啟動、CER 開始、CER 開工、/CER-stop、/CER-close、CER 收工、CER 關閉、關閉 CER，或明示需要 CER 角色及閉環執行。單獨「開工／收工」不是 CER 觸發。本 Skill 不規定項目文件。"
 ---
 
 # CER 工作法
 
-CER Core v1 是獨立運行的工作法。它不需要、也不操作 Agent Handoff Kit。
+CER Core v1 是獨立運行的工作法。
 
 ## 啟動
 
-使用者明示 `CER 工作法啟動：<總任務、限制、優先序>` 或 `/CER-start <總任務、限制、優先序>` 時：
+使用者明示 `/CER-start <總任務、限制、優先序>`、`CER 啟動：...`、`CER 開始：...`、`CER 開工：...` 或同等帶 CER 的語意時：
 
 1. 完整讀取 [core-runtime.md](references/core-runtime.md)。
 2. 顯示初始路線圖或四色停點時，完整讀取 [roadmap.md](references/roadmap.md)。
@@ -21,19 +21,19 @@ slash command 是文字別名。平台支援 slash、snippet 或 Snap 時，可�
 
 | 指令 | 自然語言 | 效果 |
 |---|---|---|
-| `/CER-start <任務、限制、優先序>` | `CER 工作法啟動：...` | 啟動 CER v1。 |
+| `/CER-start <任務、限制、優先序>` | `CER 啟動：...`／`CER 開始：...`／`CER 開工：...` | 啟動 CER v1；本地或明確 Remote 接收 task 可成為唯一 C。單獨 `開工` 不啟動 CER。 |
 | `/CER-stop` | `停止 CER，改用單 thread 繼續。` | 停用 CER，不再派新 E1/R；若 E1 正在寫入，先收斂到可判定狀態。 |
-| `/CER-close` | `CER 收工。` / `收工。` | 完成 CER 收尾，讓同一 E1 回寫既有必要真源並標 writer closed。 |
+| `/CER-close` | `CER 收工。`／`CER 關閉。`／`關閉 CER。` | 完成 CER 收尾，讓同一 E1 回寫既有必要真源並標 writer closed。單獨 `收工` 不觸發 CER close。 |
 | `/CER-status` | `顯示 CER 狀態。` | 只報告 C 已知狀態、角色座標、下一停點與阻礙；不輪詢。 |
 | `/CER-help` | `顯示 CER 指令。` | 顯示本表。 |
 
 ## 不可破壞規則
 
-- 由使用者手動開啟並輸入 CER 啟動訊息的 task 才是 Controller（C）。
+- 本地 task 或明確 Remote 接收 task 必須通過 [core-runtime.md](references/core-runtime.md) 的完整唯一 C 啟動閘門。candidate `C_READY` 與發送方讀回仍不足夠；接收者實際收到 `C_ACCEPTED` 後才成為 active Controller（C）。
 - 同一任務只用一個持久、可見、可再次派工的 Executor（E1）作唯一 writer；不可用一次性臨時 subagent 代替。
 - Reviewer（R）只在高風險或 C 不能可靠反證時 fresh、唯讀、有界建立。
 - 每個跨 task 批次必須 self-contained；E1／R 不會自動繼承 C 的對話。
-- 新建或識別 task／thread 時，使用 `C:`、`E1:`、`R1:`、`R2:` 或 `E2:` 開首的可見標題或等價首行標籤；回傳目標必須包含可核實 session／thread id 或平台等價座標。
+- 新建或識別 task／thread 時，Controller 使用 `🚀 C:` 開首的可見標題或等價首行標籤；E1／R／E2 仍使用 `E1:`、`R1:`、`R2:` 或 `E2:`，不加 rocket；回傳目標必須包含可核實 session／thread id 或平台等價座標。
 - 建立 task 或開始驗證前，先以實際工具證明身份來源、必要參數、發送路徑、接收者、session／thread 座標與裁決點。任一環缺失即停止該委派架構；不得以文件審閱、事後 thread read 或猜測代替通訊驗證。
 - create／fork／send／title 只部分成功但沒有 E1 direct-push ready/result 時，視為通訊鏈未成立；C 只可發重大阻礙，不得派實際批次或宣稱閉環成立。
 - E1／R 以 direct-push 主動交付結果；C 不以 waiting、polling 或背景監聽發現成果。
@@ -46,9 +46,9 @@ slash command 是文字別名。平台支援 slash、snippet 或 Snap 時，可�
 
 ## 版本邊界
 
-本 Skill 只包含 CER Core v1。本 v1 不讀寫 Kit handoff、log、mirror 或 closeout，也不聲稱 Kit 開工／收工。若目標 workspace 的權威規則明示必須使用 Agent Handoff Kit，停止並說明 v1 不支援該整合；不得靜默繞過。
+本 Skill 只包含 CER Core v1。
 
-`02_CER工作法_AI執行協議.md` 是另一套 Markdown 交付面；其 v1 章節由本 Skill 核心 references 產生。不得把 Markdown 的 v1 規則與 Skill v1 規則手動改成互相打架。
+根目錄 `01_CER工作法_人類概覽.md` 與 `02_CER工作法_AI執行協議.md` 是本來源專案的內部需求與驗收藍圖，和本 Skill 的執行面分開維護。Skill references 是實際操作規程；兩者以需求和驗收對齊，但互不擁有對方。
 
 需要把模糊構思收斂成藍圖、需求、R&D、計劃及進度時，可另用
 `$project-context-workflow`。它不是 CER 前置；CER 只讀取其已確認真源，不建立

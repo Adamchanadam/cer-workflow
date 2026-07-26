@@ -2,9 +2,9 @@
 
 [English](README.en.md)
 
-CER 工作法給長任務一個更穩定的跑法。
+CER 工作法讓長期、多批或高風險的 AI 工作有清楚分工、唯一 writer 和可核實的回傳閉環。
 
-你把目標、限制和優先順序交給 `C:` Controller。C 先理解任務，安排 `E1:` Executor 做實際工作；遇到高風險位置，再找 `R1:` Reviewer 做獨立檢查。中途能自行處理的問題，由 C 和 E1 閉環處理。真正需要你裁決、補資料或驗收時，C 才回到你面前。
+你把目標、限制和優先順序交給 `🚀 C:` Controller。C 先釐清任務和驗收，再把實際工作交給同一個持久 `E1:` Executor；只有風險需要時，才建立 fresh `R1:` Reviewer 獨立反證。真正需要方向裁決、補資料、處理阻礙或驗收時，C 才回到你面前。
 
 ![CER 工作法原理圖](assets/cer-workflow-infographic.png)
 
@@ -13,115 +13,67 @@ CER 工作法給長任務一個更穩定的跑法。
 把這句交給你的 agent：
 
 ```text
-請從 https://github.com/Adamchanadam/cer-workflow 安裝 cer-workflow skill，安裝後用 $cer-workflow 啟動。
+請從 https://github.com/Adamchanadam/cer-workflow 安裝繁中 CER Skill（skills/cer-workflow）。如需英文版，改裝 skills/cer-workflow-en。安裝後不要自動啟動，等我輸入明確 CER 指令。
 ```
 
-不用找檔案、不用懂 Git。你的 agent 應該會把 `skills/cer-workflow` 安裝到它的 skills 資料夾，完成後告訴你。
+繁中和英文 Skill 都是完整、可獨立安裝的 package。詳細操作規程只在各自的 `references/`。
 
 ## 開始使用
 
-安裝後，用自然語言或 slash command 開始：
+安裝後，以明確帶 CER 的語句啟動：
 
 ```text
-CER 工作法啟動：<你想完成的事、限制、優先順序>
+CER 啟動：<你想完成的事、限制、優先順序>
 ```
+
+或：
 
 ```text
 /CER-start <你想完成的事、限制、優先順序>
 ```
 
-例子：
-
-```text
-CER 工作法啟動：檢查這個 repo 的發佈準備，修好文件和驗證問題。不要推送，除非我明確批准。
-```
+單獨 `開工` 不會啟動 CER；它保留給目前 workspace 的既有工作方式。
 
 ## 操作指令
 
-這些 slash command 是穩定文字別名。你的 AI terminal 支援 slash command、snippet 或 Snap 時，可以把它們存起來；不支援時，直接貼上也可以。
-
 | 指令 | 自然語言 | 用途 |
 |---|---|---|
-| `/CER-start <任務、限制、優先順序>` | `CER 工作法啟動：...` | 啟動 CER。 |
-| `/CER-stop` | `停止 CER，改用單 thread 繼續。` | 停用 CER，不再派新 E1/R。 |
-| `/CER-close` | `CER 收工。` / `收工。` | 完成 CER 收尾，讓同一 E1 標 writer closed。 |
-| `/CER-status` | `顯示 CER 狀態。` | 顯示已知狀態和下一停點，不輪詢。 |
+| `/CER-start <任務、限制、優先順序>` | `CER 啟動：...`／`CER 開始：...`／`CER 開工：...` | 啟動 CER。 |
+| `/CER-stop` | `停止 CER，改用單 thread 繼續。` | 停用 CER 拓撲，不再派新 E1／R。 |
+| `/CER-close` | `CER 收工。`／`CER 關閉。`／`關閉 CER。` | 完成 CER 收尾，讓同一 E1 收斂到 `writer closed`。 |
+| `/CER-status` | `顯示 CER 狀態。` | 顯示已知狀態、角色座標、下一停點與阻礙，不輪詢。 |
 | `/CER-help` | `顯示 CER 指令。` | 顯示可用指令。 |
 
-## 和一條 thread 加 sub-agent 有甚麼分別
+單獨 `收工` 不會觸發 CER close，也不會被當成 `/CER-stop`。
 
-傳統做法通常是你在同一條 thread 裡一路帶路。AI 做一步，你看一步；它卡住時問你；你再判斷要不要開 sub-agent、要問甚麼、回來後要不要信。這種方式簡單，短任務很好用。
+## CER 怎樣工作
 
-CER 把這些中途協調交給 C。C 會先證明任務之間能收發訊息，然後把自足任務交給同一個 E1。E1 完成後主動回傳給 C。C 讀回、判斷、需要時找 R1 反證，再把真正可用的成果或停點交給你。
+1. C 在實際派工前，用最短方式確認終點、真源、邊界、權限／停點和驗收；沒有來源的推測不能冒充已確認。
+2. 本地或明確指定的 Remote task 可以成為唯一 C。Remote 接收者先回 candidate `C_READY`；啟動方核實沒有另一個 active C、讀回收據並回送 `C_ACCEPTED` 後，接收者才正式成為 C。
+3. C 證明 task/thread 身份、發送路徑、回傳座標和裁決點，再取得 E1 的零寫入 `ready`。
+4. 同一個持久 E1 是唯一 writer。每個批次都自足，不依賴「見上文」。
+5. E1 主動 direct-push 候選給 C；C 讀回、測試和裁決，不靠輪詢找成果。
+6. R 找到多項問題時，C 先按共同成因和對使用者的影響合併同類問題，一次修完整個受影響邊界。只有成因、使用者影響不同，或最新修補造成新回歸時，才另開範圍。
 
-好處：
+長期或多批任務會用 inline roadmap 顯示終點、目前位置、下一停點和角色狀態。方向抉擇、重大阻礙、階段成果和最終驗收才打斷使用者；普通小步不展示流程儀式。
 
-- 你不用每一步替 AI 拆任務。
-- AI 中途遇到一般問題，先由 C 自行判斷和處理。
-- 回到你面前的通常是方向裁決、阻礙、階段成果或最終驗收。
-- 長任務較不容易因中斷、上下文散掉或 sub-agent 回傳不清而失控。
-- 專業任務會先界定知識底座，避免用一般常識硬答。
+## 和單 thread 有甚麼分別
 
-代價：
+單 thread 適合一次性小修改或你想逐步帶著 AI 做的工作。CER 適合長期、多批、容易中斷、需要唯一 writer 或按風險獨立反證的工作。
 
-- 啟動比單 thread 慢。
-- 平台必須能證明 task/thread 的身份、發送路徑和回傳座標。
-- 只成功建立 thread、改 title 或單向 send 不夠；沒有 E1 的 `ready/result` 回傳，CER 會停下。
-- 小任務通常不值得用 CER。
-- C 是 AI 主控，不等於你放棄裁決權。重大方向、權限、成本、發布和驗收仍會回到你手上。
+CER 的代價是啟動前要先證明通訊閉環。只建立 task、改 title 或單向 send 都不算完成；缺少 `ready/result` 回傳時，CER 會誠實停在 blocker。
 
-## 這個賣點真實成立嗎
+## 可以隨時停用或收尾嗎
 
-大方向成立，但有一個前提：平台要支援可驗證的跨 task 回傳。
+可以。`/CER-stop` 會停止新派工並回到單 thread；如果 E1 正在寫入，C 先把 writer 收斂到可判定狀態。
 
-CER v1 的規則要求 C 在派工前先證明：
-
-- 誰是 C、E1、R1。
-- 任務會送到哪裡。
-- E1 怎樣把 `ready` 和結果回傳給 C。
-- C 在哪裡裁決。
-
-任一環缺失，C 會停在紅色 blocker。這樣做不夠自動，但比較誠實；它避免 AI 把「我已發出 prompt」當成「工作閉環成立」。
-
-## 可以隨時啟用或停用嗎
-
-可以。
-
-在專案中，你可以用 `CER 工作法啟動：...` 或 `/CER-start ...` 開始 CER。適合長任務、多批修補、發布、治理、研究和高風險改動。
-
-你也可以停用 CER，回到普通單 thread 工作。做法很簡單，直接說：
-
-```text
-停止 CER，改用單 thread 繼續。
-```
-
-也可以用：
-
-```text
-/CER-stop
-```
-
-停用後，C 不再派新的 E1/R1 批次。已經有 E1 在寫入時，C 需要先確認 writer 停止或交付到可判定狀態，再回到單 thread，避免同一個 workspace 同時有兩邊寫。
-
-如果你想完成 CER 收尾，用 `/CER-close` 或 `CER 收工。`。這會讓同一 E1 回寫既有必要真源並標 `writer closed`。
-
-## 何時不需要 CER
-
-以下情況直接用單 thread 更快：
-
-- 一次性小修改
-- 你已經知道要改哪一行
-- 沒有跨 task、驗收或發布風險
-- 你想親自逐步帶著 AI 做
+`/CER-close` 則完成 CER 收尾。它讓同一 E1 只更新 workspace 已有的必要真源並標示 `writer closed`。CER 不會自行建立固定專案文件或平行進度來源。
 
 ## 包含內容
 
-- `skills/cer-workflow/`：CER Core v1 skill
-- `01_CER工作法_人類概覽.md`：人類概覽
-- `02_CER工作法_AI執行協議.md`：給沒有 skill 環境使用的 Markdown 協議
+- [`skills/cer-workflow/`](skills/cer-workflow/)：繁中 CER Core v1 Skill
+- [`skills/cer-workflow-en/`](skills/cer-workflow-en/)：完整英文鏡像 Skill
+- [`ABOUT.md`](ABOUT.md)：簡短產品說明
+- [`RELEASE_NOTES.md`](RELEASE_NOTES.md)：已發布歷史與未發布候選摘要
 
-## 目前版本
-
-這個 repo 發布 CER Core v1。
-
-v1 是 standalone 工作法，不寫 Agent Handoff Kit 檔案，也不做 Kit closeout。`02_CER工作法_AI執行協議.md` 內有 v2 appendix，讓讀者知道 Kit Adapter 的邊界；可安裝 skill 只包含 v1。
+本 repo 只提供 CER Core v1 的公開、可安裝內容。

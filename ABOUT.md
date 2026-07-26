@@ -1,13 +1,11 @@
 # About
 
-CER Workflow helps an agent handle long work without losing the thread.
+CER Workflow helps an AI complete long-running or multi-batch work through one Controller, one persistent Executor as the only writer, and fresh Reviewers only when risk justifies independent challenge.
 
-It gives the user one Controller, one persistent Executor, and fresh Reviewers only when the risk justifies it. The workflow is strict about return paths. If the agent cannot prove that a task can receive instructions and send results back, it stops before real work starts.
-
-The main user benefit is a quieter handoff. The user gives the goal to C, then C handles task splitting, execution follow-up, checks, and ordinary mid-task problems. The user comes back in at real checkpoints.
+It verifies cross-task return paths before real work, keeps batches self-contained, shows useful checkpoints and inline progress for long work, and returns to the user for material decisions, blockers, and acceptance.
 
 Repository description:
 
 ```text
-Standalone CER workflow skill for long-running AI work with Controller, persistent Executor, and risk-based Reviewers.
+CER workflow Skills for reliable long-running AI work with one persistent writer and risk-based review.
 ```
