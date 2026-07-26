@@ -39,8 +39,8 @@ CER 啟動：<你想完成的事、限制、優先順序>
 | 指令 | 自然語言 | 用途 |
 |---|---|---|
 | `/CER-start <任務、限制、優先順序>` | `CER 啟動：...`／`CER 開始：...`／`CER 開工：...` | 啟動 CER。 |
-| `/CER-stop` | `停止 CER，改用單 thread 繼續。` | 停用 CER 拓撲，不再派新 E1／R。 |
-| `/CER-close` | `CER 收工。`／`CER 關閉。`／`關閉 CER。` | 完成 CER 收尾，讓同一 E1 收斂到 `writer closed`。 |
+| `/CER-stop` | `停止 CER，改用單 thread 繼續。` | 退出 CER 工作模式；不再派新 E1／R，但不代表任務已完成。 |
+| `/CER-close` | `CER 收工。`／`CER 關閉。`／`關閉 CER。` | 正式完成 CER 收尾；確認成果、未完成事項和同一 E1 的 `writer closed` 狀態。 |
 | `/CER-status` | `顯示 CER 狀態。` | 顯示已知狀態、角色座標、下一停點與阻礙，不輪詢。 |
 | `/CER-help` | `顯示 CER 指令。` | 顯示可用指令。 |
 
@@ -63,11 +63,11 @@ CER 啟動：<你想完成的事、限制、優先順序>
 
 CER 的代價是啟動前要先證明通訊閉環。只建立 task、改 title 或單向 send 都不算完成；缺少 `ready/result` 回傳時，CER 會誠實停在 blocker。
 
-## 可以隨時停用或收尾嗎
+## 停用和收尾有甚麼分別
 
-可以。`/CER-stop` 會停止新派工並回到單 thread；如果 E1 正在寫入，C 先把 writer 收斂到可判定狀態。
+`/CER-stop` 是退出 CER 工作模式。用在你想中途改回普通單 thread 時；C 會停止新派工，如果 E1 正在寫入，先把 writer 收斂到可判定狀態。它不宣稱任務完成，也不產生正式 CER 收尾證明。
 
-`/CER-close` 則完成 CER 收尾。它讓同一 E1 只更新 workspace 已有的必要真源並標示 `writer closed`。CER 不會自行建立固定專案文件或平行進度來源。
+`/CER-close` 是正式結束這次 CER。用在任務已完成或要交最終結果時；C 會收斂成果、風險和未完成事項，讓同一 E1 只更新 workspace 已有的必要真源並標示 `writer closed`。CER 不會自行建立固定專案文件或平行進度來源。
 
 ## 包含內容
 

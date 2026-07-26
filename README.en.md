@@ -39,8 +39,8 @@ A plain start/work message does not start CER. It remains available to the works
 | Command | Natural language | Use |
 |---|---|---|
 | `/CER-start <task, constraints, priorities>` | `Start CER: ...` | Start CER. |
-| `/CER-stop` | `Stop CER and continue in a single thread.` | Turn off the CER topology and send no new E1/R work. |
-| `/CER-close` | `Close CER.` | Finish CER and converge the same E1 to `writer closed`. |
+| `/CER-stop` | `Stop CER and continue in a single thread.` | Leave CER mode; send no new E1/R work, but do not claim the task is complete. |
+| `/CER-close` | `Close CER.` | Formally close CER; confirm the result, remaining work, and the same E1's `writer closed` state. |
 | `/CER-status` | `Show CER status.` | Show known state, role coordinates, next checkpoint, and blockers without polling. |
 | `/CER-help` | `Show CER commands.` | Show the available commands. |
 
@@ -63,11 +63,11 @@ A normal single thread is faster for one small edit or work you want to guide st
 
 The trade-off is that CER must prove its communication loop before work starts. Creating a task, changing a title, or sending one message is not enough. Without `ready/result` receipts, CER stops honestly at a blocker.
 
-## Stop Or Close CER
+## Stop Versus Close CER
 
-`/CER-stop` sends no new work and returns to one thread. If E1 is writing, C first converges the writer to a verifiable state.
+`/CER-stop` leaves CER mode. Use it when you want to continue in a normal single thread. C sends no new work, and if E1 is writing, C first brings the writer to a verifiable state. It does not claim that the task is finished and does not create a formal CER closeout.
 
-`/CER-close` finishes CER. The same E1 updates only required sources that already exist in the workspace and marks `writer closed`. CER does not create a fixed project document set or a parallel progress source.
+`/CER-close` formally ends this CER run. Use it when the task is complete or you want a final handoff. C converges the result, risks, and remaining work; the same E1 updates only required sources that already exist in the workspace and marks `writer closed`. CER does not create a fixed project document set or a parallel progress source.
 
 ## Included
 
