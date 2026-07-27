@@ -2,11 +2,26 @@
 
 [繁體中文](README.md)
 
-CER Workflow is for AI work that is long-running, split across batches, easy to interrupt, or important enough to need extra care.
+CER = Controller, Executor, Reviewer.
 
-It keeps the work clear: one coordinator confirms the goal, constraints, and acceptance; one steady executor makes the actual file changes; and an independent reviewer is added only when risk calls for a second look. Small tasks can still stay in one ordinary task.
+CER separates coordination, file changes, and review into independent Codex tasks, then has the Controller connect them into one closed loop. It is for work that is long-running, split across batches, easy to interrupt, or important enough to need independent checking. Small tasks can still stay in one ordinary conversation.
 
-![CER Workflow overview](assets/cer-workflow-infographic.en.png)
+You mainly stay with the Controller. The Controller comes back to you for direction, permissions, cost, publication, major issues, or final acceptance.
+
+![CER workflow diagram: Controller, Executor, and Reviewer handle coordination, file changes, and review](assets/cer-workflow-infographic.en.png)
+
+## Roles
+
+**Controller (C): coordination and decisions**
+Understands the goal, constraints, and completion criteria; assigns work and judges results. The Controller does not modify project files.
+
+**Executor (E1): implementation and file changes**
+The only role that modifies files. It implements in batches, tests, and returns candidate results with evidence. The same E1 stays in use throughout one CER cycle, so file changes do not come from several roles at once.
+
+**Reviewer (R1): independent review**
+An independent Codex task that checks in read-only mode, gives conclusions, and does not write files. It is used only for important or high-risk work, or when independent verification is needed.
+
+Sidebar labels such as `C:01`, `E1:01`, and `R1:01` mark the roles in the same CER cycle.
 
 ## Install Or Upgrade With One Prompt
 
@@ -36,9 +51,9 @@ A plain start/work message does not start CER. It remains available for your usu
 
 | Command | Natural language | Use |
 |---|---|---|
-| `/CER-start <task, constraints, priorities>` | `Start CER: ...` | Start CER mode. |
-| `/CER-stop` | `Stop CER and continue in one task.` | Stop using CER and return to ordinary work; this does not mean the task is complete. |
-| `/CER-close` | `Close CER.` | Formally close CER; summarize the result, remaining work, and state to keep. |
+| `/CER-start <task, constraints, priorities>` | `Start CER: ...` | Start CER, with the Controller coordinating the work. |
+| `/CER-stop` | `Stop CER and continue in one ordinary conversation.` | Stop using CER and stop assigning new Executor or Reviewer work; this does not mean the task is complete. |
+| `/CER-close` | `Close CER.` | Formally end this CER cycle; summarize the result, risks, and remaining work. |
 | `/CER-status` | `Show CER status.` | Show current progress, the next stopping point, and known issues. |
 | `/CER-help` | `Show CER commands.` | Show the available commands. |
 
@@ -46,27 +61,33 @@ A plain close/finish message does not close CER and is not treated as `/CER-stop
 
 ## How CER Works
 
-1. The coordinator first confirms the goal, what is out of scope, what information must be read, and when the work should stop for your decision.
-2. Once that is clear, the same executor handles the actual changes. Long work does not keep switching who writes files.
-3. If the work is riskier, or if another perspective is needed, the coordinator asks an independent reviewer to check the affected scope.
-4. The coordinator comes back to you only for direction decisions, missing input, major issues, or acceptance.
-5. CER does not create a fixed set of project documents, and it does not treat its own process notes as your project records.
+1. You give the full task to the Controller, including the goal, constraints, and priorities.
+2. The Controller confirms the completion criteria, sources, and stopping points, then sends implementation work to the Executor.
+3. The Executor changes files, tests the work, and returns candidate results with evidence to the Controller.
+4. For important or risky work, the Controller asks the Reviewer to perform an independent read-only check.
+5. The Controller groups issues, decides what should be fixed, and returns the result, risks, and decisions that need you.
+
+Issues with the same cause are grouped into one batch and sent back to the same Executor. The scope widens only for a different problem, a new effect, or a new risk.
 
 When CER starts, it first confirms that the working tasks can return messages to each other. If that cannot be confirmed, CER stops and tells you instead of pretending it has started.
 
-## CER Compared With One Thread
+## Ordinary Conversation vs CER
 
-One ordinary task is better for a small one-time edit, or when you want to guide the AI step by step.
+| Ordinary conversation | CER |
+|---|---|
+| One conversation handles understanding, changes, and checking. | Coordination, file changes, and review happen in independent Codex tasks. |
+| Best for small one-time edits. | Best for long, multi-batch, interruption-prone, or important work. |
+| A long conversation can lose the main line. | The Controller keeps the main line and gathers each batch back together. |
+| You often need to ask follow-up questions and pull context together. | Each role returns results and issues to the Controller. |
+| Review can be shaped by the same implementation context. | The Reviewer can check from an independent read-only context. |
 
-CER is better for work that is longer, split into batches, easy to interrupt, or needs steadier delivery. The point is not to add roles for their own sake. The point is to keep one executor responsible for file changes and add an independent review only when it helps.
-
-CER spends a little more time at the start confirming the task and return path. That avoids discovering halfway through that the goal, responsibility, or acceptance is unclear.
+The value of CER is not adding roles for their own sake. It is reducing context pollution, role confusion, and confirmation bias while keeping you out of step-by-step management.
 
 ## Stop Versus Close CER
 
-`/CER-stop` stops using CER. Use it when you want to return to one ordinary task partway through. It only means CER is no longer coordinating the work; it does not mean the task is complete.
+`/CER-stop` stops using CER and returns to one ordinary conversation. It means the Controller will not assign new Executor or Reviewer work; it does not mean the task is complete.
 
-`/CER-close` formally closes this CER run. Use it when the task is complete, or when you want the current result, risks, and remaining work summarized clearly. After close, that CER run is kept as history and does not take the next cycle of work.
+`/CER-close` formally ends this CER cycle. The Controller summarizes the result, risks, and remaining work, and confirms that the Executor has stopped writing. After close, the old C/E/R tasks are history only; the next cycle uses new role tasks.
 
 ## Included
 
