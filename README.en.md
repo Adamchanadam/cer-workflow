@@ -8,15 +8,25 @@ You give the goal, constraints, and priorities to the `🚀 C:` Controller. C cl
 
 ![CER Workflow overview](assets/cer-workflow-infographic.en.png)
 
-## Install With One Prompt
+## Install Or Upgrade With One Prompt
 
-Paste this into your agent:
+Paste this into Codex:
 
 ```text
-Install the English CER Skill (skills/cer-workflow-en) from https://github.com/Adamchanadam/cer-workflow. Use skills/cer-workflow for Traditional Chinese. Do not start CER automatically after installation; wait for my explicit CER command.
+Install or upgrade the English CER Skill for Codex. Handle only skills/cer-workflow-en; do not install another language or another agent version. Use the `skills` CLI and follow its upstream documentation:
+1. Run `npx skills ls -g -a codex` first, then read back the actual global install path, source, and available `skills` CLI metadata.
+2. If `cer-workflow-en` is recognized by the `skills` CLI, run: npx skills update cer-workflow-en --global --yes
+3. If `cer-workflow-en` is not recognized and no target-file conflict exists, run: npx skills add Adamchanadam/cer-workflow --skill cer-workflow-en --agent codex --global --yes
+4. If files already exist at the target path but the `skills` CLI does not recognize or manage them, do not silently overwrite, delete, or migrate them with --yes. First report the actual path, source evidence, current state, and migration impact, then wait for my explicit confirmation.
+5. Read back the source URL, skill path, installed `VERSION`, and install state after completion.
+6. Do not start CER automatically. Wait for my explicit CER command.
 ```
 
-The Traditional Chinese and English Skills are complete, independently installable packages. Detailed operating procedure lives only in each package's `references/`.
+This flow follows the Vercel Labs [`skills` CLI upstream README](https://github.com/vercel-labs/skills/blob/main/README.md). Codex global installs target `~/.codex/skills/`; interactive installs may use a symlink to a canonical copy or an independent copy. Management by the `skills` CLI must be determined from `skills ls` / `skills update` recognition and readable source / metadata where available, not from the path alone.
+
+The Traditional Chinese and English Skills are Codex-only, complete, and independently installable packages. A Claude Code version would be a separate Skill and has not been provided; this repository does not currently claim Claude Code support. Detailed operating procedure lives only in each package's `references/`.
+
+Bear-card package versions come only from the installed Skill's `VERSION`, currently `0.2.1`; updating the whole Skill naturally supplies the next value. A missing, unreadable, or malformed value renders `version unverified` instead of guessing from the workflow generation or network data.
 
 ## Start CER
 

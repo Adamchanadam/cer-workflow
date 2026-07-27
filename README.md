@@ -8,15 +8,25 @@ CER 工作法讓長期、多批或高風險的 AI 工作有清楚分工、唯一
 
 ![CER 工作法原理圖](assets/cer-workflow-infographic.png)
 
-## 一句 prompt 安裝
+## 一句 prompt 安裝或升級
 
-把這句交給你的 agent：
+把這句交給 Codex：
 
 ```text
-請從 https://github.com/Adamchanadam/cer-workflow 安裝繁中 CER Skill（skills/cer-workflow）。如需英文版，改裝 skills/cer-workflow-en。安裝後不要自動啟動，等我輸入明確 CER 指令。
+請為 Codex 安裝或升級繁中 CER Skill；只處理 skills/cer-workflow，不要安裝其他語言或其他 agent 版本。使用 `skills` CLI，並以其上游文件為準：
+1. 先執行 `npx skills ls -g -a codex`，並讀回實際全域安裝路徑、來源及可用的 `skills` CLI metadata。
+2. 如 `cer-workflow` 已被 `skills` CLI 辨識，執行：npx skills update cer-workflow --global --yes
+3. 如 `cer-workflow` 未被辨識且沒有目標檔案衝突，執行：npx skills add Adamchanadam/cer-workflow --skill cer-workflow --agent codex --global --yes
+4. 如目標路徑已有檔案但 `skills` CLI 不辨識或不能管理，禁止自動覆寫、刪除或以 --yes 靜默遷移；先報告實際路徑、來源證據、現況及遷移影響，等我明確確認。
+5. 完成後讀回來源 URL、skill path、已安裝 `VERSION` 及安裝狀態。
+6. 不要自動啟動 CER；等我輸入明確 CER 指令。
 ```
 
-繁中和英文 Skill 都是完整、可獨立安裝的 package。詳細操作規程只在各自的 `references/`。
+以上流程依據 Vercel Labs [`skills` CLI 上游 README](https://github.com/vercel-labs/skills/blob/main/README.md)。Codex 全域安裝目標是 `~/.codex/skills/`；互動安裝可使用指向 canonical copy 的 symlink，或使用獨立 copy。是否由 `skills` CLI 管理，必須依 `skills ls`／`skills update` 辨識結果及可讀回的來源／metadata 判斷，不能只靠路徑判定。
+
+本 repo 的繁中和英文 Skill 都是供 Codex 使用、可各自獨立安裝的 package。Claude Code 版是另一個尚未提供的 Skill；本 repo 目前不聲稱支援 Claude Code。詳細操作規程只在各自的 `references/`。
+
+小熊卡的 package 版本只讀自已安裝 Skill 內的 `VERSION`，目前為 `0.2.1`；每次升級整個 Skill 後會自然讀到新值。缺失、不可讀或格式錯誤時，卡片顯示 `version unverified`，不以工作流世代或網路資料猜測。
 
 ## 開始使用
 

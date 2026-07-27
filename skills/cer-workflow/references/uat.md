@@ -1,12 +1,36 @@
 # CER Core v1 Fresh UAT
 
-UAT 必須由使用者在乾淨 project 手動建立新 task。來源專案的 C 建立、fork 或 delegate 出來的 task 帶有來源上下文，不算 fresh。
+Fresh UAT 必須在獨立乾淨 project 以側欄可見官方新 task 執行。來源專案的 C 建立、
+fork 或 delegate 出來的 task 帶有來源上下文，不算 fresh。
 
 只有標題、fork、delegate、單向送訊或工具參數成功，不等於閉環通過。必須有 E1 direct-push ready/result。
+
+在本 Codex 專案的 Full Audit／全面檢中，若官方 `create_thread` task 工具與乾淨
+UAT workspace 可用，AI 真實流程 UAT 是必要組成，不能用 sub-agent、fork 或文字
+模擬。若工具或乾淨 workspace 經實證不可用，才可精確降級為
+`Full Audit 通過（只限全文靜態審核；AI 真實流程 UAT 不可用）`，不得說 AI UAT
+通過。發布後使用者手動 UAT 是公開安裝與使用者體驗的另一層，結果另報
+`未執行／通過／失敗`；AI UAT 不可冒充人工 UAT。
+
+AI 真實流程 UAT 證據必須列出兩輪實際 thread ids 並做機械比較：同一輪多批次 E1
+threadId 相同；C2 threadId 不同於 C1；第二輪 E1 threadId 不同於第一輪 E1；第二輪
+每個 R 都是新 threadId，不得等於第一輪任何 R，也不得沿用同輪較早 R。只用文字說
+fresh 不足夠。
+
+同一輪所有 C／E／R title 必須使用相同短 cycle 編號，例如 `🚀 C:01｜...`、
+`E1:01｜...`、`R1:01｜...`；下一輪使用新編號。規則生效後的新 cycle 必須用
+`01` 以上，不能用 `00`。`00` 只可用於明確 legacy/migration fixture，表示 cycle
+numbering 規則生效前已開始且無法可靠回推原 cycle number。cycle 編號只供側欄
+辨識，不是 lock、run ID、唯一 C 證據或 thread 身份。若新 cycle 無法可靠枚舉或
+設定 title，保留最短 role title 並報真實 `title sync warning`；不得顯示問號 cycle
+label，不得猜測數字。
 
 ## 安裝情景
 
 - 目標只有本 Skill，沒有來源 handoff 或來源專案背景。
+- 本 Skill 只供 Codex；不得聲稱目前 repo 已提供 Claude Code 版 Skill。
+- Skill 根目錄 `VERSION` 只有一行穩定 semver，現值為 `0.2.1`；每張小熊卡顯示
+  前都重新讀取，格式無效時顯示 `version unverified`。
 - 新 C 能只靠 Skill 和使用者總任務啟動。
 - `/CER-start`、`CER 啟動`、`CER 開始`、`CER 開工` 正常觸發 CER；單獨 `開工` 不觸發 CER。
 - `/CER-close`、`CER 收工`、`CER 關閉`、`關閉 CER` 正常觸發 CER close；單獨 `收工` 不觸發 CER close，也不映射為 `/CER-stop`。
@@ -14,17 +38,26 @@ UAT 必須由使用者在乾淨 project 手動建立新 task。來源專案的 C
 ## 完整流程
 
 1. 使用者輸入已有清晰目標／計劃的多批總任務，可用 `CER 工作法啟動：...` 或 `/CER-start ...`。
-2. C 以 `🚀 C:` 標題或首行標籤識別主 task，完成 Controller preflight；完整任務直接通過，有來源的 `已確認` 和通過反事實測試的 `可安全推定` 不阻塞，關鍵終點／權限／驗收缺失時用黃色停點最多問三題。
-3. C 完成通訊 preflight，建立或復用已證明可收發的 `E1:` 持久 task，取得含 session／thread 座標的 ready direct-push。
+2. C 以 `🚀 C:01｜<極短任務名>` 標題或首行標籤識別主 task，完成 Controller preflight；完整任務直接通過，有來源的 `已確認` 和通過反事實測試的 `可安全推定` 不阻塞，關鍵終點／權限／驗收缺失時用黃色停點最多問三題。
+3. C 完成通訊 preflight，用官方 `create_thread` 建立同一 Codex project 側欄可見
+   的全新 `E1:01｜...` 持久 task，讀回 title、thread id 與正式回傳路徑，取得含
+   session／thread 座標的 ready direct-push。
 4. C 映射目標專案既有真源與本任務知識底座，不建立固定 CER 文件。
-5. C 用真正 inline visualization 顯示初始路線圖；刻意確認不是只用 Mermaid。
-6. C 只在啟動／首批前、重大裁決、重大阻礙、階段交付和收工時使用小熊卡與 inline visualization；普通 E1 子步驟不發卡。
-7. 同一 E1 完成至少兩個實作批次；低風險批次不建立 R；E1 使用 C 的凍結任務契約，不自行擴大範圍或驗收。
-8. 一個高風險核心承諾由 `R1:` fresh R 依同一知識底座和凍結任務契約唯讀反證，且只重審受影響邊界。
+5. 每次成功接受 `CER-start`，C 的第一個使用者可見成功回執都是固定開眼
+   `CER 工作法 v0.2.1`／`🔵 CER 已啟動` 卡；小熊腳右側留白，單批也必須顯示。
+   多階段／多批任務再用真正 inline visualization 顯示初始路線圖，並確認不是
+   只用 Mermaid。
+6. C 只在啟動、重大裁決、重大阻礙、階段交付、成功停用和成功收尾時使用相應
+   小熊卡；普通 E1 子步驟不發卡。
+7. 同一 E1 完成至少兩個實作批次；低風險批次不建立 R；同輪後續批次復用
+   第 3 步的同一 E1，不重建也不換人。E1 使用 C 的凍結任務契約，不自行擴大
+   範圍或驗收。
+8. 一個高風險核心承諾由官方 `create_thread` 建立的側欄可見 `R1:01｜...` fresh
+   新 task 依同一知識底座和凍結任務契約唯讀反證，且只重審受影響邊界。
 9. C 在重大方向或交付形狀改變時停點，分階段交付可觀察成果，最後取得使用者驗收。
-10. 使用者明示 `CER 收工`、`CER 關閉`、`關閉 CER` 或 `/CER-close`；同一 E1 更新既有必要真源並標 writer closed；沒有持久真源時不假稱可跨 session 完整恢復。
+10. 使用者明示 `CER 收工`、`CER 關閉`、`關閉 CER` 或 `/CER-close`；同一 E1 更新既有必要真源並標 writer closed。C 完成必要讀回後，用官方 title 工具把本輪可核實 C／E／R title 改成 `🚀 C:01✓｜...`、`E1:01✓｜...`、`R1:01✓｜...` 並讀回；失敗則如實報 `title sync warning` 與失敗座標。最後才顯示固定閉眼 `🟢 CER 已收尾`／`writer closed` 卡；沒有持久真源時不假稱可跨 session 完整恢復。
 11. 另做組合情景：與 `$project-context-workflow` 同用時不重建文件、不搶共識關卡，也不由後者建立 C／E1／R。
-12. 另做停用情景：使用者輸入 `/CER-stop`；C 不再派新 E1/R，若 E1 正在寫入先收斂到 writer closed 或重大阻礙，再回到單 thread。
+12. 另做停用情景：使用者輸入 `/CER-stop`；C 不再派新 E1/R，若 E1 正在寫入先收斂到 writer closed 或重大阻礙。只有證明沒有 active writer 並完成必要讀回，才顯示固定閉眼 `⚪ CER 已停用`／`CER inactive` 卡並回到單 thread。
 
 ## Remote Controller 情景
 
@@ -33,6 +66,32 @@ UAT 必須由使用者在乾淨 project 手動建立新 task。來源專案的 C
 - 參與 host 枚舉不完整、候選 root／身份／狀態不可讀回、座標不完整或證據衝突時必須停止。
 - 已有 active C 時只可沿用，或在舊 C 明確 handoff／close 並讀回後轉移；若發送方原是 active C，必須先完成 handoff／close 才可發 `C_ACCEPTED`。
 - benign 跨 task E1／R 敘述若仍是自足派工和 direct-push 回傳，不得被誤判為 Remote C 衝突。
+
+## 跨輪隔離情景
+
+- 同一 workspace 成功 `/CER-close` 後，舊 C／E／R task 可保留作歷史，但整組
+  不可再接收下一輪工作。
+- 新 task 的新 `CER-start` 只有在唯一 C 閘門讀回舊 C 已
+  `closed`／`handed-off`、沒有 active C，且所有參與 host 可核實後才成立。
+- 新一輪建立全新 E1，所有 R 都 fresh；不得復用上一輪 closed C 的任何 E1
+  或 R task／座標。證據必須比較 cycle 編號與 threadId：同輪 E1 threadId 相同，
+  第二輪 cycle 編號不同，C／E1／R threadId 均不同，且舊輪 title 前段已有 `✓` 或
+  有真實 `title sync warning`。
+- 乾淨 project 的 AI 真實流程 UAT 新 cycle 必須使用 numeric `01` 以上；`00` 只可
+  出現在明確 legacy migration fixture。任何可見問號 cycle title 都判失敗。
+- 舊 C 狀態或任一參與 host 不可核實時，啟動受阻並顯示開眼紅色 blocker 卡。
+
+## Codex task 拓撲情景
+
+- E1、E2 及每個 R 都由官方 `create_thread` 在同一 Codex project 建立為側欄
+  可見獨立新 task/thread；ready/result 讀回 title、thread id 與正式回傳路徑。
+- 同一輪後續批次持續復用本輪同一 E1；只有 E1 停止寫入、workspace 可判定且
+  C 發出接管批次後，才可用 `create_thread` 另建 E2。
+- 每個 R 都是 fresh 新 task；同一輪或跨輪都不得沿用舊 R。
+- C 可用 inline sub-agent 作唯讀探索、證據整理或候選分析；它不得寫 workspace，
+  不得代替 E 或 R，不得產生正式 ready/result，也不得作 CER Reviewer 通過證據。
+- 缺少 `create_thread`、側欄可見 title、可核實 thread id 或正式回傳路徑時，
+  E／R 委派受阻；不得降級使用 inline sub-agent、fork、delegate 或既有 task。
 
 ## 審閱收斂情景
 
@@ -50,8 +109,14 @@ UAT 必須由使用者在乾淨 project 手動建立新 task。來源專案的 C
 ## 失敗條件
 
 - 臨時 subagent 代替持久 E1。
-- Controller 使用單獨 `C:` 而不是 `🚀 C:` 作可見標題或首行標籤。
+- inline sub-agent、fork、delegate 或既有 task 被當作正式 E1、E2 或 R。
+- C 的 inline sub-agent 寫 workspace、產生正式 ready/result、代替 E／R，或被列為 CER Reviewer 通過證據。
+- E1／R 缺少官方 `create_thread` 建立證據、側欄可見 title、可核實 thread id 或正式回傳路徑，仍開始工作。
+- Controller 使用單獨 `C:` 而不是 `🚀 C:01｜...` 作可見標題或首行標籤。
 - E1／R／E2 標題或首行標籤錯誤加上 `🚀`。
+- E1 第二輪被命名為 `E2:`，或把角色序號與 cycle 編號混在一起；同輪 C／E／R cycle 編號不一致；跨輪沿用同一 cycle 編號。
+- cycle 編號被當作 lock、run ID、唯一 C 證據或 thread 身份；漏列 threadId 仍通過。
+- 新 cycle 使用 `00`；任何可見問號 cycle title；無法可靠枚舉或設定 title 時顯示假 label 或猜測數字，而不是保留最短 role title 並報真實 `title sync warning`。
 - 單獨 `開工` 啟動 CER，或單獨 `收工` 觸發 CER close／stop。
 - 明確帶 CER 的啟動或 close 等價句沒有觸發相應 CER 行為。
 - Controller preflight 未完成，或有 `關鍵缺失` 仍建立／復用 E1 或派實際批次。
@@ -80,6 +145,20 @@ UAT 必須由使用者在乾淨 project 手動建立新 task。來源專案的 C
 - C 以輪詢發現成果。
 - 知識性複雜任務沒有界定知識底座，或 R 只查格式、不反證專業主張。
 - 每個內部小步都發卡，或重大裁決／阻礙／階段交付時沒有發卡。
+- 小熊卡沒有先讀本 Skill 的 `VERSION`，把 `v1` 當 package 版本，或從網路、
+  Git tag、GitHub Release／lock metadata 猜版本。
+- `VERSION` 缺失、不可讀或格式錯誤時沒有顯示 `version unverified`。
+- 啟動卡的小熊腳右側仍顯示 `checkpoint ready`。
+- release／upgrade 沒有先更新 `VERSION`。
+- 單批 `CER-start` 沒有固定啟動卡，或啟動卡錯用閉眼小熊。
+- stop／close 尚未證明 writer 停止或必要讀回完成，卻顯示閉眼成功卡；close 在
+  title sync 或 `title sync warning` 讀回前顯示閉眼卡；title rename 失敗卻宣稱已
+  改名；受阻時沒有使用開眼紅色 blocker 卡。
+- close 後新一輪 C 復用上一輪的 E1 或 R task／座標。
+- close 後舊輪 title 前段沒有 `✓`，也沒有真實 `title sync warning`，卻聲稱 close
+  title 同步完成；只改 title 或只檢文字就算 lifecycle close。
+- 同輪後續批次沒有復用同一 E1，卻在未達 E2 接管條件時另建 writer。
+- 舊 C 狀態或參與 host 不可核實，仍啟動第二 C。
 - 可用 inline visualization 時只顯示 Mermaid。
 - 普通小修改都建立 fresh R 或全專案重審。
 - CER 自行建立固定五份項目文件或平行進度。

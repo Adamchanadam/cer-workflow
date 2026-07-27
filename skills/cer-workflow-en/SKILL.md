@@ -5,14 +5,17 @@ description: "Run the standalone CER multi-agent workflow in English for long-ru
 
 # CER Workflow
 
-CER Core v1 runs as a standalone workflow.
+CER Core v1 is a standalone workflow for Codex only. Claude Code requires a separate Skill
+that has not been provided. Do not claim that this Skill or repository currently supports
+Claude Code.
 
 ## Start
 
 When the user explicitly says `/CER-start <overall task, constraints, priorities>`, `Start CER: ...`, or an equivalent CER-qualified start:
 
 1. Read [core-runtime.md](references/core-runtime.md) in full.
-2. Read [roadmap.md](references/roadmap.md) in full when showing the initial roadmap or a four-color checkpoint.
+2. Read [roadmap.md](references/roadmap.md) in full for every accepted start, and when
+   handling `/CER-stop`, `/CER-close`, or another bear-card checkpoint.
 3. Read [uat.md](references/uat.md) in full only for installation acceptance or fresh UAT.
 
 ## Commands
@@ -30,10 +33,24 @@ Slash commands are stable text aliases. Register them in a slash-command, snippe
 ## Invariants
 
 - A local task or explicit remote receiver task must pass the complete unique-C startup gate in [core-runtime.md](references/core-runtime.md). Candidate `C_READY` plus sender readback is still insufficient; the receiver becomes the active Controller (C) only after actually receiving `C_ACCEPTED`.
-- Use one persistent, visible, reusable Executor (E1) as the only writer for the task. Do not substitute a one-off temporary subagent.
-- Create a fresh, read-only, bounded Reviewer (R) only for high risk or when C cannot reliably disprove a claim.
+- Every successfully accepted `CER-start` first shows the fixed open-eye start card from
+  [roadmap.md](references/roadmap.md), including simple single-batch work. Before showing any
+  bear card, read `VERSION` from this Skill root. A blocked start shows the open-eye red blocker
+  card and never a closed-eye success card.
+- Formal E/R roles must be independent new tasks/threads in the same Codex project sidebar,
+  created through the official `create_thread` tool. Do not downgrade to an inline sub-agent,
+  fork, or delegate.
+- Every `CER-start` cycle creates a brand-new E1. Later batches in the same cycle keep reusing
+  that same E1 as the only writer. E2 is created as another new task only after takeover
+  conditions are met.
+- Create Reviewer (R) only for high risk or when C cannot reliably disprove a claim. Every R
+  must be a fresh new task, read-only and bounded; do not reuse an old R.
+- C may use an inline sub-agent for read-only exploration, evidence organization, or candidate
+  analysis, but it is not a formal C/E/R role, must not write the workspace, must not replace E
+  or R, must not produce formal ready/result, and must not count as CER Reviewer acceptance
+  evidence.
 - Make every cross-task batch self-contained. E1 and R do not automatically inherit C's conversation.
-- When creating or identifying tasks or threads, the Controller uses a visible title or equivalent first-line label beginning with `🚀 C:`. E1/R/E2 still use `E1:`, `R1:`, `R2:`, or `E2:` without the rocket. Every return target must include a verifiable session/thread ID or platform-equivalent coordinate.
+- When creating or identifying tasks or threads, the Controller uses a visible title or equivalent first-line label in the form `🚀 C:01｜...`. E1/R/E2 still use `E1:01｜...`, `R1:01｜...`, `R2:01｜...`, or `E2:01｜...` without the rocket. Tasks in the same cycle share the same short cycle number; a later cycle uses a new number. `00` may identify only a legacy/migration cycle that started before cycle numbering and cannot be reliably reconstructed; new cycles use `01` or higher and never show a question-mark cycle label. The cycle number is sidebar display only, not uniqueness evidence; the full threadId remains authoritative. Every return target must include a verifiable session/thread ID or platform-equivalent coordinate.
 - Before creating a task or starting validation, use real tools to prove the identity source, required parameters, send path, recipient, session/thread coordinates, and adjudication point. If any link is missing, stop that delegation architecture. Document review, after-the-fact thread reads, and assumptions do not replace communication proof.
 - If create, fork, send, or title only partly succeeds and E1 does not direct-push `ready` and `result`, treat the communication chain as unproven. C may report a major blocker but must not send real work or claim a closed loop.
 - E1 and R direct-push results. C does not use waiting, polling, or background monitoring to discover them.
@@ -43,10 +60,21 @@ Slash commands are stable text aliases. Register them in a slash-command, snippe
 - Stop in the user's main task when a material direction, deliverable shape, or cost is undecided. After execution, deliver observable results at sensible stages.
 - Scale roles, batches, Reviewers, checkpoints, and acceptance to risk. Do not substitute more agents, documents, reviews, or ceremony for a clear target and testable acceptance.
 - Choose model and effort from capability, cost, and user limits. They are not fixed CER version blockers.
+- After one `/CER-close` completes in a workspace, that cycle's C/E/R tasks remain history
+  only and the whole set must not receive work for a later cycle. A later cycle must use a
+  new task that passes the unique-C gate, create a brand-new E1, and use only fresh
+  Reviewers. It must not reuse any E/R coordinate from the closed cycle.
+- On successful `/CER-close`, first prove `writer closed` and required readback, then use the
+  official title tool to append `✓` to the cycle number in every verifiable C/E/R title and read
+  it back. Rename failure only reports `title sync warning`; it must not be claimed as renamed.
+  Only after that does C show the closed-eye close card.
 
 ## Version Boundary
 
-This Skill contains CER Core v1 only.
+This Skill contains Codex-only CER Core v1; `v1` is the workflow generation, not the currently
+installed package version. Bear-card package versions come only from this Skill's `VERSION`.
+Every release or upgrade must update `VERSION` first. After the `skills` CLI updates the whole
+Skill, cards naturally read the new version.
 
 Root `01_CER_Workflow_Human_Overview.en.md` and `02_CER_Workflow_AI_Protocol.en.md` are internal requirements and acceptance blueprints for this source project, maintained separately from this Skill's execution surface. Skill references are the actual operating procedure. The two layers align through requirements and acceptance, but neither owns the other.
 

@@ -1,5 +1,17 @@
 # 發布說明
 
+範圍說明：本檔各版本區段記錄對應版本的 release history；實際執行規則以使用者已安裝版本隨附的 Skill references 為準。
+
+## v0.2.1
+
+本版收斂已通過 Full Audit 的 release-ready 候選：
+
+- 小熊生命週期卡改由 Skill `VERSION` 動態顯示 package 版本，並修正啟動、停用、收尾卡時機
+- 正式 C／E／R 使用官方側欄可見 task 拓撲，保留同輪 E1 復用、fresh R 與跨輪隔離
+- 短 numeric cycle title、CER-close `✓` rename 與 `title sync warning` 邊界完整寫入執行面
+- Codex-only 安裝／升級 prompt 依語言拆分，避免混裝其他語言或其他 agent 版本
+- release-readiness 證據包含全文靜態審核與兩輪 AI 真實流程 UAT；發布後使用者手動 UAT 仍獨立回報
+
 ## v0.2.0
 
 本版收斂為完整雙語公開版本：

@@ -1,12 +1,40 @@
 # CER Core v1 Fresh UAT
 
-The user must manually create a new task in a clean project for UAT. A task created, forked, or delegated by C in the source project carries source context and is not fresh.
+Fresh UAT must run in an independent clean project through sidebar-visible official new tasks. A
+task created, forked, or delegated by C in the source project carries source context and is not
+fresh.
 
 A successful title change, fork, delegation, one-way message, or tool parameter does not prove a closed loop. E1 must direct-push both `ready` and `result`.
+
+For this Codex project's Full Audit, when official `create_thread` task tools and a clean UAT
+workspace are available, AI real workflow UAT is required and cannot be replaced by a sub-agent,
+fork, or text simulation. If the tools or clean workspace are proven unavailable, the only allowed
+downgrade claim is `Full Audit passed (static corpus only; AI real workflow UAT unavailable)`, and
+it must not claim AI UAT passed. Post-release user manual UAT is a separate layer for public
+installation and user experience, reported separately as `not run`, `passed`, or `failed`; AI UAT
+must not be reported as manual UAT.
+
+AI real workflow UAT evidence must list actual thread ids for both cycles and perform mechanical
+comparison: same-cycle batches keep the same E1 threadId; C2 threadId differs from C1; cycle-2 E1
+threadId differs from cycle-1 E1; every cycle-2 R is a new threadId that differs from every cycle-1
+R and does not reuse an earlier R in the same cycle. Text that merely says fresh is insufficient.
+
+All C/E/R titles in the same cycle must use the same short cycle number, such as
+`🚀 C:01｜...`, `E1:01｜...`, and `R1:01｜...`; the next cycle uses a new number. New cycles after
+this rule is active must use `01` or higher, not `00`. `00` may appear only in an explicit
+legacy/migration fixture for a cycle that started before cycle numbering and whose original cycle
+number cannot be reliably reconstructed. The cycle number is sidebar display only, not a lock, run
+ID, unique-C proof, or thread identity. If a new cycle cannot reliably enumerate or set the title,
+keep the shortest role title and report a real `title sync warning`; do not show a question-mark
+cycle label or guess a number.
 
 ## Installation Scenario
 
 - The target contains only this Skill, with no source handoff or source-project context.
+- This Skill is for Codex only. Do not claim that this repository currently provides a
+  Claude Code Skill.
+- The Skill root `VERSION` is one stable-semver line, currently `0.2.1`. Read it again before
+  every bear card, and show `version unverified` when it is invalid.
 - A new C can start from only the Skill and the user's overall task.
 - `/CER-start` and `Start CER` trigger CER; a plain start/work message does not.
 - `/CER-close` and `Close CER` trigger CER close; a plain close/finish message does not close CER and does not map to `/CER-stop`.
@@ -14,17 +42,37 @@ A successful title change, fork, delegation, one-way message, or tool parameter 
 ## Full Flow
 
 1. The user submits a clear multi-batch task or existing plan using `Start CER: ...` or `/CER-start ...`.
-2. C identifies the main task with a `🚀 C:` title or first-line label and completes Controller preflight. A complete task passes directly; sourced `confirmed` items and `safe inference` items that pass the counterfactual test do not block; missing critical endpoint/permission/acceptance information produces a yellow checkpoint with at most three questions.
-3. C completes communication preflight, creates or reuses a proven persistent `E1:` task, and receives a `ready` direct-push containing session/thread coordinates.
+2. C identifies the main task with a `🚀 C:01｜<very short task name>` title or first-line label and completes Controller preflight. A complete task passes directly; sourced `confirmed` items and `safe inference` items that pass the counterfactual test do not block; missing critical endpoint/permission/acceptance information produces a yellow checkpoint with at most three questions.
+3. C completes communication preflight, uses official `create_thread` to create a brand-new
+   sidebar-visible persistent `E1:01｜...` task in the same Codex project, reads back its title, thread
+   ID, and formal return path, and receives a `ready` direct-push containing session/thread
+   coordinates.
 4. C maps existing target-project sources of truth and the task knowledge foundation without creating fixed CER documents.
-5. C shows the initial roadmap with a real inline visualization, explicitly confirming that it is not Mermaid-only.
-6. C uses bear cards and inline visualization only at startup or before the first batch, material decisions, major blockers, staged delivery, and closeout. Ordinary E1 substeps do not show cards.
-7. The same E1 completes at least two implementation batches. Low-risk batches do not create R. E1 uses C's frozen task contract and does not expand scope or acceptance on its own.
-8. A fresh `R1:` independently challenges one high-risk core promise against the same knowledge foundation and frozen task contract, and re-reviews only the affected boundary.
+5. For every successfully accepted `CER-start`, C's first user-visible success receipt is the
+   fixed open-eye `CER Workflow v0.2.1` / `🔵 CER started` card with a blank right side after
+   the bear foot, including single-batch work. Multi-stage or multi-batch work then shows the initial roadmap with a real
+   inline visualization and explicitly confirms that it is not Mermaid-only.
+6. C uses the matching bear card only for startup, material decisions, major blockers, staged
+   delivery, successful stop, and successful close. Ordinary E1 substeps do not show cards.
+7. The same E1 completes at least two implementation batches. Low-risk batches do not create R.
+   Later batches in the same cycle reuse the same E1 from step 3 rather than rebuilding or
+   replacing it. E1 uses C's frozen task contract and does not expand scope or acceptance on its
+   own.
+8. A sidebar-visible fresh `R1:01｜...` new task created through official `create_thread` independently
+   challenges one high-risk core promise against the same knowledge foundation and frozen task
+   contract, and re-reviews only the affected boundary.
 9. C stops for the user when a material direction or deliverable shape changes, delivers observable staged results, and obtains final user acceptance.
-10. The user says `Close CER.` or `/CER-close`. The same E1 updates required existing sources of truth and marks `writer closed`. If no durable source exists, CER does not claim full cross-session recovery.
+10. The user says `Close CER.` or `/CER-close`. The same E1 updates required existing sources
+    of truth and marks `writer closed`. After required readback, C uses the official title tool to
+    rename verifiable titles to `🚀 C:01✓｜...`, `E1:01✓｜...`, and `R1:01✓｜...`, then reads them
+    back; on failure, it reports `title sync warning` with failed coordinates. Only after that does
+    C show the fixed closed-eye `🟢 CER closed` / `writer closed` card. If no durable source exists,
+    CER does not claim full cross-session recovery.
 11. Run a separate composition scenario with `$project-context-workflow`: CER does not rebuild documents or take over consensus gates, and the context workflow does not create C/E1/R.
-12. Run a separate stop scenario with `/CER-stop`: C sends no new E1/R work and, if E1 is writing, reaches `writer closed` or a major blocker before returning to one thread.
+12. Run a separate stop scenario with `/CER-stop`: C sends no new E1/R work and, if E1 is
+    writing, reaches `writer closed` or a major blocker. Only after proving no active writer and
+    completing required readback may C show the fixed closed-eye `⚪ CER stopped` /
+    `CER inactive` card and return to one thread.
 
 ## Remote Controller Scenarios
 
@@ -33,6 +81,37 @@ A successful title change, fork, delegation, one-way message, or tool parameter 
 - If participating-host enumeration is incomplete, candidate root/identity/state cannot be read back, coordinates are incomplete, or evidence conflicts, stop.
 - If an active C already exists, reuse it, or transfer only after the old C explicitly hands off/closes and that evidence is read back. If the sender was the active C, it must hand off/close before sending `C_ACCEPTED`.
 - Benign cross-task E1/R wording must not be treated as a Remote C conflict when the batch remains self-contained and returns by direct-push.
+
+## Cross-Cycle Isolation Scenarios
+
+- After a successful `/CER-close` in one workspace, the old C/E/R tasks may remain as history,
+  but the whole set must not receive work for a later cycle.
+- A new task's `CER-start` becomes valid only after the unique-C gate reads back that the old C
+  is `closed`/`handed-off`, no active C exists, and every participating host is verifiable.
+- The new cycle creates a brand-new E1 and only fresh Reviewers. It must not reuse any E1 or R
+  task/coordinate from the previous closed C. Evidence must compare cycle numbers and threadIds:
+  same-cycle E1 threadId is unchanged; the second-cycle label is different; C/E1/R threadIds are
+  different; and the old-cycle title prefix has `✓` or a real `title sync warning`.
+- AI real workflow UAT in a clean project must use numeric `01` or higher for new cycles. `00` may
+  appear only in an explicit legacy migration fixture. Any visible question-mark cycle title fails.
+- If old C state or any participating host cannot be verified, startup is blocked and shows the
+  open-eye red blocker card.
+
+## Codex Task Topology Scenarios
+
+- E1, E2, and every R are sidebar-visible independent new tasks/threads in the same Codex
+  project, created through official `create_thread`; ready/result receipts read back title,
+  thread ID, and formal return path.
+- Later batches in the same cycle keep reusing that cycle's same E1. Only after E1 has stopped
+  writing, the workspace is in a known state, and C issues a takeover batch may C create E2
+  through `create_thread`.
+- Every R is a fresh new task. Do not reuse an old R in the same cycle or across cycles.
+- C may use an inline sub-agent for read-only exploration, evidence organization, or candidate
+  analysis. It must not write the workspace, replace E or R, produce formal ready/result, or
+  count as CER Reviewer acceptance evidence.
+- If `create_thread`, sidebar-visible title, verifiable thread ID, or formal return path is
+  missing, E/R delegation is blocked. Do not downgrade to an inline sub-agent, fork, delegate, or
+  existing task.
 
 ## Review Convergence Scenarios
 
@@ -50,8 +129,20 @@ A successful title change, fork, delegation, one-way message, or tool parameter 
 ## Failure Conditions
 
 - A temporary subagent substitutes for persistent E1.
-- Controller uses plain `C:` instead of `🚀 C:` as the visible title or first-line label.
+- An inline sub-agent, fork, delegate, or existing task is treated as formal E1, E2, or R.
+- C's inline sub-agent writes the workspace, produces formal ready/result, replaces E/R, or is
+  counted as CER Reviewer acceptance evidence.
+- E1/R lacks official `create_thread` creation evidence, sidebar-visible title, verifiable
+  thread ID, or formal return path, but work still starts.
+- Controller uses plain `C:` instead of `🚀 C:01｜...` as the visible title or first-line label.
 - E1/R/E2 titles or first-line labels are wrongly prefixed with `🚀`.
+- Second-cycle E1 is named `E2:`, role ordinal and cycle number are mixed, same-cycle C/E/R labels
+  use inconsistent cycle numbers, or a later cycle reuses the same cycle number.
+- The cycle number is treated as a lock, run ID, unique-C proof, or thread identity; threadIds are
+  missing but the flow still passes.
+- A new cycle uses `00`; any visible question-mark cycle title appears; or title enumeration /
+  setting failure shows a fake label or guessed number instead of keeping the shortest role title
+  and reporting a real `title sync warning`.
 - A plain start/work message starts CER, or a plain close/finish message triggers CER close/stop.
 - An explicit CER-qualified start or close equivalent does not trigger the corresponding CER behavior.
 - Controller preflight is incomplete, or a `critical missing` item still creates/reuses E1 or dispatches real work.
@@ -80,6 +171,22 @@ A successful title change, fork, delegation, one-way message, or tool parameter 
 - C discovers results by polling.
 - A knowledge-heavy task lacks a defined knowledge foundation, or R checks only format instead of challenging specialist claims.
 - Every internal step gets a card, or a material decision, blocker, or staged delivery gets no card.
+- A bear card does not first read this Skill's `VERSION`, treats `v1` as the package version, or
+  guesses from the network, a Git tag, GitHub Release, or lock metadata.
+- A missing, unreadable, or malformed `VERSION` does not render `version unverified`.
+- The start card still shows `checkpoint ready` to the right of the bear foot.
+- A release or upgrade does not update `VERSION` first.
+- A single-batch `CER-start` has no fixed start card, or its start card wrongly uses closed eyes.
+- Stop/close shows a closed-eye success card before proving the writer stopped and completing
+  required readback; close shows the closed-eye card before reading back title sync or
+  `title sync warning`; a failed title rename is claimed as renamed; or a blocked state omits the
+  open-eye red blocker card.
+- A new C after close reuses the previous cycle's E1 or R task/coordinate.
+- The old-cycle title prefix has no `✓` and no real `title sync warning`, but close title sync is
+  claimed complete; lifecycle close is accepted from title-only or text-only evidence.
+- A later batch in the same cycle fails to reuse the same E1, and creates another writer before
+  E2 takeover conditions are met.
+- A second C starts while old C state or a participating host cannot be verified.
 - Mermaid is substituted for available inline visualization instead of being supplemental.
 - Ordinary small changes always create fresh R or trigger full-project review.
 - CER creates a fixed five-document project set or parallel progress source.

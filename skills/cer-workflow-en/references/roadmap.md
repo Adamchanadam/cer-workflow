@@ -26,17 +26,57 @@ Do not update it for ordinary internal reads, E1 substeps, polling, unadjudicate
 details that do not change user-view progress. Progress comes only from a bounded read after
 direct-push and C adjudication.
 
-## Fixed Checkpoint Card
+## Fixed Lifecycle Cards
+
+Before showing any lifecycle or checkpoint bear card, read `VERSION` again from this Skill root.
+Stable semver `X.Y.Z` renders as `vX.Y.Z`; a missing, unreadable, or malformed value renders as
+`version unverified`. The cards below reflect the current `VERSION` value `0.2.1`; they do not
+hard-code the workflow generation.
 
 ```text
-   ()_()     CER Workflow
- ( ◕ᴥ◕ )    🔵 Plan preview
-   > ^ <     checkpoint ready
+   ()_()     CER Workflow v0.2.1
+ ( ◕ᴥ◕ )    🔵 CER started
+   > ^ <
 ```
 
-Replace the second line for the situation:
+Every successfully accepted `CER-start`, including simple single-batch work, uses this fixed
+open-eye start card. Keep the bear foot with no status text to its right.
 
-- `🔵 Plan preview`
+A successful `/CER-stop` uses this fixed closed-eye stop card:
+
+```text
+   ()_()     CER Workflow v0.2.1
+ ( ᴗᴥᴗ )    ⚪ CER stopped
+   > ^ <     CER inactive
+```
+
+A successful `/CER-close` uses this fixed closed-eye close card:
+
+```text
+   ()_()     CER Workflow v0.2.1
+ ( ᴗᴥᴗ )    🟢 CER closed
+   > ^ <     writer closed
+```
+
+A closed-eye card is proof of a verified terminal state, not an intent receipt. Show the stop
+card only after proving no active writer or a stopped writer and completing required readback.
+Show the close card only after proving `writer closed`, completing required readback, and reading
+back either a `✓` appended to this cycle's cycle number in every verifiable C/E/R title or a
+`title sync warning`. The closed-eye close card proves writer close and required readback, not
+all-green title sync. When any evidence is missing, use the open-eye red blocker card:
+
+```text
+   ()_()     CER Workflow v0.2.1
+ ( ◕ᴥ◕ )    🔴 Major blocker
+   > ^ <     checkpoint blocked
+```
+
+## Other Fixed Checkpoint Cards
+
+Non-lifecycle checkpoints keep the open-eye bear and use the package version read for that card.
+If the version is invalid, they also show `version unverified`. Replace the second line for the
+situation:
+
 - `🟡 Direction decision`
 - `🔴 Major blocker`
 - `🟢 Staged delivery / final acceptance`
@@ -45,9 +85,9 @@ Replace the second line for the situation:
 
 CER is a continuous loop, but it does not show a card for every small step:
 
-1. At the start of long-running/multi-batch CER work or restart of a resumable stage, use one
-   `🔵 Plan preview` as a startup receipt. The inline roadmap in the same message carries the
-   full stage information.
+1. Every successfully accepted `CER-start` first uses one fixed `🔵 CER started` card as the
+   startup receipt, including single-batch work. Only long-running or multi-batch work adds the
+   full inline roadmap in the same message.
 2. Use `🟡 Direction decision` when the user must choose a material direction, scope,
    deliverable shape, cost, knowledge source, or acceptance standard.
 3. Use `🔴 Major blocker` when a communication path, session/thread coordinate, permission,
@@ -55,8 +95,10 @@ CER is a continuous loop, but it does not show a card for every small step:
    insufficient for reliable continuation.
 4. Use `🟢 Staged delivery` when an observable stage is ready for user acceptance after C
    adjudication or risk-based R review.
-5. At user closeout or final acceptance, use `🟢 Final acceptance` to show the result,
-   `writer closed`, durable-source updates, and limits on continuation in a new session.
+5. A successful `/CER-stop` shows the fixed closed-eye `⚪ CER stopped` card. A successful
+   `/CER-close` shows the fixed closed-eye `🟢 CER closed` card. Ordinary final acceptance may
+   still use the open-eye `🟢 Final acceptance` checkpoint and must not impersonate a lifecycle
+   terminal state.
 
 Do not show a card for ordinary internal reads, low-risk small edits, E1 substeps, ordinary batch
 acceptance, R completion that creates no user checkpoint, or a clear next action. Update only the
@@ -98,5 +140,6 @@ Use the highest available authority and do not create a second progress record:
 When `$project-context-workflow` is also in use, read only its accepted plan and progress. Do not repeat its five-step process or create a duplicate consensus gate.
 
 Do not show cards for ordinary implementation detail. Use yellow for material direction or
-deliverable-shape choices, red for reliability blockers, and green for observable staged results
-and final acceptance. Ordinary batch progress updates only the inline roadmap.
+deliverable-shape choices, open-eye red for reliability blockers, and open-eye green for
+observable staged results and ordinary final acceptance. Only a proven stop/close terminal state
+uses a closed-eye card. Ordinary batch progress updates only the inline roadmap.

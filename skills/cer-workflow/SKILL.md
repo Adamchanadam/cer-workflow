@@ -5,14 +5,16 @@ description: "執行獨立的 CER 多代理工作法，適用於長期、多批�
 
 # CER 工作法
 
-CER Core v1 是獨立運行的工作法。
+CER Core v1 是只供 Codex 使用、可獨立運行的工作法。Claude Code 需要另一個
+尚未提供的 Skill；不得把本 Skill 或本 repo 說成目前支援 Claude Code。
 
 ## 啟動
 
 使用者明示 `/CER-start <總任務、限制、優先序>`、`CER 啟動：...`、`CER 開始：...`、`CER 開工：...` 或同等帶 CER 的語意時：
 
 1. 完整讀取 [core-runtime.md](references/core-runtime.md)。
-2. 顯示初始路線圖或四色停點時，完整讀取 [roadmap.md](references/roadmap.md)。
+2. 每次接受啟動，以及處理 `/CER-stop`、`/CER-close` 或其他小熊停點時，完整
+   讀取 [roadmap.md](references/roadmap.md)。
 3. 只有執行安裝驗收或 fresh UAT 時，完整讀取 [uat.md](references/uat.md)。
 
 ## 操作指令
@@ -30,10 +32,20 @@ slash command 是文字別名。平台支援 slash、snippet 或 Snap 時，可�
 ## 不可破壞規則
 
 - 本地 task 或明確 Remote 接收 task 必須通過 [core-runtime.md](references/core-runtime.md) 的完整唯一 C 啟動閘門。candidate `C_READY` 與發送方讀回仍不足夠；接收者實際收到 `C_ACCEPTED` 後才成為 active Controller（C）。
-- 同一任務只用一個持久、可見、可再次派工的 Executor（E1）作唯一 writer；不可用一次性臨時 subagent 代替。
-- Reviewer（R）只在高風險或 C 不能可靠反證時 fresh、唯讀、有界建立。
+- 每次成功接受 `CER-start` 都先顯示 [roadmap.md](references/roadmap.md) 的固定開眼
+  啟動卡；簡單單批任務也不例外。每次顯示任何小熊卡前，先讀本 Skill 根目錄
+  `VERSION`；啟動受阻時顯示開眼紅色 blocker 卡，不得顯示閉眼成功卡。
+- 正式 E／R 都必須是同一 Codex project 側欄可見、由官方 `create_thread`
+  建立的獨立新 task/thread；不得用 inline sub-agent、fork 或 delegate 降級代替。
+- 每輪 `CER-start` 建立全新 E1；同一輪後續批次持續復用該同一 E1 作唯一
+  writer。E2 只在接管條件成立後另建新 task。
+- Reviewer（R）只在高風險或 C 不能可靠反證時建立；每個 R 都必須是 fresh
+  新 task、唯讀、有界，不可沿用舊 R。
+- C 可以使用 inline sub-agent 作唯讀探索、證據整理或候選分析，但它不是 C／E／R
+  正式角色，不得寫 workspace、不得代替 E 或 R、不得產生正式 ready/result、
+  不得作 CER Reviewer 通過證據。
 - 每個跨 task 批次必須 self-contained；E1／R 不會自動繼承 C 的對話。
-- 新建或識別 task／thread 時，Controller 使用 `🚀 C:` 開首的可見標題或等價首行標籤；E1／R／E2 仍使用 `E1:`、`R1:`、`R2:` 或 `E2:`，不加 rocket；回傳目標必須包含可核實 session／thread id 或平台等價座標。
+- 新建或識別 task／thread 時，Controller 使用 `🚀 C:01｜...` 形式的可見標題或等價首行標籤；E1／R／E2 仍使用 `E1:01｜...`、`R1:01｜...`、`R2:01｜...` 或 `E2:01｜...`，不加 rocket；同輪共用同一短 cycle 編號，下一輪用新編號。`00` 只可標示 cycle numbering 規則生效前已開始且無法可靠回推原編號的 legacy/migration cycle；新 cycle 必須用 `01` 以上，不顯示問號 cycle label。cycle 編號只供側欄辨識，不是唯一性證據；完整 threadId 仍是權威。回傳目標必須包含可核實 session／thread id 或平台等價座標。
 - 建立 task 或開始驗證前，先以實際工具證明身份來源、必要參數、發送路徑、接收者、session／thread 座標與裁決點。任一環缺失即停止該委派架構；不得以文件審閱、事後 thread read 或猜測代替通訊驗證。
 - create／fork／send／title 只部分成功但沒有 E1 direct-push ready/result 時，視為通訊鏈未成立；C 只可發重大阻礙，不得派實際批次或宣稱閉環成立。
 - E1／R 以 direct-push 主動交付結果；C 不以 waiting、polling 或背景監聽發現成果。
@@ -43,10 +55,19 @@ slash command 是文字別名。平台支援 slash、snippet 或 Snap 時，可�
 - 重大方向、交付形狀或成本未裁決時必須在使用者主 task 停點；執行後在合理階段交付可觀察成果。
 - 角色、批次、Reviewer、停點與驗收按風險比例化；不得以更多代理、文件、審閱或治理儀式代替清晰目標及可驗收條件。
 - 模型與力度是能力、成本和使用者限制的選擇，不是 CER 固定版本 blocker。
+- 同一 workspace 的一輪 `/CER-close` 完成後，該輪 C／E／R task 只可保留作
+  歷史，整組不可接收下一輪工作。下一輪必須由新 task 通過唯一 C 閘門，建立
+  全新 E1，且所有 R 都 fresh；不得復用上一輪任何 E／R 座標。
+- `/CER-close` 成功時，先證明 `writer closed` 與必要讀回，再用官方 title 工具自動
+  把該輪可核實 C／E／R title 的 cycle 編號加 `✓` 並讀回；rename 失敗只報
+  `title sync warning`，不得冒充已改名，最後才顯示閉眼收尾卡。
 
 ## 版本邊界
 
-本 Skill 只包含 CER Core v1。
+本 Skill 只包含供 Codex 使用的 CER Core v1；`v1` 是工作流世代，不是目前安裝
+package 版本。小熊卡的 package 版本只來自本 Skill 的 `VERSION`。每次 release
+或 upgrade 必須先更新 `VERSION`；`skills` CLI 更新整個 Skill 後，卡片自然讀到
+新版本。
 
 根目錄 `01_CER工作法_人類概覽.md` 與 `02_CER工作法_AI執行協議.md` 是本來源專案的內部需求與驗收藍圖，和本 Skill 的執行面分開維護。Skill references 是實際操作規程；兩者以需求和驗收對齊，但互不擁有對方。
 
