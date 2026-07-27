@@ -22,7 +22,7 @@ Install or upgrade the English CER Skill for Codex. Handle only skills/cer-workf
 6. Do not start CER automatically. Wait for my explicit CER command.
 ```
 
-This flow follows the Vercel Labs [`skills` CLI upstream README](https://github.com/vercel-labs/skills/blob/main/README.md). Codex global installs target `~/.codex/skills/`; interactive installs may use a symlink to a canonical copy or an independent copy. Management by the `skills` CLI must be determined from `skills ls` / `skills update` recognition and readable source / metadata where available, not from the path alone.
+This flow follows the Vercel Labs [`skills` CLI upstream README](https://github.com/vercel-labs/skills/blob/main/README.md). The Codex global install location should be taken from the canonical/global location reported by the `skills` CLI plus actual path and source readback; current CLI evidence can report `~/.agents/skills/`, while Codex may also have an agent-native `~/.codex/skills/` copy. Management by the `skills` CLI must be determined from `skills ls` / `skills update` recognition and readable source / metadata where available, not from the path alone.
 
 The Traditional Chinese and English Skills are Codex-only, complete, and independently installable packages. A Claude Code version would be a separate Skill and has not been provided; this repository does not currently claim Claude Code support. Detailed operating procedure lives only in each package's `references/`.
 

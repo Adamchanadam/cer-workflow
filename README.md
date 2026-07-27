@@ -22,7 +22,7 @@ CER 工作法讓長期、多批或高風險的 AI 工作有清楚分工、唯一
 6. 不要自動啟動 CER；等我輸入明確 CER 指令。
 ```
 
-以上流程依據 Vercel Labs [`skills` CLI 上游 README](https://github.com/vercel-labs/skills/blob/main/README.md)。Codex 全域安裝目標是 `~/.codex/skills/`；互動安裝可使用指向 canonical copy 的 symlink，或使用獨立 copy。是否由 `skills` CLI 管理，必須依 `skills ls`／`skills update` 辨識結果及可讀回的來源／metadata 判斷，不能只靠路徑判定。
+以上流程依據 Vercel Labs [`skills` CLI 上游 README](https://github.com/vercel-labs/skills/blob/main/README.md)。Codex 全域安裝位置以 `skills` CLI 回報的 canonical/global location、實際路徑與來源讀回為準；目前 CLI 實證可回報 `~/.agents/skills/`，而 Codex 也可能已有 agent-native `~/.codex/skills/` copy。是否由 `skills` CLI 管理，必須依 `skills ls`／`skills update` 辨識結果及可讀回的來源／metadata 判斷，不能只靠路徑判定。
 
 本 repo 的繁中和英文 Skill 都是供 Codex 使用、可各自獨立安裝的 package。Claude Code 版是另一個尚未提供的 Skill；本 repo 目前不聲稱支援 Claude Code。詳細操作規程只在各自的 `references/`。
 
