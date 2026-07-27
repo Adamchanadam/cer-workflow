@@ -9,6 +9,7 @@ This release converges the Full-Audit-passed release-ready candidate:
 - Bear lifecycle cards now display the package version from the Skill `VERSION`, with corrected start, stop, and close timing
 - Formal C/E/R use the official sidebar-visible task topology, preserving same-cycle E1 reuse, fresh Reviewers, and cross-cycle isolation
 - Short numeric cycle titles, CER-close `✓` rename, and the `title sync warning` boundary are fully captured in the execution surface
+- C reapplies the acceptance-validity/proportion rule before making or reusing acceptance, repair, or release conclusions; unaffected evidence can be retained, failed premises reopen only their conclusions, breadth follows traceable causal coverage, and depth follows consequence/uncertainty rather than task label or file count
 - Codex-only install/upgrade prompts are split by language to avoid installing another language or another agent version
 - Release-readiness evidence includes the full static corpus audit and two-cycle AI real workflow UAT; post-release user manual UAT remains separately reported
 

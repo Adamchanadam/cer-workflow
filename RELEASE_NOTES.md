@@ -9,6 +9,7 @@
 - 小熊生命週期卡改由 Skill `VERSION` 動態顯示 package 版本，並修正啟動、停用、收尾卡時機
 - 正式 C／E／R 使用官方側欄可見 task 拓撲，保留同輪 E1 復用、fresh R 與跨輪隔離
 - 短 numeric cycle title、CER-close `✓` rename 與 `title sync warning` 邊界完整寫入執行面
+- C 在作成或沿用驗收、修補、發布結論前，會再次套用驗收有效性與比例規則；未受影響證據可保留，前提失效才重開對應結論，範圍按可追溯因果擴大，深度按後果與不確定性調整，不因任務標籤或檔案數加重
 - Codex-only 安裝／升級 prompt 依語言拆分，避免混裝其他語言或其他 agent 版本
 - release-readiness 證據包含全文靜態審核與兩輪 AI 真實流程 UAT；發布後使用者手動 UAT 仍獨立回報
 

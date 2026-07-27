@@ -71,15 +71,25 @@ C 只判斷五項，每項標成 `已確認`、`可安全推定` 或 `關鍵缺�
 
 `關鍵缺失` 代表 C 不能安全判斷或派工。此時 C 只可先做必要唯讀調查；若仍缺少會實質改變結果的資訊，用 `🟡 使用者裁決` 最多問三個問題。preflight 通過後，C 才做通訊座標與 ready 驗證。E1／R 派工使用同一份凍結任務契約，只能回報矛盾、阻礙或候選修正，不能自行擴大目標、真源、權限或驗收。
 
+驗收有效性與比例原則在 C 每次作成或沿用驗收、修補或發布結論前都再次套用，不是預設重跑驗證。
+C 先指出具體結論、支撐該結論的證據及其前提。既有證據只在被驗對象、需求、
+直接支撐結論的依賴與環境前提、交付物與驗證方法仍適用或已驗證等效，且沒有可信反證時可保留；
+全新脈絡不能假定不可讀的舊證據仍有效。任一前提失效時，只為受影響結論重建最小充分證據；
+只有可追溯的前提到結論因果鏈、跨表面耦合、累積互動、
+source／package mismatch 或發布／安裝產物不一致，或可信理由顯示舊驗證假綠，才擴大
+範圍。廣度跟因果覆蓋走，深度跟失敗後果與證據不確定性走；任務標籤、檔案數、改動
+大小或 `high risk` 字眼本身，都不能擴大或縮小驗收。此規則只在證據已知後界定範圍；
+不取代用針對性檢查發現不穩定外部聲稱，或驗證真實發布／安裝產物。
+
 ## 啟動
 
-1. C 讀目前安裝的 CER runtime、使用者總任務、明示限制及目標 workspace 實際存在的權威規則。
+1. C 讀目前安裝的 CER 執行規則、使用者總任務、明示限制及目標 workspace 實際存在的權威規則。
 2. 啟動閘門由 Remote 發送方或本地啟動 task 負責；接收 task 只能回 candidate `C_READY`，不得只因訊息來自另一 task 而全面拒絕 Remote C，也不得用沉默、沒有回應或自己看不到其他 task 來證明唯一 C。
 3. 啟動閘門只在本次實際協作域判定唯一 C：用官方 task／thread 列表或平台等價工具，枚舉此啟動會使用的每個參與 host；對可讀候選核實 resolved target_root／cwd、`🚀 C:` 身份及 active／idle／closed／handed-off 狀態；再加上發送方明示自己沒有把同一 root 交給另一 C。所有參與 host 都可枚舉且沒有 active C，才可判 no active C；不掃描平台外或未參與 host，也不得把不可見 task 當不存在。
 4. 同一輪已知 active C 只可沿用；轉移須有舊 C 明確 handoff／close 的實際訊息或狀態讀回。完成 `/CER-close` 的舊 C 及其 E／R task 整組只可保留作歷史，不可接收同一 workspace 新一輪工作。新一輪只能由新 task 成為 C；閘門必須讀回舊 C 已 `closed`／`handed-off`、沒有 active C，且所有參與 host 可核實。任一參與 host 不可枚舉、舊 C 狀態或候選 root／身份／狀態不可讀回、座標不完整或證據衝突，即為 unknown 並停止，不建立第二 C。
 5. Remote 接收 task 收到明確 Remote CER 啟動語意後，先 direct-push candidate `C_READY`，必含自身 threadId、hostId、target_root、return target／path。發送方完成唯一性核實並實際讀回 `C_READY` 後，必須以同一可用回傳路徑向接收者發 `C_ACCEPTED`；接收者收到 `C_ACCEPTED` 後才成為 active C 並做 Controller preflight。只發送 `C_READY`、未讀回 `C_READY` 或未收到 `C_ACCEPTED`，Remote C 身份及通訊路徑都不成立。若發送方原本是 active C，須先完成 handoff／close 才可發 `C_ACCEPTED`。
 6. 不得為唯一 C 新增 lock file、central registry、run ID、conflict engine、新角色或測試例外；唯一性只靠已存在真源、官方枚舉、明示座標與本輪實際回傳／讀回證據判定。
-7. C 為每輪 CER-start 分配 project 內側欄辨識用短 cycle 編號。規則生效後的新 cycle 不得使用 `00`，必須用官方 project task/title 枚舉讀回既有 numeric cycle labels，選下一個未使用正整數，至少兩位顯示為 `01`、`02`；超過 99 可自然擴展。不得新增 central registry、lock 或 run ID。`00` 只表示 cycle numbering 規則生效前已開始、無法可靠回推原 cycle number 的 legacy/migration cycle；它和其他 cycle 編號一樣只供 display，不是 lock、run ID、唯一 C 證據或 thread 身份，完整 threadId 仍是權威。若新 cycle 無法可靠枚舉或設定 title，保留最短 role title 並報真實 `title sync warning`；不得顯示問號 cycle label、不得猜測數字，也不得因 display label 失敗冒充 lifecycle 或 identity failure。C 命名或識別自身可見 task／thread 為 `🚀 C:01｜<極短任務名>`；平台不能改 title 時，在首則可見訊息或停點卡首行標示同等角色標籤。單獨 `C:` 不是合格 Controller title／label。
+7. C 為每輪 CER-start 分配 project 內側欄辨識用短 cycle 編號。規則生效後的新 cycle 不得使用 `00`，必須用官方 project task/title 枚舉讀回既有數字 cycle 標籤，選下一個未使用正整數，至少兩位顯示為 `01`、`02`；超過 99 可自然擴展。不得新增 central registry、lock 或 run ID。`00` 只表示 cycle numbering 規則生效前已開始、無法可靠回推原 cycle number 的 legacy/migration cycle；它和其他 cycle 編號一樣只供顯示，不是 lock、run ID、唯一 C 證據或 thread 身份，完整 threadId 仍是權威。若新 cycle 無法可靠枚舉或設定 title，保留最短 role title 並報真實 `title sync warning`；不得顯示問號 cycle 標籤、不得猜測數字，也不得因顯示標籤失敗冒充 lifecycle 或 identity failure。C 命名或識別自身可見 task／thread 為 `🚀 C:01｜<極短任務名>`；平台不能改 title 時，在首則可見訊息或停點卡首行標示同等角色標籤。單獨 `C:` 不是合格 Controller title／label。
 8. C 完成 Controller preflight，凍結本次任務契約；若有 `關鍵缺失`，只做必要唯讀調查或停問，不建立／復用 E1，也不派實際批次。
 9. Controller preflight 通過後，C 完成通訊 preflight：以可用工具證明本次實際採用的路徑可用，包括身份來源、目標 root、必要參數、發送路徑、接收者、可見標題或角色標籤、assignee 可取得的回傳來源、可核實 session／thread id 或平台等價座標，以及 C 的裁決點。
 10. 若官方 `create_thread` 新建 task 工具不可用，或無法讀回側欄可見 title、可核實 thread id 與正式回傳路徑，E／R 委派即阻塞；不得降級用 inline sub-agent、fork、delegate 或既有 task 冒充正式 E／R。

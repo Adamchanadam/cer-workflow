@@ -126,6 +126,21 @@ cycle label or guess a number.
 - If missing information has multiple reasonable answers and different answers would materially change the deliverable, permissions/risk, acceptance, or cause major rework, C must mark the item `critical missing` and stop for questions.
 - C's frozen task contract and E1/R dispatches preserve the three states, required source anchors, and counterfactual results. They must not invent user confirmation.
 
+## Acceptance Validity Scenarios
+
+- A version-only or release-docs-only change may retain unaffected runtime UAT, but must validate
+  version, docs, links, and delivery-artifact readback.
+- When current external authority contradicts an install claim, reopen only the affected public
+  install claim and its dependent delivery surface, even when local runtime did not change.
+- A source/package or install artifact mismatch requires artifact readback before a release or
+  install conclusion.
+- A `high risk`/release label, file count, or change size without a premise-to-conclusion causal
+  chain does not authorize whole-project re-review.
+- Credible evidence that old validation was false-green reopens the affected conclusion and
+  rebuilds the minimum sufficient evidence.
+- Fresh context that cannot access prior evidence must not silently retain the old conclusion; it
+  must read back the evidence, mark continuity limited, or rebuild affected evidence.
+
 ## Failure Conditions
 
 - A temporary subagent substitutes for persistent E1.
@@ -152,6 +167,11 @@ cycle label or guess a number.
 - The frozen task contract or dispatch writes an unsupported assumption as `confirmed`.
 - C dispatches instead of stopping when critical endpoint, permission, or acceptance information is missing.
 - Missing root cause leads to a quick fix, or acceptance counterexamples expand into defensive whole-project review.
+- A task expands into whole-project re-review only because of a `high risk`/release label, file
+  count, or change size.
+- Current external authority, artifact/source mismatch, credible false-green evidence, or
+  inaccessible old evidence has invalidated a premise, but C silently retains the old acceptance,
+  repair, or release conclusion.
 - E1/R rewrites C's frozen task contract and continues.
 - Every wording or sentence-order variation adds a validator pattern, Reviewer, or repair batch.
 - Holes are patched before this round's current owners are fully identified.

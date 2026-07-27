@@ -67,6 +67,21 @@ Before dispatch, C performs one short QC pass: check that every `confirmed` item
 
 `critical missing` means C cannot safely judge or dispatch. C may only perform necessary read-only investigation. If information that would materially change the result is still missing, use a `🟡 User decision` stop and ask at most three questions. Only after preflight passes does C verify communication coordinates and `ready`. E1/R dispatches use the same frozen task contract; assignees may report contradictions, blockers, or candidate corrections, but must not expand the goal, sources, permissions, or acceptance on their own.
 
+The acceptance-validity and proportion rule is reapplied before C makes or reuses any acceptance,
+repair, or release conclusion; it does not rerun validation by default. C first identifies the
+concrete conclusion, the evidence supporting that conclusion, and the premises behind that evidence.
+Existing evidence may be retained only while the reviewed
+object, requirements, direct dependencies/environment, delivery artifact, and validation method
+still apply or have been verified equivalent, and no credible contradictory evidence exists. Fresh
+context must not assume inaccessible evidence remains valid. If a premise fails, rebuild only the
+minimum sufficient evidence for the affected conclusion. Widen only with a traceable
+premise-to-conclusion causal chain, cross-surface coupling, cumulative interaction,
+artifact/source mismatch, or credible reason that the old validation was false-green. Breadth
+follows causal coverage; depth follows failure consequence and evidence uncertainty. Task labels,
+file counts, change size, or `high risk` wording alone neither widen nor narrow acceptance. This
+rule governs scope once evidence is known; it does not replace targeted checks needed to discover
+unstable external claims or verify actual release/install artifacts.
+
 ## Startup
 
 1. C reads the installed CER runtime, the user's overall task, explicit constraints, and authoritative rules that actually exist in the target workspace.
