@@ -7,9 +7,9 @@ Scope note: each version section records release history for that version; the r
 This release fixes two CER usage issues confirmed after v0.2.1:
 
 - Bear-card feet now use `╰ ^ ╯`, so a leading `>` is not rendered as a Markdown quote
-- CER-close preserves `writer closed`, required readback, title sync/warning, and history-only close conditions
-- When this cycle's C/E/R coordinates are known, CER-close reads back the relevant roles and required sources directly instead of enumerating the whole project task list by default
-- State-only close uses targeted structural readback; wider checks, a full validator/doctor, or a Reviewer are used only when evidence is missing, state conflicts, the core workflow is affected, or project rules require it
+- `/CER-close` preserves `writer closed`, required readback, title sync/warning, and history-only close conditions
+- When this cycle's C/E/R tasks are known, CER-close reads back the relevant roles directly instead of scanning the whole project by default
+- State-only close uses targeted readback; checks widen only when evidence is missing, state conflicts, the core workflow is affected, or project rules require it
 - v0.2.2 CER-close UAT has passed; post-release user manual UAT remains separately reported
 
 ## v0.2.1

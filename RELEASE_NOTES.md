@@ -7,9 +7,9 @@
 本版修正 v0.2.1 後確認的兩項 CER 使用問題：
 
 - 小熊卡腳部改用 `╰ ^ ╯`，避免行首 `>` 在 Markdown 內被呈現為引用
-- CER-close 保留 `writer closed`、必要讀回、title sync／warning 與 history-only 等收尾條件
-- 已知本輪 C／E／R 座標時，直接讀回相關角色與必要真源，不預設枚舉整個 project task
-- 純狀態收尾採用針對性結構讀回；只有證據缺失、狀態矛盾、核心流程受影響或專案規則要求時，才擴大檢查、跑完整 validator／doctor 或建立 Reviewer
+- `/CER-close` 保留 `writer closed`、必要讀回、title sync／warning 與 history-only 等收尾條件
+- 已知本輪 C／E／R task 時，直接讀回相關角色，不預設掃描整個 project
+- 純狀態收尾採用針對性讀回；只有證據缺失、狀態矛盾、核心流程受影響或專案規則要求時才擴大檢查
 - v0.2.2 CER-close UAT 已通過；發布後使用者手動 UAT 仍獨立回報
 
 ## v0.2.1
