@@ -125,7 +125,7 @@ unstable external claims or verify actual release/install artifacts.
     a brand-new E1 and only fresh Reviewers; it must not reuse any E/R task or coordinate from the
     previous closed C.
 13. If any communication preflight link is missing, or the assignee does not actually direct-push a qualifying zero-write `ready`, C shows only the open-eye `🔴 Major blocker` card and stops. C must not show the successful start card. Waiting, polling, after-the-fact reads, document review, successful forking, and successful one-way sends do not prove communication.
-14. Only now is `CER-start` successfully accepted. C's first user-visible success receipt must be the fixed open-eye `🔵 CER started` card from [roadmap.md](roadmap.md). Its header uses the package version read for this card, and the right side of the `> ^ <` foot stays blank. Single-batch and multi-batch starts use the same card. Do not use a closed-eye card or guess a version.
+14. Only now is `CER-start` successfully accepted. C's first user-visible success receipt must be the fixed open-eye `🔵 CER started` card from [roadmap.md](roadmap.md). Its header uses the package version read for this card, and the right side of the `╰ ^ ╯` foot stays blank. Single-batch and multi-batch starts use the same card. Do not use a closed-eye card or guess a version.
 15. Later batches in the same cycle do not repeat the handshake while C, E1, the return target, and verifiable coordinates remain the same. Repeat `ready` whenever the coordinates or return target changes.
 16. For long-running, multi-stage, or multi-batch work, show the initial progress surface under [roadmap.md](roadmap.md) after the fixed start card and before the first batch. A simple single-batch task does not require a roadmap.
 17. C may send the first real batch only after the fixed start card is shown and, for long-running or multi-batch work, the initial roadmap has been added.
@@ -185,6 +185,23 @@ For an ordinary small change, C readback and proportionate tests are enough. Re-
 ## Standalone Persistence And Closeout
 
 CER Core v1 does not prescribe project documents. It reuses the target project's authoritative plan, progress, and decision sources. If no durable source exists, do not claim that a new session can fully recover state.
+
+CER-close has fixed completion conditions, while its evidence path adapts to the actual state:
+
+- When the complete threadIds or platform-equivalent coordinates for this cycle's C/E/R roles are
+  known, read terminal state directly from those roles instead of first enumerating the whole
+  project's tasks. Enumerate within the relevant project only when coordinates are incomplete or
+  contradictory, writer state is unknown, or target-project rules explicitly require it.
+- E1 updates only existing target-project sources that this close actually requires. Do not require
+  a fixed set of handoff, log, progress, or other files. When no durable source needs an update,
+  read back only the actual deliverable and `writer closed`.
+- A status-only close defaults to targeted structural and content readback sufficient to prove the
+  terminal state. Run the relevant full validator or doctor only when this cycle changed governance,
+  schema, or core flow; credible contradiction or false-green evidence exists; source and delivery
+  artifact differ; or project rules require it.
+- Do not create a Reviewer merely because the command is close. Create a fresh R only when the
+  close conclusion itself has high-consequence risk that needs independent challenge. Review
+  breadth follows causal coverage; depth follows failure consequence and evidence uncertainty.
 
 When the user explicitly says `Close CER.` or `/CER-close` to C:
 

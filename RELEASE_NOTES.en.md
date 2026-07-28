@@ -2,6 +2,14 @@
 
 Scope note: each version section records release history for that version; the runtime authority is the Skill references bundled with the version the user has installed.
 
+## v0.2.2
+
+This release tightens CER-close and bear-card behavior in daily use:
+
+- Bear-card feet now use `╰ ^ ╯` so `>` is not rendered as a Markdown quote
+- CER-close reads back known C/E/R coordinates directly; it expands task enumeration only when coordinates are missing, state conflicts, or project rules require it
+- State-only close uses targeted readback by default; full validators/doctors or a Reviewer are used only when governance, schema, core workflow, or credible false-green risk is affected
+
 ## v0.2.1
 
 This release converges the Full-Audit-passed release-ready candidate:

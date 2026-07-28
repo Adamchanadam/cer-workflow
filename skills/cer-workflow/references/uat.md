@@ -29,7 +29,7 @@ numbering 規則生效前已開始且無法可靠回推原 cycle number。cycle 
 
 - 目標只有本 Skill，沒有來源 handoff 或來源專案背景。
 - 本 Skill 只供 Codex；不得聲稱目前 repo 已提供 Claude Code 版 Skill。
-- Skill 根目錄 `VERSION` 只有一行穩定 semver，現值為 `0.2.1`；每張小熊卡顯示
+- Skill 根目錄 `VERSION` 只有一行穩定 semver，現值為 `0.2.2`；每張小熊卡顯示
   前都重新讀取，格式無效時顯示 `version unverified`。
 - 新 C 能只靠 Skill 和使用者總任務啟動。
 - `/CER-start`、`CER 啟動`、`CER 開始`、`CER 開工` 正常觸發 CER；單獨 `開工` 不觸發 CER。
@@ -44,7 +44,8 @@ numbering 規則生效前已開始且無法可靠回推原 cycle number。cycle 
    session／thread 座標的 ready direct-push。
 4. C 映射目標專案既有真源與本任務知識底座，不建立固定 CER 文件。
 5. 每次成功接受 `CER-start`，C 的第一個使用者可見成功回執都是固定開眼
-   `CER 工作法 v0.2.1`／`🔵 CER 已啟動` 卡；小熊腳右側留白，單批也必須顯示。
+   `CER 工作法 v0.2.2`／`🔵 CER 已啟動` 卡；小熊腳使用 `╰ ^ ╯`，右側留白，
+   單批也必須顯示。
    多階段／多批任務再用真正 inline visualization 顯示初始路線圖，並確認不是
    只用 Mermaid。
 6. C 只在啟動、重大裁決、重大阻礙、階段交付、成功停用和成功收尾時使用相應
@@ -119,6 +120,20 @@ numbering 規則生效前已開始且無法可靠回推原 cycle number。cycle 
 - 全新脈絡無法讀取先前證據時，不能靜默沿用舊結論；必須讀回證據、標示
   continuity limited，或重建受影響證據。
 
+## 比例化收尾情景
+
+- 本輪 C／E／R threadId 完整且 writer 狀態可直接讀回時，C 只向已知角色讀回
+  終態、必要真源及 title sync；不先枚舉整個 project，也不因 close 而建立 R。
+- 純狀態收尾只更新本次確有需要的既有真源並作針對性結構／內容讀回；沒有持久
+  真源需要更新時，只驗實際交付與 `writer closed`，不固定更新任何文件組合。
+- 角色座標不完整或互相矛盾、writer 狀態不明時，C 在相關 project 範圍枚舉並
+  擴大讀回；不得以比例原則略過未知終態。
+- 本輪改動治理、schema 或核心流程，出現可信矛盾／假綠、source 與交付物不一致，
+  或專案明定完整檢查時，執行相應完整 validator／doctor；否則不因 close 名稱
+  自動執行。
+- 每張 CER 小熊卡使用 `╰ ^ ╯` 作腳部；不得使用會在 Markdown 行首形成引用的
+  `>` 符號。
+
 ## 失敗條件
 
 - 臨時 subagent 代替持久 E1。
@@ -165,6 +180,7 @@ numbering 規則生效前已開始且無法可靠回推原 cycle number。cycle 
   Git tag、GitHub Release／lock metadata 猜版本。
 - `VERSION` 缺失、不可讀或格式錯誤時沒有顯示 `version unverified`。
 - 啟動卡的小熊腳右側仍顯示 `checkpoint ready`。
+- 任何 CER 小熊卡仍使用 `>` 作腳部，因而被 Markdown 呈現為引用。
 - release／upgrade 沒有先更新 `VERSION`。
 - 單批 `CER-start` 沒有固定啟動卡，或啟動卡錯用閉眼小熊。
 - stop／close 尚未證明 writer 停止或必要讀回完成，卻顯示閉眼成功卡；close 在
@@ -173,6 +189,9 @@ numbering 規則生效前已開始且無法可靠回推原 cycle number。cycle 
 - close 後新一輪 C 復用上一輪的 E1 或 R task／座標。
 - close 後舊輪 title 前段沒有 `✓`，也沒有真實 `title sync warning`，卻聲稱 close
   title 同步完成；只改 title 或只檢文字就算 lifecycle close。
+- 已知完整角色座標且沒有矛盾時，仍只因 close 而廣泛枚舉 project task、固定更新
+  一組狀態文件、執行完整 validator／doctor，或建立 Reviewer。
+- 角色座標矛盾或 writer 狀態不明時，仍以比例原則為由拒絕擴大讀回。
 - 同輪後續批次沒有復用同一 E1，卻在未達 E2 接管條件時另建 writer。
 - 舊 C 狀態或參與 host 不可核實，仍啟動第二 C。
 - 可用 inline visualization 時只顯示 Mermaid。

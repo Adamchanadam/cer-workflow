@@ -2,6 +2,14 @@
 
 範圍說明：本檔各版本區段記錄對應版本的 release history；實際執行規則以使用者已安裝版本隨附的 Skill references 為準。
 
+## v0.2.2
+
+本版修正 CER-close 與小熊卡的實際使用細節：
+
+- 小熊卡腳部改用 `╰ ^ ╯`，避免 `>` 在 Markdown 內被呈現為引用
+- CER-close 在已知本輪 C／E／R 座標時直接讀回終態；只有座標缺失、狀態矛盾或專案規則要求時才擴大枚舉
+- 純狀態收尾採用針對性讀回；只有治理、schema、核心流程或可信假綠風險受影響時才跑完整 validator／doctor 或建立 Reviewer
+
 ## v0.2.1
 
 本版收斂已通過 Full Audit 的 release-ready 候選：

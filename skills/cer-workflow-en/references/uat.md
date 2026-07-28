@@ -33,7 +33,7 @@ cycle label or guess a number.
 - The target contains only this Skill, with no source handoff or source-project context.
 - This Skill is for Codex only. Do not claim that this repository currently provides a
   Claude Code Skill.
-- The Skill root `VERSION` is one stable-semver line, currently `0.2.1`. Read it again before
+- The Skill root `VERSION` is one stable-semver line, currently `0.2.2`. Read it again before
   every bear card, and show `version unverified` when it is invalid.
 - A new C can start from only the Skill and the user's overall task.
 - `/CER-start` and `Start CER` trigger CER; a plain start/work message does not.
@@ -49,8 +49,8 @@ cycle label or guess a number.
    coordinates.
 4. C maps existing target-project sources of truth and the task knowledge foundation without creating fixed CER documents.
 5. For every successfully accepted `CER-start`, C's first user-visible success receipt is the
-   fixed open-eye `CER Workflow v0.2.1` / `🔵 CER started` card with a blank right side after
-   the bear foot, including single-batch work. Multi-stage or multi-batch work then shows the initial roadmap with a real
+   fixed open-eye `CER Workflow v0.2.2` / `🔵 CER started` card using the `╰ ^ ╯` foot with
+   a blank right side, including single-batch work. Multi-stage or multi-batch work then shows the initial roadmap with a real
    inline visualization and explicitly confirms that it is not Mermaid-only.
 6. C uses the matching bear card only for startup, material decisions, major blockers, staged
    delivery, successful stop, and successful close. Ordinary E1 substeps do not show cards.
@@ -141,6 +141,24 @@ cycle label or guess a number.
 - Fresh context that cannot access prior evidence must not silently retain the old conclusion; it
   must read back the evidence, mark continuity limited, or rebuild affected evidence.
 
+## Proportionate Close Scenarios
+
+- When this cycle's C/E/R threadIds are complete and writer state is directly readable, C reads
+  terminal state, required sources, and title sync from those known roles. It does not first
+  enumerate the whole project or create R merely for close.
+- A status-only close updates only existing sources actually required for this close and uses
+  targeted structural/content readback. When no durable source needs an update, verify only the
+  actual deliverable and `writer closed`; do not require a fixed document set.
+- When role coordinates are incomplete or contradictory, or writer state is unknown, C enumerates
+  within the relevant project and expands readback. Proportionality must not hide an unknown
+  terminal state.
+- Run the relevant full validator or doctor when this cycle changed governance, schema, or core
+  flow; credible contradiction or false-green evidence exists; source and delivery artifact
+  differ; or project rules require it. Do not run it automatically merely because the command is
+  close.
+- Every CER bear card uses `╰ ^ ╯` for the foot. It must not use a leading `>` that Markdown can
+  render as a block quote.
+
 ## Failure Conditions
 
 - A temporary subagent substitutes for persistent E1.
@@ -195,6 +213,7 @@ cycle label or guess a number.
   guesses from the network, a Git tag, GitHub Release, or lock metadata.
 - A missing, unreadable, or malformed `VERSION` does not render `version unverified`.
 - The start card still shows `checkpoint ready` to the right of the bear foot.
+- Any CER bear card still uses `>` for the foot and is rendered as a Markdown block quote.
 - A release or upgrade does not update `VERSION` first.
 - A single-batch `CER-start` has no fixed start card, or its start card wrongly uses closed eyes.
 - Stop/close shows a closed-eye success card before proving the writer stopped and completing
@@ -204,6 +223,10 @@ cycle label or guess a number.
 - A new C after close reuses the previous cycle's E1 or R task/coordinate.
 - The old-cycle title prefix has no `✓` and no real `title sync warning`, but close title sync is
   claimed complete; lifecycle close is accepted from title-only or text-only evidence.
+- Complete role coordinates are known with no contradiction, but close alone causes broad project
+  task enumeration, a fixed set of status-file updates, a full validator/doctor run, or a Reviewer.
+- Role coordinates conflict or writer state is unknown, but proportionality is used to refuse
+  wider readback.
 - A later batch in the same cycle fails to reuse the same E1, and creates another writer before
   E2 takeover conditions are met.
 - A second C starts while old C state or a participating host cannot be verified.

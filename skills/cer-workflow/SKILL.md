@@ -12,10 +12,16 @@ CER Core v1 是只供 Codex 使用、可獨立運行的工作法。Claude Code �
 
 使用者明示 `/CER-start <總任務、限制、優先序>`、`CER 啟動：...`、`CER 開始：...`、`CER 開工：...` 或同等帶 CER 的語意時：
 
-1. 完整讀取 [core-runtime.md](references/core-runtime.md)。
-2. 每次接受啟動，以及處理 `/CER-stop`、`/CER-close` 或其他小熊停點時，完整
-   讀取 [roadmap.md](references/roadmap.md)。
-3. 只有執行安裝驗收或 fresh UAT 時，完整讀取 [uat.md](references/uat.md)。
+1. 接受 `/CER-start` 前，完整讀取 [core-runtime.md](references/core-runtime.md) 及
+   [roadmap.md](references/roadmap.md)。
+2. 處理 `/CER-close` 時，只讀取 `core-runtime.md` 的「角色」、「小熊卡 package
+   版本」及「獨立持久化與收工」，以及 `roadmap.md` 的「固定生命週期卡」。
+3. 處理 `/CER-stop` 時，只讀取 `core-runtime.md` 的「角色」、「小熊卡 package
+   版本」及「停用 CER」，以及 `roadmap.md` 的「固定生命週期卡」。其他小熊停點
+   只讀取 `roadmap.md` 的相關段落。
+4. 只有角色座標或終態證據不完整、互相矛盾，或目標專案另有要求時，才擴大
+   讀取範圍；不得只因指令是 stop／close 而完整重讀全部 references。
+5. 只有執行安裝驗收或 fresh UAT 時，完整讀取 [uat.md](references/uat.md)。
 
 ## 操作指令
 

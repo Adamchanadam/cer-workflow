@@ -13,10 +13,18 @@ Claude Code.
 
 When the user explicitly says `/CER-start <overall task, constraints, priorities>`, `Start CER: ...`, or an equivalent CER-qualified start:
 
-1. Read [core-runtime.md](references/core-runtime.md) in full.
-2. Read [roadmap.md](references/roadmap.md) in full for every accepted start, and when
-   handling `/CER-stop`, `/CER-close`, or another bear-card checkpoint.
-3. Read [uat.md](references/uat.md) in full only for installation acceptance or fresh UAT.
+1. Before accepting `/CER-start`, read [core-runtime.md](references/core-runtime.md) and
+   [roadmap.md](references/roadmap.md) in full.
+2. For `/CER-close`, read only "Roles", "Bear-Card Package Version", and "Standalone
+   Persistence And Closeout" in `core-runtime.md`, plus "Fixed Lifecycle Cards" in
+   `roadmap.md`.
+3. For `/CER-stop`, read only "Roles", "Bear-Card Package Version", and "Stop CER" in
+   `core-runtime.md`, plus "Fixed Lifecycle Cards" in `roadmap.md`. For another bear-card
+   checkpoint, read only the relevant `roadmap.md` section.
+4. Expand reading only when role coordinates or terminal-state evidence are incomplete or
+   contradictory, or when target-project rules require it. Do not reread all references merely
+   because the command is stop or close.
+5. Read [uat.md](references/uat.md) in full only for installation acceptance or fresh UAT.
 
 ## Commands
 
