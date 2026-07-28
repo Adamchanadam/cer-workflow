@@ -33,7 +33,7 @@ cycle label or guess a number.
 - The target contains only this Skill, with no source handoff or source-project context.
 - This Skill is for Codex only. Do not claim that this repository currently provides a
   Claude Code Skill.
-- The Skill root `VERSION` is one stable-semver line, currently `0.2.3`. Read it again before
+- The Skill root `VERSION` is one stable-semver line, currently `0.2.4`. Read it again before
   every bear card, and show `version unverified` when it is invalid.
 - A new C can start from only the Skill and the user's overall task.
 - `/CER-start` and `Start CER` trigger CER; a plain start/work message does not.
@@ -49,7 +49,7 @@ cycle label or guess a number.
    coordinates.
 4. C maps existing target-project sources of truth and the task knowledge foundation without creating fixed CER documents.
 5. For every successfully accepted `CER-start`, C's first user-visible success receipt is the
-   fixed open-eye `CER Workflow v0.2.3` / `🔵 CER started` card using the `╰ ^ ╯` foot, keeping the
+   fixed open-eye `CER Workflow v0.2.4` / `🔵 CER started` card using the `╰ ^ ╯` foot, keeping the
    complete three-line bear with version and status after its foot on the third line, separated by
    fixed `·` markers rather than a separate line, including single-batch work. Multi-stage,
    multi-batch, or first-public-alignment work then shows the initial roadmap with a real inline
@@ -162,6 +162,26 @@ cycle label or guess a number.
   render as a block quote. Keep the complete three-line bear; version and status follow the foot
   on its third line with fixed `·` markers, not a separate line.
 
+## Kit Authority Pass-Through Scenarios
+
+- When the target workspace's `AGENTS.md` routes `Wrap up Agent Handoff`, `收工`, or equivalent
+  session-closeout intent to Kit full closeout, C's batch to the same E1 preserves the user's
+  original instruction, correct root, role/return coordinates, and required non-durable state.
+  It does not restate the Kit closeout procedure, file list, maintenance decision, or extra tests.
+- Until Kit authoritative terminal evidence passes, or while it reports blocked, C does not claim
+  `writer closed`, synchronize title `✓`, or show the CER close card. CER lifecycle close follows
+  only after that terminal evidence passes.
+- When the same E1 has returned verifiable authoritative Kit terminal evidence, C performs only
+  required result readback. It does not search for another CLI, rerun `closeout-status`, or copy
+  other Kit checks; only missing or contradictory evidence returns to the same E1 for completion.
+- `/CER-close` performs CER close only and does not trigger Kit full closeout in reverse.
+- When the target `AGENTS.md` routes `治理打通`, `connect this document to Agent Handoff Kit`, or
+  equivalent document-governance intent to an existing governance-bridge workflow, C gives the
+  same E1 only the original instruction, specified document, and required coordinates. CER remains
+  active after completion.
+- If the Kit authority is unreadable, the same E1 cannot be verified, or another writer exists,
+  pass-through is blocked. C must not guess, simulate, or create another Kit procedure.
+
 ## Failure Conditions
 
 - A temporary subagent substitutes for persistent E1.
@@ -180,6 +200,12 @@ cycle label or guess a number.
   setting failure shows a fake label or guessed number instead of keeping the shortest role title
   and reporting a real `title sync warning`.
 - A plain start/work message starts CER, or a plain close/finish message triggers CER close/stop.
+- C rewrites a Kit full-closeout or governance-bridge procedure, file list, maintenance decision,
+  or tests into the E1 dispatch.
+- C reruns a Kit procedure or check after the same E1 has returned verifiable authoritative Kit
+  terminal evidence.
+- C claims `writer closed`, synchronizes title `✓`, or shows the CER close card before Kit full
+  closeout has authoritative successful terminal evidence.
 - An explicit CER-qualified start or close equivalent does not trigger the corresponding CER behavior.
 - Controller preflight is incomplete, or a `critical missing` item still creates/reuses E1 or dispatches real work.
 - Safely inferable details are wrongly upgraded into a blocking form, or simple work is forced to display governance ceremony.

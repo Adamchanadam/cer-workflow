@@ -29,7 +29,7 @@ numbering 規則生效前已開始且無法可靠回推原 cycle number。cycle 
 
 - 目標只有本 Skill，沒有來源 handoff 或來源專案背景。
 - 本 Skill 只供 Codex；不得聲稱目前 repo 已提供 Claude Code 版 Skill。
-- Skill 根目錄 `VERSION` 只有一行穩定 semver，現值為 `0.2.3`；每張小熊卡顯示
+- Skill 根目錄 `VERSION` 只有一行穩定 semver，現值為 `0.2.4`；每張小熊卡顯示
   前都重新讀取，格式無效時顯示 `version unverified`。
 - 新 C 能只靠 Skill 和使用者總任務啟動。
 - `/CER-start`、`CER 啟動`、`CER 開始`、`CER 開工` 正常觸發 CER；單獨 `開工` 不觸發 CER。
@@ -44,7 +44,7 @@ numbering 規則生效前已開始且無法可靠回推原 cycle number。cycle 
    session／thread 座標的 ready direct-push。
 4. C 映射目標專案既有真源與本任務知識底座，不建立固定 CER 文件。
 5. 每次成功接受 `CER-start`，C 的第一個使用者可見成功回執都是固定開眼
-   `CER 工作法 v0.2.3`／`🔵 CER 已啟動` 卡；保留完整三行小熊，版本與狀態接在第三行
+   `CER 工作法 v0.2.4`／`🔵 CER 已啟動` 卡；保留完整三行小熊，版本與狀態接在第三行
    小熊腳後，以固定 `·` 分隔而不另起一行；單批也必須顯示。
    多階段／多批或需要首次公開對齊的任務再用真正 inline visualization 顯示初始路線圖，並確認不是
    只用 Mermaid。
@@ -135,6 +135,23 @@ numbering 規則生效前已開始且無法可靠回推原 cycle number。cycle 
   `>` 符號。
 - 每張小熊卡保留完整三行；版本與狀態只可接在第三行小熊腳後，以固定 `·` 分隔，不另起一行。
 
+## Kit 權威轉交情景
+
+- 目標 workspace 的 `AGENTS.md` 把 `收工`、`Wrap up Agent Handoff` 或同等
+  session closeout 語意路由為 Kit full closeout 時，C 給同一 E1 的批次保留
+  使用者原始指令、正確 root、角色／回傳座標及必要未持久化狀態，不重述 Kit
+  closeout 程序、檔案清單、maintenance 判斷或額外測試。
+- Kit 權威終態未成立或回報 blocked 時，C 不得宣稱 `writer closed`、同步 title
+  `✓` 或顯示 CER 收尾卡；終態成立後才依 CER 自身生命週期收尾。
+- 同一 E1 已回傳可核實的 Kit 權威終態時，C 只作必要成果讀回，不再尋找另一
+  CLI、重跑 `closeout-status` 或複製其他 Kit 檢查；證據缺失或矛盾才回同一 E1 補證。
+- `/CER-close` 只執行 CER close，不反向觸發 Kit full closeout。
+- 目標 `AGENTS.md` 把 `治理打通`、`把文件接入 Agent Handoff Kit` 或同等文件
+  governance bridge 語意路由至既有治理工作流時，C 只把原始指令、指定文件及
+  必要座標交給同一 E1；完成後 CER 保持啟動。
+- Kit 權威入口不可讀、同一 E1 不可核實或存在另一 writer 時，轉交受阻；不得
+  猜測、模擬或另建 Kit 程序。
+
 ## 失敗條件
 
 - 臨時 subagent 代替持久 E1。
@@ -147,6 +164,11 @@ numbering 規則生效前已開始且無法可靠回推原 cycle number。cycle 
 - cycle 編號被當作 lock、run ID、唯一 C 證據或 thread 身份；漏列 threadId 仍通過。
 - 新 cycle 使用 `00`；任何可見問號 cycle title；無法可靠枚舉或設定 title 時顯示假標籤或猜測數字，而不是保留最短 role title 並報真實 `title sync warning`。
 - 單獨 `開工` 啟動 CER，或單獨 `收工` 觸發 CER close／stop。
+- C 把 Kit full closeout 或 governance bridge 的權威程序、檔案清單、
+  maintenance 判斷或測試重寫進 E1 派工。
+- Kit full closeout 尚未有權威成功終態，C 已宣稱 `writer closed`、同步 title
+  `✓` 或顯示 CER 收尾卡。
+- 同一 E1 已回傳可核實的 Kit 權威終態後，C 仍自行重跑 Kit 程序或檢查。
 - 明確帶 CER 的啟動或 close 等價句沒有觸發相應 CER 行為。
 - Controller preflight 未完成，或有 `關鍵缺失` 仍建立／復用 E1 或派實際批次。
 - 可安全推定的細節被錯誤升級成阻塞表格；或簡單任務被迫展示治理儀式。

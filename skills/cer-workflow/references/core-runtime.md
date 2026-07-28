@@ -120,6 +120,21 @@ source／package mismatch 或發布／安裝產物不一致，或可信理由顯
 
 不得寫「見上文」或要求 assignee 自行重建 C 的上下文。高風險批次補足背景與反例；低風險小修改保持短，不套巨型表格。E1／R 發現凍結契約與真源矛盾時，先回報 blocker 或候選修正，不自行改寫契約後繼續。
 
+CER 已啟動時，若目標 workspace 的 `AGENTS.md` 把使用者語意明確路由為
+Agent Handoff Kit full closeout（例如 `收工`、`Wrap up Agent Handoff` 或同等
+session closeout 意圖），或把指定文件明確路由為 governance bridge，C 只把
+使用者原始指令、目標 root、同一 E1 與回傳座標、指定文件如有，以及尚未
+持久化而該工作流必須知道的已裁決狀態交給同一 E1。C 不得重述、拆解、擴張、
+預判、預先執行或另建該工作流的程序、checklist、檔案清單、maintenance 判斷、
+測試或完成聲稱；E1 自行依目標 `AGENTS.md` 路由出的現行權威執行，完成或受阻後
+direct-push 實際終態。
+
+Kit full closeout 只有在其權威終態證據成立後，C 才處理 CER title `✓` 與收尾卡；
+受阻時不得聲稱 `writer closed`。同一 E1 已回傳可核實的 Kit 權威終態後，C 只作
+必要成果讀回，不重跑 Kit 程序或檢查；證據缺失或矛盾時才回同一 E1 補證。
+Governance bridge 完成後只作一般成果讀回與裁決，CER 保持啟動。
+`/CER-close` 仍只是 CER 指令，不反向觸發 Kit full closeout。
+
 ## 送達
 
 - E1／R 工作前以正式送訊工具 direct-push `ready`。

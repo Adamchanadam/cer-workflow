@@ -2,6 +2,16 @@
 
 Scope note: each version section records release history for that version; the runtime authority is the Skill references bundled with the version the user has installed.
 
+## v0.2.4
+
+This release makes CER pass through Agent Handoff Kit commands to the target workspace authority when that workspace is already governed by Kit:
+
+- When the target `AGENTS.md` clearly routes `收工`, `Wrap up Agent Handoff`, or equivalent session-closeout intent, C gives the same E1 only the user's original instruction, target root, same-E1 / return coordinates, and required non-durable state
+- C does not restate, decompose, expand, predict, pre-execute, or create another Kit full-closeout / governance-bridge procedure, checklist, file list, maintenance decision, tests, or completion claim
+- Until Kit full-closeout authoritative terminal evidence passes, or while it reports blocked, C does not claim `writer closed`, synchronize title `✓`, or show the CER close card; CER lifecycle close follows only after that evidence passes
+- After the same E1 returns verifiable Kit terminal evidence, C performs only required result readback and does not rerun the Kit procedure or checks; missing or contradictory evidence returns to the same E1 for completion
+- Governance bridge completion keeps CER active; `/CER-close` remains a CER-only command and does not trigger Kit full closeout in reverse
+
 ## v0.2.3
 
 This release makes CER's pre-implementation public alignment and lifecycle prompts visible checkpoints:

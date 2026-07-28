@@ -2,6 +2,16 @@
 
 範圍說明：本檔各版本區段記錄對應版本的 release history；實際執行規則以使用者已安裝版本隨附的 Skill references 為準。
 
+## v0.2.4
+
+本版把 CER 在已由 Agent Handoff Kit 治理的 workspace 內遇到 Kit 指令時的行為收斂為權威轉交：
+
+- 目標 `AGENTS.md` 明確路由 `收工`、`Wrap up Agent Handoff` 或同等 session closeout 語意時，C 只把使用者原始指令、目標 root、同一 E1／回傳座標及必要未持久化狀態交給同一 E1
+- C 不重述、拆解、擴張、預判、預先執行或另建 Kit full closeout／governance bridge 程序、checklist、檔案清單、maintenance 判斷、測試或完成聲稱
+- Kit full closeout 權威終態未成立或回報 blocked 時，C 不宣稱 `writer closed`、不同步 title `✓`、不顯示 CER 收尾卡；終態成立後才處理 CER 自身收尾
+- 同一 E1 已回傳可核實 Kit 終態後，C 只作必要成果讀回，不重跑 Kit 程序或檢查；證據缺失或矛盾才回同一 E1 補證
+- governance bridge 完成後 CER 保持啟動；`/CER-close` 仍只是 CER 指令，不反向觸發 Kit full closeout
+
 ## v0.2.3
 
 本版把 CER 進入實作前的公開對齊與生命週期提示收斂為可見停點：

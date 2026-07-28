@@ -32,13 +32,13 @@ direct-push and C adjudication.
 
 Before showing any lifecycle or checkpoint bear card, read `VERSION` again from this Skill root.
 Stable semver `X.Y.Z` renders as `vX.Y.Z`; a missing, unreadable, or malformed value renders as
-`version unverified`. The cards below reflect the current `VERSION` value `0.2.3`; they do not
+`version unverified`. The cards below reflect the current `VERSION` value `0.2.4`; they do not
 hard-code the workflow generation.
 
 ```text
    ()_()
  ( ◕ᴥ◕ )
-   ╰ ^ ╯ · CER Workflow v0.2.3 · 🔵 CER started
+   ╰ ^ ╯ · CER Workflow v0.2.4 · 🔵 CER started
 ```
 
 Every successfully accepted `CER-start`, including simple single-batch work, uses this fixed
@@ -50,7 +50,7 @@ A successful `/CER-stop` uses this fixed closed-eye stop card:
 ```text
    ()_()
  ( ᴗᴥᴗ )
-   ╰ ^ ╯ · CER Workflow v0.2.3 · ⚪ CER stopped · CER inactive
+   ╰ ^ ╯ · CER Workflow v0.2.4 · ⚪ CER stopped · CER inactive
 ```
 
 A successful `/CER-close` uses this fixed closed-eye close card:
@@ -58,7 +58,7 @@ A successful `/CER-close` uses this fixed closed-eye close card:
 ```text
    ()_()
  ( ᴗᴥᴗ )
-   ╰ ^ ╯ · CER Workflow v0.2.3 · 🟢 CER closed · writer closed
+   ╰ ^ ╯ · CER Workflow v0.2.4 · 🟢 CER closed · writer closed
 ```
 
 A closed-eye card is proof of a verified terminal state, not an intent receipt. Show the stop
@@ -71,7 +71,7 @@ all-green title sync. When any evidence is missing, use the open-eye red blocker
 ```text
    ()_()
  ( ◕ᴥ◕ )
-   ╰ ^ ╯ · CER Workflow v0.2.3 · 🔴 Major blocker · checkpoint blocked
+   ╰ ^ ╯ · CER Workflow v0.2.4 · 🔴 Major blocker · checkpoint blocked
 ```
 
 ## Other Fixed Checkpoint Cards

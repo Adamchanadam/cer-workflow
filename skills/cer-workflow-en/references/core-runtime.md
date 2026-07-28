@@ -149,6 +149,23 @@ Each real E1 or R batch contains only what is needed:
 
 Do not write "see above" or ask the assignee to reconstruct C's context. Add background and counterexamples for high-risk batches. Keep low-risk batches short and avoid oversized templates. If E1/R finds a contradiction between the frozen contract and the sources, report a blocker or candidate correction first; do not rewrite the contract and continue alone.
 
+While CER is active, if the target workspace's `AGENTS.md` clearly routes the user's intent to
+Agent Handoff Kit full closeout (for example, `Wrap up Agent Handoff`, `收工`, or equivalent
+session-closeout intent), or clearly routes a specified document to governance bridge, C gives
+the same E1 only the user's original instruction, target root, same-E1 and return coordinates,
+the specified document when present, and any adjudicated state that is not yet durable but the
+target workflow must know. C must not restate, decompose, expand, predict, pre-execute, or create
+another copy of that workflow's procedure, checklist, file list, maintenance decision, tests, or
+completion claim. E1 executes under the current authority routed by the target `AGENTS.md` and
+direct-pushes the actual terminal result or blocker.
+
+C handles CER title `✓` and the close card only after authoritative Kit full-closeout evidence
+passes; a blocked result must not claim `writer closed`. After the same E1 returns verifiable
+authoritative Kit terminal evidence, C performs only required result readback and does not rerun
+the Kit procedure or checks; only missing or contradictory evidence returns to the same E1 for
+completion. Governance bridge returns through normal readback and adjudication while CER remains
+active. `/CER-close` remains a CER-only command and does not trigger Kit full closeout in reverse.
+
 ## Delivery
 
 - E1 and R direct-push `ready` through the formal messaging tool before work.

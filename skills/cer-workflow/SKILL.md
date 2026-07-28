@@ -21,7 +21,10 @@ CER Core v1 是只供 Codex 使用、可獨立運行的工作法。Claude Code �
    只讀取 `roadmap.md` 的相關段落。
 4. 只有角色座標或終態證據不完整、互相矛盾，或目標專案另有要求時，才擴大
    讀取範圍；不得只因指令是 stop／close 而完整重讀全部 references。
-5. 只有執行安裝驗收或 fresh UAT 時，完整讀取 [uat.md](references/uat.md)。
+5. CER 已啟動後，目標 `AGENTS.md` 明確路由的 Kit full closeout 或 governance
+   bridge 語意，只讀取 `core-runtime.md` 的「自足派工」相應規則，不另行設計
+   Kit 程序。
+6. 只有執行安裝驗收或 fresh UAT 時，完整讀取 [uat.md](references/uat.md)。
 
 ## 操作指令
 

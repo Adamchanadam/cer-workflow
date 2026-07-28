@@ -24,7 +24,10 @@ When the user explicitly says `/CER-start <overall task, constraints, priorities
 4. Expand reading only when role coordinates or terminal-state evidence are incomplete or
    contradictory, or when target-project rules require it. Do not reread all references merely
    because the command is stop or close.
-5. Read [uat.md](references/uat.md) in full only for installation acceptance or fresh UAT.
+5. After CER is active, when the target `AGENTS.md` clearly routes Kit full-closeout or
+   governance-bridge intent, read only the matching rule in "Self-Contained Dispatch" and do not
+   redesign the Kit procedure.
+6. Read [uat.md](references/uat.md) in full only for installation acceptance or fresh UAT.
 
 ## Commands
 
