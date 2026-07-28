@@ -51,17 +51,17 @@ CER v1 accepts natural-language and slash-command entry points. Slash commands a
 
 ## Controller Preflight
 
-Before creating this cycle's E1, reusing the existing E1 in the same cycle, or dispatching any real E1/R batch, C completes an adaptive task contract. This is not a form-filling ceremony. For simple low-risk work, C may complete it internally and proceed. For long-running or multi-batch work, compress the necessary answers into the initial roadmap or self-contained dispatch.
+Before creating this cycle's E1, reusing the existing E1 in the same cycle, or dispatching any real E1/R batch, C completes an adaptive task contract. This is not a form-filling ceremony. For simple low-risk work with one clear endpoint, C may complete it internally and proceed with a short summary. For long-running, multi-batch, or new product, flow, design, content, or experience work, compress the necessary answers into a first-public-alignment roadmap and self-contained dispatch.
 
 C judges only five items, each marked `confirmed`, `safe inference`, or `critical missing`:
 
 - Endpoint: what observable endpoint exists, and what is explicitly out of scope.
 - Sources: what must be read before completion can be judged, what has been read, and what key unknowns remain.
 - Root cause and boundary: why CER is needed, and what the smallest acceptable E1 batch is.
-- Permissions and stops: what AI can handle directly, and what truly requires user decision or stopping.
+- Permissions and stops: what AI can handle directly, whether first public alignment is needed, and what truly requires user decision or stopping.
 - Acceptance and proportion: what evidence can disprove the approach, and whether acceptance is just sufficient rather than defensive expansion.
 
-The three states have evidence boundaries. `confirmed` may come only from an explicit user statement or an authoritative source C has actually read, and C must be able to point to the source anchor. An unsupported assumption must not be labeled `confirmed`. A `safe inference` must pass a counterfactual test: if the opposite assumption were true, the deliverable, permissions/risk, acceptance, and rework would still not materially change. If multiple reasonable answers would produce materially different outcomes, the item is `critical missing`.
+The three states have evidence boundaries. `confirmed` may come only from an explicit user statement or an authoritative source C has actually read, and C must be able to point to the source anchor. An unsupported assumption must not be labeled `confirmed`. A `safe inference` must pass a counterfactual test: if the opposite assumption were true, the deliverable, user flow, collaboration method, data handling, permissions/risk, acceptance, and rework would still not materially change. If multiple reasonable answers would produce materially different outcomes, the item is `critical missing`.
 
 Before dispatch, C performs one short QC pass: check that every `confirmed` item has a source, that every `safe inference` passes the counterfactual result, and that the frozen task contract has not promoted an assumption into `confirmed`. If QC fails, C must not create/reuse E1 or dispatch real work. C may only perform necessary read-only investigation, or use a `🟡 User decision` stop with at most three questions that would materially change the result.
 
@@ -125,10 +125,10 @@ unstable external claims or verify actual release/install artifacts.
     a brand-new E1 and only fresh Reviewers; it must not reuse any E/R task or coordinate from the
     previous closed C.
 13. If any communication preflight link is missing, or the assignee does not actually direct-push a qualifying zero-write `ready`, C shows only the open-eye `🔴 Major blocker` card and stops. C must not show the successful start card. Waiting, polling, after-the-fact reads, document review, successful forking, and successful one-way sends do not prove communication.
-14. Only now is `CER-start` successfully accepted. C's first user-visible success receipt must be the fixed open-eye `🔵 CER started` card from [roadmap.md](roadmap.md). Its header uses the package version read for this card, and the right side of the `╰ ^ ╯` foot stays blank. Single-batch and multi-batch starts use the same card. Do not use a closed-eye card or guess a version.
+14. Only now is `CER-start` successfully accepted. C's first user-visible success receipt must be the fixed open-eye `🔵 CER started` card from [roadmap.md](roadmap.md). Keep the complete three-line bear; render version and status after the foot on its third line with fixed `·` markers rather than a separate line. Single-batch and multi-batch starts use the same card. Do not use a closed-eye card or guess a version.
 15. Later batches in the same cycle do not repeat the handshake while C, E1, the return target, and verifiable coordinates remain the same. Repeat `ready` whenever the coordinates or return target changes.
-16. For long-running, multi-stage, or multi-batch work, show the initial progress surface under [roadmap.md](roadmap.md) after the fixed start card and before the first batch. A simple single-batch task does not require a roadmap.
-17. C may send the first real batch only after the fixed start card is shown and, for long-running or multi-batch work, the initial roadmap has been added.
+16. For long-running, multi-stage, multi-batch, or first-public-alignment work, show the initial progress surface under [roadmap.md](roadmap.md) after the fixed start card and before the first batch. A simple single-batch task with one clear endpoint needs only a short summary.
+17. C may send the first real batch only after the fixed start card is shown and the required initial roadmap or short summary has been added.
 
 If the user did not explicitly invoke CER and the work is one low-risk step, handle it normally. Once the user explicitly invokes CER, do not silently remove the role topology because the task appears simple. Plain start/work messages belong to the target workspace's existing governance and are not CER triggers.
 

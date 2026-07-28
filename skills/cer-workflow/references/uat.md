@@ -29,7 +29,7 @@ numbering 規則生效前已開始且無法可靠回推原 cycle number。cycle 
 
 - 目標只有本 Skill，沒有來源 handoff 或來源專案背景。
 - 本 Skill 只供 Codex；不得聲稱目前 repo 已提供 Claude Code 版 Skill。
-- Skill 根目錄 `VERSION` 只有一行穩定 semver，現值為 `0.2.2`；每張小熊卡顯示
+- Skill 根目錄 `VERSION` 只有一行穩定 semver，現值為 `0.2.3`；每張小熊卡顯示
   前都重新讀取，格式無效時顯示 `version unverified`。
 - 新 C 能只靠 Skill 和使用者總任務啟動。
 - `/CER-start`、`CER 啟動`、`CER 開始`、`CER 開工` 正常觸發 CER；單獨 `開工` 不觸發 CER。
@@ -44,9 +44,9 @@ numbering 規則生效前已開始且無法可靠回推原 cycle number。cycle 
    session／thread 座標的 ready direct-push。
 4. C 映射目標專案既有真源與本任務知識底座，不建立固定 CER 文件。
 5. 每次成功接受 `CER-start`，C 的第一個使用者可見成功回執都是固定開眼
-   `CER 工作法 v0.2.2`／`🔵 CER 已啟動` 卡；小熊腳使用 `╰ ^ ╯`，右側留白，
-   單批也必須顯示。
-   多階段／多批任務再用真正 inline visualization 顯示初始路線圖，並確認不是
+   `CER 工作法 v0.2.3`／`🔵 CER 已啟動` 卡；保留完整三行小熊，版本與狀態接在第三行
+   小熊腳後，以固定 `·` 分隔而不另起一行；單批也必須顯示。
+   多階段／多批或需要首次公開對齊的任務再用真正 inline visualization 顯示初始路線圖，並確認不是
    只用 Mermaid。
 6. C 只在啟動、重大裁決、重大阻礙、階段交付、成功停用和成功收尾時使用相應
    小熊卡；普通 E1 子步驟不發卡。
@@ -55,7 +55,7 @@ numbering 規則生效前已開始且無法可靠回推原 cycle number。cycle 
    範圍或驗收。
 8. 一個高風險核心承諾由官方 `create_thread` 建立的側欄可見 `R1:01｜...` fresh
    新 task 依同一知識底座和凍結任務契約唯讀反證，且只重審受影響邊界。
-9. C 在重大方向或交付形狀改變時停點，分階段交付可觀察成果，最後取得使用者驗收。
+9. C 在重大方向或交付形狀改變時停點，分階段交付可觀察成果，區分技術驗收與用途校正，最後取得適用的使用者驗收。
 10. 使用者明示 `CER 收工`、`CER 關閉`、`關閉 CER` 或 `/CER-close`；同一 E1 更新既有必要真源並標 writer closed。C 完成必要讀回後，用官方 title 工具把本輪可核實 C／E／R title 改成 `🚀 C:01✓｜...`、`E1:01✓｜...`、`R1:01✓｜...` 並讀回；失敗則如實報 `title sync warning` 與失敗座標。最後才顯示固定閉眼 `🟢 CER 已收尾`／`writer closed` 卡；沒有持久真源時不假稱可跨 session 完整恢復。
 11. 另做組合情景：與 `$project-context-workflow` 同用時不重建文件、不搶共識關卡，也不由後者建立 C／E1／R。
 12. 另做停用情景：使用者輸入 `/CER-stop`；C 不再派新 E1/R，若 E1 正在寫入先收斂到 writer closed 或重大阻礙。只有證明沒有 active writer 並完成必要讀回，才顯示固定閉眼 `⚪ CER 已停用`／`CER inactive` 卡並回到單 thread。
@@ -133,6 +133,7 @@ numbering 規則生效前已開始且無法可靠回推原 cycle number。cycle 
   自動執行。
 - 每張 CER 小熊卡使用 `╰ ^ ╯` 作腳部；不得使用會在 Markdown 行首形成引用的
   `>` 符號。
+- 每張小熊卡保留完整三行；版本與狀態只可接在第三行小熊腳後，以固定 `·` 分隔，不另起一行。
 
 ## 失敗條件
 
@@ -179,7 +180,7 @@ numbering 規則生效前已開始且無法可靠回推原 cycle number。cycle 
 - 小熊卡沒有先讀本 Skill 的 `VERSION`，把 `v1` 當 package 版本，或從網路、
   Git tag、GitHub Release／lock metadata 猜版本。
 - `VERSION` 缺失、不可讀或格式錯誤時沒有顯示 `version unverified`。
-- 啟動卡的小熊腳右側仍顯示 `checkpoint ready`。
+- 啟動卡把版本或狀態另起一行，或不保留完整三行小熊／不用第三行小熊腳後的固定 `·` 分隔。
 - 任何 CER 小熊卡仍使用 `>` 作腳部，因而被 Markdown 呈現為引用。
 - release／upgrade 沒有先更新 `VERSION`。
 - 單批 `CER-start` 沒有固定啟動卡，或啟動卡錯用閉眼小熊。

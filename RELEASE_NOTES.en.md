@@ -2,6 +2,15 @@
 
 Scope note: each version section records release history for that version; the runtime authority is the Skill references bundled with the version the user has installed.
 
+## v0.2.3
+
+This release makes CER's pre-implementation public alignment and lifecycle prompts visible checkpoints:
+
+- Long-running, multi-batch, or new product, flow, design, content, or experience work shows an inline visualizer roadmap before the first real E1 batch; simple work with one clear endpoint shows only a short summary
+- Safe inference no longer follows technical risk alone; when the opposite assumption would change user flow, collaboration, data handling, output, or cause major rework, C must align first or ask the key questions
+- The public task summary shows the goal, scope, assumptions, smallest observable outcome, technical acceptance and fit validation, and the next user checkpoint
+- Bear cards keep the complete three-line art, with version and status after the foot on the third line rather than a separate line
+
 ## v0.2.2
 
 This release fixes two CER usage issues confirmed after v0.2.1:

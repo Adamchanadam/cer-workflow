@@ -3,7 +3,7 @@
 ## Two Different Surfaces
 
 - The **inline visualizer roadmap** is the standard progress surface for long-running,
-  multi-stage, or multi-batch CER work without requiring user action. Layout, stage count, and
+  multi-stage, multi-batch, or first-public-alignment CER work without requiring user action. Layout, stage count, and
   extra fields adapt to the project. Do not use a fixed four-box or fixed-table template as a
   substitute for real task information. Minimum content is defined under "Display Priority".
 - The **four-color bear card** is a checkpoint signal. It answers whether the user must preview,
@@ -14,13 +14,15 @@ position, while the card names the current checkpoint.
 
 ## Standard Inline Visualizer Timing
 
-1. When C classifies work as multi-stage or multi-batch, show the initial roadmap before the
-   first real batch.
+1. When C classifies work as multi-stage, multi-batch, or a new product, flow, design, content,
+   or experience deliverable that needs first public alignment, show the initial roadmap before
+   the first real batch.
 2. Update it after C reads back and accepts a result that changes the stage, batch, or next
    checkpoint.
-3. Update it when a user decision changes direction/scope/deliverable shape, or when R evidence
-   changes risk or acceptance state.
-4. Show the matching terminal state at staged delivery, final acceptance, or closeout.
+3. When a user decision, an actual new constraint, or R evidence materially changes direction,
+   scope, deliverable shape, risk, or acceptance state, show the difference from the prior version
+   before updating it.
+4. Show the matching terminal state at staged delivery, technical acceptance, fit check, or closeout.
 
 Do not update it for ordinary internal reads, E1 substeps, polling, unadjudicated candidates, or
 details that do not change user-view progress. Progress comes only from a bounded read after
@@ -30,32 +32,33 @@ direct-push and C adjudication.
 
 Before showing any lifecycle or checkpoint bear card, read `VERSION` again from this Skill root.
 Stable semver `X.Y.Z` renders as `vX.Y.Z`; a missing, unreadable, or malformed value renders as
-`version unverified`. The cards below reflect the current `VERSION` value `0.2.2`; they do not
+`version unverified`. The cards below reflect the current `VERSION` value `0.2.3`; they do not
 hard-code the workflow generation.
 
 ```text
-   ()_()     CER Workflow v0.2.2
- ( ◕ᴥ◕ )    🔵 CER started
-   ╰ ^ ╯
+   ()_()
+ ( ◕ᴥ◕ )
+   ╰ ^ ╯ · CER Workflow v0.2.3 · 🔵 CER started
 ```
 
 Every successfully accepted `CER-start`, including simple single-batch work, uses this fixed
-open-eye start card. Keep the bear foot with no status text to its right.
+open-eye start card. Keep the complete three-line bear; render version and status after the foot
+on the third line, separated by fixed `·` markers rather than a separate line.
 
 A successful `/CER-stop` uses this fixed closed-eye stop card:
 
 ```text
-   ()_()     CER Workflow v0.2.2
- ( ᴗᴥᴗ )    ⚪ CER stopped
-   ╰ ^ ╯     CER inactive
+   ()_()
+ ( ᴗᴥᴗ )
+   ╰ ^ ╯ · CER Workflow v0.2.3 · ⚪ CER stopped · CER inactive
 ```
 
 A successful `/CER-close` uses this fixed closed-eye close card:
 
 ```text
-   ()_()     CER Workflow v0.2.2
- ( ᴗᴥᴗ )    🟢 CER closed
-   ╰ ^ ╯     writer closed
+   ()_()
+ ( ᴗᴥᴗ )
+   ╰ ^ ╯ · CER Workflow v0.2.3 · 🟢 CER closed · writer closed
 ```
 
 A closed-eye card is proof of a verified terminal state, not an intent receipt. Show the stop
@@ -66,15 +69,15 @@ back either a `✓` appended to this cycle's cycle number in every verifiable C/
 all-green title sync. When any evidence is missing, use the open-eye red blocker card:
 
 ```text
-   ()_()     CER Workflow v0.2.2
- ( ◕ᴥ◕ )    🔴 Major blocker
-   ╰ ^ ╯     checkpoint blocked
+   ()_()
+ ( ◕ᴥ◕ )
+   ╰ ^ ╯ · CER Workflow v0.2.3 · 🔴 Major blocker · checkpoint blocked
 ```
 
 ## Other Fixed Checkpoint Cards
 
-Non-lifecycle checkpoints keep the open-eye bear and use the package version read for that card.
-If the version is invalid, they also show `version unverified`. Replace the second line for the
+Non-lifecycle checkpoints keep the open-eye bear and add version and status after its foot on the
+third line with fixed `·` markers. If the version is invalid, they also show `version unverified`. Replace the status for the
 situation:
 
 - `🟡 Direction decision`
@@ -86,8 +89,8 @@ situation:
 CER is a continuous loop, but it does not show a card for every small step:
 
 1. Every successfully accepted `CER-start` first uses one fixed `🔵 CER started` card as the
-   startup receipt, including single-batch work. Only long-running or multi-batch work adds the
-   full inline roadmap in the same message.
+   startup receipt, including single-batch work. Long-running, multi-batch, or first-public-
+   alignment work adds the full inline roadmap in the same message.
 2. Use `🟡 Direction decision` when the user must choose a material direction, scope,
    deliverable shape, cost, knowledge source, or acceptance standard.
 3. Use `🔴 Major blocker` when a communication path, session/thread coordinate, permission,
@@ -109,7 +112,9 @@ inline roadmap when progress changed.
 The inline roadmap shows at minimum: a testable destination; ordered stages with
 complete/current/pending state; overall progress; the current action and verified evidence or
 blocker; C/E1/R state; the next checkpoint; and knowledge-foundation state only for
-knowledge-heavy work. A bear card reduces the current situation to a preview, decision,
+knowledge-heavy work. First public alignment also shows scope/exclusions, key assumptions, the
+smallest observable result, whether technical acceptance and fit check apply, and whether a user
+decision is needed. A bear card reduces the current situation to a preview, decision,
 blocker, or acceptance checkpoint. Both derive from existing project plan/progress or verified
 execution state and do not create a second progress source.
 
@@ -122,8 +127,13 @@ Plain-text fallback:
 
 ```text
 Goal: <destination>
+Scope/exclusions: <in scope / not doing now>
+Key assumptions: <confirmed / safe inference / decision needed>
+[Public alignment: <confirmed / safe inference / decision needed>]
 [✓] Complete -> [● Now] Current stage -> [○] Later stage -> [○] Final delivery / closeout
 Current: <one sentence>
+Smallest observable outcome: <next thing the user will see>
+Acceptance: technical acceptance=<condition / not applicable>; fit check=<condition / not applicable>
 Next checkpoint: <one sentence>
 Knowledge foundation: <confirmed / source missing / not applicable>
 Roles: C=<state> | E1=<state> | R=<not created / reviewing / complete>

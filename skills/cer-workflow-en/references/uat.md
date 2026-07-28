@@ -33,7 +33,7 @@ cycle label or guess a number.
 - The target contains only this Skill, with no source handoff or source-project context.
 - This Skill is for Codex only. Do not claim that this repository currently provides a
   Claude Code Skill.
-- The Skill root `VERSION` is one stable-semver line, currently `0.2.2`. Read it again before
+- The Skill root `VERSION` is one stable-semver line, currently `0.2.3`. Read it again before
   every bear card, and show `version unverified` when it is invalid.
 - A new C can start from only the Skill and the user's overall task.
 - `/CER-start` and `Start CER` trigger CER; a plain start/work message does not.
@@ -49,9 +49,11 @@ cycle label or guess a number.
    coordinates.
 4. C maps existing target-project sources of truth and the task knowledge foundation without creating fixed CER documents.
 5. For every successfully accepted `CER-start`, C's first user-visible success receipt is the
-   fixed open-eye `CER Workflow v0.2.2` / `🔵 CER started` card using the `╰ ^ ╯` foot with
-   a blank right side, including single-batch work. Multi-stage or multi-batch work then shows the initial roadmap with a real
-   inline visualization and explicitly confirms that it is not Mermaid-only.
+   fixed open-eye `CER Workflow v0.2.3` / `🔵 CER started` card using the `╰ ^ ╯` foot, keeping the
+   complete three-line bear with version and status after its foot on the third line, separated by
+   fixed `·` markers rather than a separate line, including single-batch work. Multi-stage,
+   multi-batch, or first-public-alignment work then shows the initial roadmap with a real inline
+   visualization and explicitly confirms that it is not Mermaid-only.
 6. C uses the matching bear card only for startup, material decisions, major blockers, staged
    delivery, successful stop, and successful close. Ordinary E1 substeps do not show cards.
 7. The same E1 completes at least two implementation batches. Low-risk batches do not create R.
@@ -61,7 +63,7 @@ cycle label or guess a number.
 8. A sidebar-visible fresh `R1:01｜...` new task created through official `create_thread` independently
    challenges one high-risk core promise against the same knowledge foundation and frozen task
    contract, and re-reviews only the affected boundary.
-9. C stops for the user when a material direction or deliverable shape changes, delivers observable staged results, and obtains final user acceptance.
+9. C stops for the user when a material direction or deliverable shape changes, delivers observable staged results, separates technical acceptance from fit validation, and obtains applicable user acceptance.
 10. The user says `Close CER.` or `/CER-close`. The same E1 updates required existing sources
     of truth and marks `writer closed`. After required readback, C uses the official title tool to
     rename verifiable titles to `🚀 C:01✓｜...`, `E1:01✓｜...`, and `R1:01✓｜...`, then reads them
@@ -157,7 +159,8 @@ cycle label or guess a number.
   differ; or project rules require it. Do not run it automatically merely because the command is
   close.
 - Every CER bear card uses `╰ ^ ╯` for the foot. It must not use a leading `>` that Markdown can
-  render as a block quote.
+  render as a block quote. Keep the complete three-line bear; version and status follow the foot
+  on its third line with fixed `·` markers, not a separate line.
 
 ## Failure Conditions
 
@@ -212,7 +215,8 @@ cycle label or guess a number.
 - A bear card does not first read this Skill's `VERSION`, treats `v1` as the package version, or
   guesses from the network, a Git tag, GitHub Release, or lock metadata.
 - A missing, unreadable, or malformed `VERSION` does not render `version unverified`.
-- The start card still shows `checkpoint ready` to the right of the bear foot.
+- A start card puts version or status on a separate line, or does not preserve the complete three-line
+  bear and fixed `·` markers after its foot on the third line.
 - Any CER bear card still uses `>` for the foot and is rendered as a Markdown block quote.
 - A release or upgrade does not update `VERSION` first.
 - A single-batch `CER-start` has no fixed start card, or its start card wrongly uses closed eyes.
