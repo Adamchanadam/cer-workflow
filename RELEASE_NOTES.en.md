@@ -2,6 +2,18 @@
 
 Scope note: each version section records release history for that version; the runtime authority is the Skill references bundled with the version the user has installed.
 
+## v0.2.5
+
+This release hardens delivery reliability for long-running, multi-batch CER work and makes same-provenance evidence reuse plus risk-tiered acceleration the default adaptive schedule:
+
+- Formal messages and batches use stable `messageId`, `batchId`, monotonically increasing `batchSeq`, and immutable `payloadDigest`; the same identity with different content blocks immediately
+- An ambiguous `create_thread` or `send_message` result cannot be retried blindly; CER first performs one bounded reconciliation and relies on actual `threadId`, `hostId`, zero-write `READY`, or an authoritative receipt
+- A revised batch first moves the old batch into terminal `SUPERSEDED`; delayed delivery or replay of that old batch is rejected and cannot restart writes
+- Same-provenance evidence can be reused across dependent work while source identity and freshness remain unchanged; no-state-change batches stop at preflight, new facts are collected together, and acceptance commands run with counterexamples
+- A fresh Reviewer is created only after a complete high-risk candidate exists; adaptive acceleration turns itself off whenever communication, writer, evidence, dependency, or batch-lifecycle state is unclear
+- When the platform does not automatically wake an idle Controller, CER uses bounded event waits only for declared state transitions; snapshots, commentary, and task completion cannot substitute for direct-push results
+- Release readiness completed two independent AI real workflow UAT cycles covering duplicate delivery, batch supersession, delayed-old-batch rejection, Reviewer-blocked repair, and writer close; post-release user manual UAT remains unrun and separately reported
+
 ## v0.2.4
 
 This release makes CER pass through Agent Handoff Kit commands to the target workspace authority when that workspace is already governed by Kit:

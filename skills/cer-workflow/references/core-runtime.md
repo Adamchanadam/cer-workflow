@@ -81,6 +81,76 @@ source／package mismatch 或發布／安裝產物不一致，或可信理由顯
 大小或 `high risk` 字眼本身，都不能擴大或縮小驗收。此規則只在證據已知後界定範圍；
 不取代用針對性檢查發現不穩定外部聲稱，或驗證真實發布／安裝產物。
 
+## 工具結果不明、角色對帳與批次去重
+
+本節適用於有副作用的 task/thread 建立，以及 ready、accept、stop、正式派工、
+批次狀態、結果與接納等控制訊息。C 對每次操作只使用
+`confirmed`、`pending`、`outcome_unknown`、`duplicate`、`blocked` 五種狀態；
+工具回報失敗、逾時、部分結果或非權威別名時，不得直接判定操作沒有發生。
+
+- 建立角色前，C 先對本輪實際參與 host、project、target root、cycle 與 role
+  做一次有界建立前快照。快照只供本次對帳，不得演變成 lock、central registry
+  或 CER run ID。
+- 只有官方 receipt 或權威讀回同時給出 threadId、目前實際 hostId、project
+  與 target root，建立才是 `confirmed`。只有 `clientThreadId`、逾時、錯誤或
+  部分結果時，操作是 `pending` 或 `outcome_unknown`，不是確定失敗。
+- `outcome_unknown` 禁止自動重試。C 只做一次有界控制面對帳：比較建立前快照，
+  在全部實際參與 host 的官方 task/thread 列表中，以 project、target root、
+  cycle、role 及建立意圖匹配候選。一次對帳可包含平台已知 settle interval
+  前後兩次權威快照；這是故障恢復，不是輪詢工作結果。
+- 穩定期後零個候選仍只可把建立操作標成 `blocked`，不得自動再建立；其
+  pending operation 必須在任何後續 resume、startup 或新建同 role 前先重做
+  一次權威對帳，以捕捉延遲出現的孤立 task。一個候選須再以官方 metadata
+  及零寫入 `ready` 確認；多於一個候選即 `duplicate`。
+- 路由座標以 C 讀回的官方 threadId 與目前實際 hostId 為準，不信任 task
+  自報的 `local` 或顯示別名。`ready` 仍須自報角色、target root 及回傳目標；
+  與官方 metadata 不一致時先對帳，不派正式工作。
+- 發現重複角色時，所有候選保持零寫入。只有全部候選都證明未收到正式工作且
+  零寫入，C 才可選定一個；其餘候選收到 `STOP_ZERO_WRITE` 後，須以 direct-push
+  停止確認或官方可讀的不可工作終態證明停止。archive、title 或發出停止訊息
+  本身都不是停止證據；無法取得任一停止證據即 `blocked`，不得以可用性理由放寬。
+- 任一重複 E1／E2 可能已收到正式工作或寫入時，C 停止所有新派工，讀回 writer
+  與 workspace 狀態。先以穩定 `messageId` 向全部可能 writer 發停止指令，再以
+  direct-push 或官方終態讀回證明全部已停止；接着判定已寫表面、候選成果及
+  workspace 一致性。只有狀態可判定後，C 才可選定其中一名恢復，或在全部舊 writer
+  已停止後依既有接管規則建立 E2；不得自動回滾或簡單選一個繼續。
+- 每個正式批次使用本輪唯一且穩定的 `batchId`，綁定 cycle、角色、C 選定的
+  threadId、目前實際 hostId、target root、該接收者本輪單調遞增的 `batchSeq`
+  及不可變 `payloadDigest`。digest 覆蓋完整自足派工內容；內容或任務契約有任何
+  改變便使用新 `batchId` 及較高 `batchSeq`。受控重送只能重送完全相同的
+  `batchId`、`batchSeq`、`payloadDigest` 及內容。
+- 接收者為每個 `batchId` 判定 `RECEIVED_ZERO_WRITE`、`IN_PROGRESS`、
+  `RESULT_READY`、`RESULT_ACCEPTED` 或 `STATE_UNKNOWN`，並以 task/thread 歷史及
+  workspace 讀回作恢復證據。首次核對綁定後 direct-push `BATCH_RECEIVED`，
+  再開始實質工作；開始寫入前標成 `IN_PROGRESS`，結果固定後標成 `RESULT_READY`，
+  收到 C 的 `RESULT_ACCEPTED` 後才標成 `RESULT_ACCEPTED`。
+- 相同 `batchId` 再次送達時，`RECEIVED_ZERO_WRITE` 可繼續原批一次；
+  `IN_PROGRESS` 只回 `BATCH_IN_PROGRESS` 而不重啟；`RESULT_READY` 重播同一結果；
+  `RESULT_ACCEPTED` 才回 `DUPLICATE_IGNORED`。中斷後無法證明狀態時標成
+  `STATE_UNKNOWN`，停止寫入並先做 writer／workspace 恢復；相同 `batchId`
+  但 `payloadDigest` 不同一律 `blocked`。
+- 若新批次取代尚未終結的舊批次，C 先以穩定 `messageId` 發
+  `BATCH_SUPERSEDE`，列明舊／新 `batchId` 與 `batchSeq`。接收者先記錄舊批次
+  `SUPERSEDED`，使其任何延遲送達都被拒絕；若舊批次已開始或可能寫入，先停止
+  並完成 writer／workspace 恢復。C 只有收到 `BATCH_SUPERSEDED`，且舊批次已證明
+  零寫入取消、已終結，或恢復完成後，才可派發／開始新修訂。接收者拒絕任何低於
+  已接受最高 `batchSeq` 的未授權批次。
+- 所有 ready、accept、stop、批次回執、狀態、結果及結果接納訊息都使用穩定
+  `messageId`，綁定訊息種類、sender、recipient、相關 `batchId` 如有，以及
+  不可變訊息內容。接收者按 `messageId` 去重；重複訊息重播既有確認，不重做副作用。
+- 任一控制或結果 send 為 `outcome_unknown` 時禁止盲目重發。先以 operation receipt、
+  已收到的對應確認，或一次有界目的地／thread 讀回尋找相同 `messageId`；仍無法
+  證明時，只有接收者身份仍唯一且具訊息去重，才可用相同 `messageId` 及完全相同
+  內容受控重送一次，否則 `blocked`。故障恢復讀回是「不監察」規則的有界例外。
+  此例外同時覆蓋送達段的「收到 push 後才讀回」及啟動段禁止以事後 read 冒充
+  通訊驗證的限制，但只可證明該 `messageId` 的送達；它不能單獨證明整條 ready／
+  accept 通訊鏈成立。
+- C 收到並裁決結果後，以穩定 `messageId` 回 `RESULT_ACCEPTED`。結果送達或
+  `RESULT_ACCEPTED` 結果不明時，重送與接收端均按相同訊息身份去重，避免結果遺失
+  或接納兩次；不得建立無限 receipt-of-receipt 鏈。
+- 平台日後提供 idempotency key 或權威 operation receipt 時，以其為優先證據；
+  CER 不假裝平台已有此能力，也不把該 key／receipt 變成 CER lock 或 run ID。
+
 ## 啟動
 
 1. C 讀目前安裝的 CER 執行規則、使用者總任務、明示限制及目標 workspace 實際存在的權威規則。
@@ -95,7 +165,7 @@ source／package mismatch 或發布／安裝產物不一致，或可信理由顯
 10. 若官方 `create_thread` 新建 task 工具不可用，或無法讀回側欄可見 title、可核實 thread id 與正式回傳路徑，E／R 委派即阻塞；不得降級用 inline sub-agent、fork、delegate 或既有 task 冒充正式 E／R。
 11. 新建 E1／R／E2 時，標題或首行標籤必須分別以 `E1:01｜<極短任務名>`、`R1:01｜<極短審閱名>`／`R2:01｜...`、`E2:01｜...` 格式開首，不加 `🚀`；角色序號在冒號前，cycle 編號在冒號後，避免把第二輪 E1 誤作 E2。同輪所有 C／E／R 使用相同 cycle 編號，下一輪使用新 cycle 編號；legacy/migration cycle 可用 `00`。每個派工包和 ready／結果回執都要包含發送者角色、接收者、回傳目標、session／thread id 或平台等價座標。
 12. C 透過官方 `create_thread` 建立本輪全新持久 E1。E1 先零寫入 direct-push `ready`；C 必須實際收到含正確角色、cycle 編號、側欄可見標題／標籤、thread 座標和回傳目標的合格零寫入 `ready`。同一輪後續批次持續復用該同一 E1 且 E1 threadId 保持相同；完成上一輪 `/CER-close` 後的新一輪必須建立全新 E1、使用新 cycle 編號，所有 R 也必須 fresh；不得復用上一輪 closed C 的任何 E／R task 或座標。
-13. 任一通訊 preflight 環節缺失，或 assignee 沒有實際 direct-push 合格零寫入 `ready`，C 只顯示開眼 `🔴 重大阻礙` 卡並停止；不得顯示成功啟動卡，也不得用 wait、輪詢、事後 read、文件審閱、fork 建立成功或單向 send 成功冒充通訊驗證。
+13. 任一通訊 preflight 環節缺失，或 assignee 沒有實際 direct-push 合格零寫入 `ready`，C 只顯示開眼 `🔴 重大阻礙` 卡並停止；不得顯示成功啟動卡，也不得用 wait snapshot、完成狀態、commentary、輪詢、事後 read、文件審閱、fork 建立成功或單向 send 成功冒充通訊驗證。平台需要事件等待才會喚醒 idle C 時，只可依「送達」使用一次有界 event wait，真正 `ready` 仍須以 direct-push 到達。
 14. 到此才算成功接受 `CER-start`。C 的第一個使用者可見成功回執必須是 [roadmap.md](roadmap.md) 的固定開眼 `🔵 CER 已啟動` 卡；保留完整三行小熊，版本與狀態在第三行小熊腳後以固定 `·` 分隔，不另起一行。單批與多批都相同；不得用閉眼卡或猜測版本。
 15. 同一輪、同一 C、同一 E1、同一回傳目標、同一可核實座標的後續批次不重做握手；座標或回傳目標改變即重做 ready。
 16. C 判定為長期、多階段、多批次，或需要首次公開對齊的任務時，在固定啟動卡後、第一批前依 [roadmap.md](roadmap.md) 顯示初始進度面。簡單單批且終點唯一的任務只顯示短摘要，不強制建立路線圖。
@@ -113,6 +183,7 @@ source／package mismatch 或發布／安裝產物不一致，或可信理由顯
 - 允許及禁止範圍；
 - 驗收與能推翻方案的反例；
 - 停止條件；
+- 本批穩定 `batchId`、單調遞增 `batchSeq`、不可變 `payloadDigest`，以及所綁定的 cycle、接收者 threadId、目前實際 hostId 與 target root；
 - 凍結任務契約，以及任何 `已確認`、`可安全推定`、`關鍵缺失` 的處置、必要來源錨點和反事實結果；
 - 回傳 C 的 direct-push 目標、session／thread id 或平台等價座標；
 - 本批需要的知識底座、來源座標、未知與禁止越界範圍；
@@ -137,11 +208,32 @@ Governance bridge 完成後只作一般成果讀回與裁決，CER 保持啟動�
 
 ## 送達
 
-- E1／R 工作前以正式送訊工具 direct-push `ready`。
-- `ready` 必須回傳自身角色、可見標題或首行標籤、session／thread id 或平台等價座標、收到的目標 root、回傳目標及是否具備必要來源。
-- 完成、受阻或未完成時，先 direct-push 短結果給 C，再停止；結果回執同樣要帶 session／thread 座標，避免 C 將另一個 task 的結果誤接納。
-- C 只有收到 push 後才做一次有界讀回及裁決。
-- 「不監察」只禁止 waiting、polling、背景監聽、反覆狀態探測及未收到 push 的被動 thread read。使用者明示要求的一次有界 read，或 push 後的核對 read，仍可使用。
+- E1／R 工作前以正式送訊工具 direct-push 零寫入 `ready`；收到正式批次後，再以該批 `batchId` 及 `payloadDigest` direct-push `BATCH_RECEIVED`，依批次生命週期開始或恢復工作。
+- `ready` 必須回傳自身角色、可見標題或首行標籤、session／thread id 或平台等價座標、收到的目標 root、回傳目標及是否具備必要來源。所有訊息都帶穩定 `messageId`；`BATCH_RECEIVED` 還須回傳目前實際 hostId 與綁定核對結果。
+- 完成、受阻或未完成時，先 direct-push 短結果給 C，再停止；結果回執帶 `messageId`、`batchId`、`payloadDigest` 及 session／thread 座標，避免 C 將另一個 task、另一批或另一修訂的結果誤接納。C 裁決後回 `RESULT_ACCEPTED`。
+- 相同 `batchId` 重複送達時，接收者依 `RECEIVED_ZERO_WRITE`、`IN_PROGRESS`、`RESULT_READY`、`RESULT_ACCEPTED` 或 `STATE_UNKNOWN` 恢復，不得盲目重做；相同身份但不同 digest 立即阻塞。
+- 除非某參與者已觀察到明確 `outcome_unknown` 並依本節故障恢復規則讀取精確
+  `messageId`，C 只有收到 push 後才做一次有界讀回及裁決。故障讀回不可擴成
+  waiting、polling 或背景監聽。
+- 若平台不會自動以跨 task 輸入喚醒 idle C，C 可對每個已聲明的預期
+  direct-push 狀態轉移，以該次已知唯一 threadId／hostId、目前 cursor、因果
+  `messageId` 及預期訊息種類形成 `eventWaitKey`，啟動一次有界 `wait_threads`
+  或平台等價 event wait。建立後的 `ready`、正式批次後的 `BATCH_RECEIVED`、
+  `BATCH_RECEIVED` 後的最終結果、stop 後的停止確認各是不同狀態轉移，可各有
+  一次初始等待。等待只保持接收端可被 direct-push 喚醒；
+  wait snapshot 內的完成狀態、commentary、摘要或檔案聲稱都不是 ready/result
+  證據。真正 direct-push 必須成為接收端的實際輸入或有權威 receipt。
+- event wait 被符合 `eventWaitKey` 的 direct-push 中斷後，該狀態轉移完成；下一個
+  已聲明轉移可用新的 key 及最新 cursor 建立自己的等待。逾時而沒有相符 push 時，
+  該 key 改標 `pending` 或 `outcome_unknown` 並先做有界對帳；不得只因 commentary、
+  task 完成或不相干輸入而把轉移當完成。
+- 同一邏輯訊息的受控重送不算新的正式 send。只有對帳後依本節允許的唯一一次同
+  `messageId`、同內容重送，才可為同一 `eventWaitKey` 建立一次 `recovery` 等待；
+  recovery 再逾時即 `blocked`。新的邏輯操作或下一個合法批次生命週期轉移才使用
+  新 key，不得以額外控制訊息或改名重開等待額度。
+- 「不監察」禁止反覆 waiting、polling、背景監聽、反覆狀態探測、把 wait snapshot
+  當成果，以及未收到 push 的被動 thread read；上述單次有界 event wait、使用者
+  明示的一次有界 read，或 push 後的核對 read，不在禁止範圍。
 - 送達不可用只阻止委派；C 仍可做獲授權的唯讀研究、分析與裁決，但不能代替 E1 寫入。
 
 ## 執行閉環
@@ -160,6 +252,29 @@ Governance bridge 完成後只作一般成果讀回與裁決，CER 保持啟動�
 11. 長期、多階段或多批次任務的進度更新與小熊停點分工一律依 [roadmap.md](roadmap.md)；只用 direct-push 後已讀回及已裁決事實，不輪詢 E1。
 
 普通小修改由 C 讀回加相稱測試即可。高風險修補只重審受影響邊界；不得用更多 R 代替清楚驗收條件。
+
+## 自適應批次加速
+
+自適應批次加速是 C 的預設內部排程，不是使用者模式、Turbo 設置或 slash command。
+它不改變 C／E／R 角色、唯一 writer、安全門檻、獨立審閱或驗收標準：
+
+- C 以 checkpoint 建立證據有效期。只有被驗對象、需求、直接依賴與環境前提、
+  交付物、驗證方法仍相同或已證明等效，而且沒有可信矛盾時，才可跨相依工作
+  共用一次讀取與定位。fresh R 必須從凍結的原始證據自行讀取，C／E 摘要不可
+  代替 R 的獨立證據。
+- `no_material_delta` 只可在目前權威讀回已證明驗收成立時，停止原定寫入批次。
+  證據收集、審閱、稽核或故障恢復批次，不得只因沒有檔案寫入而略過。
+- 同一 checkpoint 的新事實可集中收集，C 最多統一推進一次有效期；任何需求、
+  來源、依賴、環境、交付物、驗證方法或可信反證改變，都立即令受影響結論失效
+  並重開最小充分證據。
+- 相容的驗收命令與反例可合併排程，但每項檢查仍保留獨立輸出、exit status、
+  來源與裁決。依賴執行次序、共享可變狀態、互斥資源或會互相污染的檢查必須分開。
+- 每個穩定風險邊界只建立一名 fresh R，讓其審閱完整候選；不可逆或高後果行動
+  必須在行動前完成相應 R，不能為了批次合併延後。凍結邊界修補後可由該輪 R
+  重驗，不逐小步建立新 R。
+- 通訊或批次生命週期為 `pending`／`outcome_unknown`／`duplicate`／`STATE_UNKNOWN`、唯一 writer 不明、來源新鮮度
+  或證據身份不明、需要使用者裁決，或出現可信矛盾時，加速自動停用並回到一般
+  CER 規則。`/CER-status` 可報 `active`、`partial` 或 `off` 及原因，但不得為此輪詢。
 
 ## YAGNI 與停止
 

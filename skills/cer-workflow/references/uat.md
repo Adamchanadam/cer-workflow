@@ -29,7 +29,7 @@ numbering 規則生效前已開始且無法可靠回推原 cycle number。cycle 
 
 - 目標只有本 Skill，沒有來源 handoff 或來源專案背景。
 - 本 Skill 只供 Codex；不得聲稱目前 repo 已提供 Claude Code 版 Skill。
-- Skill 根目錄 `VERSION` 只有一行穩定 semver，現值為 `0.2.4`；每張小熊卡顯示
+- Skill 根目錄 `VERSION` 只有一行穩定 semver，現值為 `0.2.5`；每張小熊卡顯示
   前都重新讀取，格式無效時顯示 `version unverified`。
 - 新 C 能只靠 Skill 和使用者總任務啟動。
 - `/CER-start`、`CER 啟動`、`CER 開始`、`CER 開工` 正常觸發 CER；單獨 `開工` 不觸發 CER。
@@ -41,10 +41,11 @@ numbering 規則生效前已開始且無法可靠回推原 cycle number。cycle 
 2. C 以 `🚀 C:01｜<極短任務名>` 標題或首行標籤識別主 task，完成 Controller preflight；完整任務直接通過，有來源的 `已確認` 和通過反事實測試的 `可安全推定` 不阻塞，關鍵終點／權限／驗收缺失時用黃色停點最多問三題。
 3. C 完成通訊 preflight，用官方 `create_thread` 建立同一 Codex project 側欄可見
    的全新 `E1:01｜...` 持久 task，讀回 title、thread id 與正式回傳路徑，取得含
-   session／thread 座標的 ready direct-push。
+   session／thread 座標的 ready direct-push。若實際平台不會自動喚醒 idle C，
+   C 可對該 E1 使用一次有界 event wait；wait snapshot 不算 ready 證據。
 4. C 映射目標專案既有真源與本任務知識底座，不建立固定 CER 文件。
 5. 每次成功接受 `CER-start`，C 的第一個使用者可見成功回執都是固定開眼
-   `CER 工作法 v0.2.4`／`🔵 CER 已啟動` 卡；保留完整三行小熊，版本與狀態接在第三行
+   `CER 工作法 v0.2.5`／`🔵 CER 已啟動` 卡；保留完整三行小熊，版本與狀態接在第三行
    小熊腳後，以固定 `·` 分隔而不另起一行；單批也必須顯示。
    多階段／多批或需要首次公開對齊的任務再用真正 inline visualization 顯示初始路線圖，並確認不是
    只用 Mermaid。
@@ -93,6 +94,73 @@ numbering 規則生效前已開始且無法可靠回推原 cycle number。cycle 
   不得代替 E 或 R，不得產生正式 ready/result，也不得作 CER Reviewer 通過證據。
 - 缺少 `create_thread`、側欄可見 title、可核實 thread id 或正式回傳路徑時，
   E／R 委派受阻；不得降級使用 inline sub-agent、fork、delegate 或既有 task。
+
+## 工具結果不明與批次去重情景
+
+- `create_thread` 回報錯誤或逾時，但一次有界官方枚舉找到一個符合建立前快照的
+  新 task 時，C 不重試建立；以官方 metadata 及該 task 的零寫入 `ready` 完成確認。
+- `create_thread` 回報不明後，一次有界對帳找不到候選時，狀態是 `blocked`；
+  不把立即枚舉的零候選當成可自動重試授權。稍後 resume、startup 或建立同 role
+  前會再次對帳，延遲出現的 task 不會被當成不存在。
+- 同一 role／cycle／root 出現三個候選時，三者先保持零寫入；C 只選定一個，
+  其餘兩個各自收到 `STOP_ZERO_WRITE` 並 direct-push 停止確認後，才派正式工作。
+- 三個零寫入候選中有一個無法 direct-push 停止確認時，只有官方不可工作終態
+  讀回可代替；兩種證據都沒有便 `blocked`，不得讓其餘候選先工作。
+- task 自報 host 為 `local`，官方 metadata 顯示目前實際 hostId 為另一座標時，
+  路由採用官方 metadata；差異先對帳，不能把顯示別名當權威身份。
+- 重複 E1 中任何一個可能已收到正式批次或寫入時，C 停止新派工並讀回 writer
+  及 workspace 狀態；全部 writer 停止且 workspace 可判定後，才選定一名恢復，
+  或依接管規則建立 E2。不能只指定一個、取消其餘便繼續。
+- E1 回 `BATCH_RECEIVED` 後、開始工作前中斷時，批次保持
+  `RECEIVED_ZERO_WRITE`；相同 `batchId` 只續行原批一次，不另開第二次執行。
+- E1 在部分寫入後中斷且無法證明批次狀態時，標成 `STATE_UNKNOWN`，停止寫入並
+  先恢復唯一 writer 及 workspace；不得因重複送達而重跑整批。
+- `RESULT_READY` 的批次重複送達時，E1 重播相同結果；C 已回
+  `RESULT_ACCEPTED` 後再重複送達，才只回 `DUPLICATE_IGNORED`。
+- 首次 send 結果不明後，sender 對完全相同內容作受控重送時，`batchId`、
+  `batchSeq`、`payloadDigest` 與內容全部不變。驗收或任務契約有改動便使用新
+  `batchId` 及較高 `batchSeq`。
+- 相同 `batchId` 帶不同 `payloadDigest` 時，接收者立即 `blocked`；C 不可把舊
+  批次結果接納為新修訂。
+- 舊批次 B1 送達結果不明，而新契約需要 B2 時，C 先送
+  `BATCH_SUPERSEDE B1 -> B2`。接收者記錄 B1 為 `SUPERSEDED` 並回確認；B1
+  若其後延遲送達即被拒絕。B1 已開始或可能寫入時，完成停止及 workspace 恢復後
+  才開始較高 `batchSeq` 的 B2。
+- ready、`C_ACCEPTED`、stop、批次狀態、結果或 `RESULT_ACCEPTED` 任一 send
+  回報不明時，sender 先以相同 `messageId` 作一次有界 receipt／目的地讀回；
+  必要時只可受控重送同一訊息一次，receiver 去重並重播既有確認。
+- E1 已完成但結果 push 回報不明時，C 可由同一 `messageId` 的目的地讀回或
+  重複結果取得候選，裁決後回同一 `RESULT_ACCEPTED`；不永久等待，也不接納兩次。
+- 對精確 `messageId` 的故障讀回可在未收到 push 時執行，但只證明該訊息送達；
+  不會被當成整條 ready／accept 通訊鏈成立，也不會擴成輪詢。
+- 平台不會自動喚醒 idle C 時，C 對已知唯一 E1 使用一次有界 event wait；
+  E1 direct-push READY 以新輸入中斷等待後才繼續。只得 wait snapshot、完成狀態
+  或 commentary 而沒有 direct-push 時，仍未通過。
+- 同一批次先後預期 `BATCH_RECEIVED` 與最終結果時，兩者使用不同
+  `eventWaitKey` 及最新 cursor，各有一次初始等待；第一個回執不會消耗最終結果
+  的等待額度。
+- 同一預期訊息逾時後，只有完成對帳及唯一一次同 `messageId` 受控重送，才可
+  使用一次 recovery wait；再次逾時即阻塞。額外控制訊息或改名不能重開額度。
+- 平台沒有 idempotency key 或權威 operation receipt 時，CER 使用有界對帳與
+  `batchId` 去重，不虛構平台 receipt；批次識別只作重複送達防護。
+
+## 自適應批次加速情景
+
+- 同一 checkpoint 內，被驗對象、需求、直接依賴／環境、交付物及驗證方法均未
+  改變且無可信反證時，同源證據可一次讀取、一次定位並跨相依工作共用。
+- 需求、來源、直接依賴、環境前提、交付物或驗證方法任何一項改變時，受影響
+  證據立即失效，只重建該結論的最小充分證據。
+- 寫入前權威讀回已證明驗收成立時，`no_material_delta` 可停止該寫入批次；
+  審閱、證據、稽核或故障恢復批次不能只因零寫入而略過。
+- 同一 checkpoint 的新事實集中收集並最多統一推進一次有效期；出現可信矛盾時，
+  即使已集中處理仍須重開受影響結論。
+- 相容驗收命令與反例可同批執行，但每項保留獨立輸出、exit status、來源與
+  裁決；依賴次序或共享可變狀態的檢查分開執行。
+- 完整高風險候選才建立一名 fresh R；不可逆或高後果行動則在行動前先完成
+  相應 R，不得把必要審閱延後到行動後。
+- 通訊結果、批次生命週期、角色重複、唯一 writer、證據身份／新鮮度任一不明，
+  或需要使用者裁決時，自適應加速為 `off`，回到一般 CER 規則。
+- fresh R 從凍結原始證據自行讀取並反證；C／E 的摘要只可定位，不可代替獨立證據。
 
 ## 審閱收斂情景
 
@@ -193,10 +261,49 @@ numbering 規則生效前已開始且無法可靠回推原 cycle number。cycle 
 - 跨 task prompt 依賴既有對話。
 - 未證明送達鏈便開始工作。
 - 只證明 title、fork 或單向 send，沒有 E1 direct-push ready/result。
+- create 結果為逾時、錯誤或部分結果時，在有界權威對帳前立即重試。
+- create 結果不明後，立即枚舉為零候選便當成確定失敗並自動再建立。
+- pending create 在後續 resume、startup 或建立同 role 前沒有再次權威對帳，
+  因而漏掉延遲出現的孤立 task。
+- 官方 metadata 與 task 自報 `local` 不一致時，仍以自報別名作權威路由。
+- 發現重複角色後，在未證明全部零寫入及未收到正式工作、未收到其餘候選停止
+  確認前，已向選定 task 派正式工作。
+- 以 archive、title 或發出停止訊息代替 task 的 direct-push 停止確認。
+- 重複候選既無 direct-push 停止確認亦無官方不可工作終態，仍讓另一候選開始工作。
+- 重複 E1 可能已寫入時，沒有恢復唯一 writer 及讀回 workspace 狀態便繼續。
+- 正式批次沒有穩定 `batchId`，或未綁定選定 threadId、目前實際 hostId、cycle
+  、target root、單調遞增 `batchSeq` 與不可變 `payloadDigest`。
+- 相同 `batchId` 搭配不同內容或 `payloadDigest`；內容改動後仍沿用舊 `batchId`。
+- `BATCH_RECEIVED` 後中斷便把批次當成完成；或不看批次生命週期，一律忽略或
+  一律重跑相同 `batchId`。
+- `IN_PROGRESS` 中斷或部分寫入後沒有標 `STATE_UNKNOWN` 及恢復 writer／workspace，
+  便重跑整批。
+- `RESULT_READY` 重複送達時不重播既有結果；或未收到 `RESULT_ACCEPTED` 已永久
+  忽略同一批次。
+- ready、accept、stop、狀態、結果或結果接納訊息沒有穩定 `messageId`，或
+  outcome 不明時盲目重發／永久等待。
+- send 結果不明時改用新 `messageId` 或新 `batchId` 規避去重。
+- 舊批次尚未零寫入取消、終結或完成 writer／workspace 恢復，已派發或開始較高
+  `batchSeq` 的新修訂；或延遲送達的 `SUPERSEDED`／較低次序批次仍被執行。
+- 以「只有收到 push 後才可讀回」拒絕精確 `messageId` 的有界故障恢復，導致
+  outcome 不明永久等待；或反過來以故障讀回冒充完整通訊 preflight。
+- 通訊、批次生命週期、唯一 writer、來源新鮮度或證據身份不明時仍啟用自適應加速。
+- 被驗對象、需求、直接依賴／環境、交付物、驗證方法或可信反證已改變，仍沿用
+  舊證據。
+- 只因 `no_material_delta` 或零檔案寫入而略過審閱、證據、稽核或故障恢復。
+- 不可逆或高後果行動把本應行動前完成的 fresh R 延後到行動後。
+- 合併驗收命令後遺失個別輸出、exit status、來源或裁決，或把依賴次序／共享
+  可變狀態的檢查混跑。
 - fork 帶入來源上下文卻被當成 fresh UAT。
 - assignee 沒有回傳 ready/result 仍宣稱閉環成立。
 - 新 task 沒有可見 `E1:`／`R1:` 標題或首行標籤，或 ready／結果回執缺 session／thread 座標。
-- C 以輪詢發現成果。
+- C 反覆 event wait、在逾時後再次等待、以輪詢發現成果，或把 wait snapshot、
+  task 完成狀態、commentary／摘要當成 ready/result 證據。
+- `BATCH_RECEIVED` 的等待錯誤消耗最終結果的等待額度，令已 direct-push 結果
+  無法推進。
+- 相同 `messageId` 受控重送被當作全新邏輯 send，因而可無限重開 event wait。
+- 平台需要 event wait 才能喚醒 idle C，但 C 絕對禁止單次有界 event wait，
+  導致已 direct-push 的 READY／結果無法推進。
 - 知識性複雜任務沒有界定知識底座，或 R 只查格式、不反證專業主張。
 - 每個內部小步都發卡，或重大裁決／阻礙／階段交付時沒有發卡。
 - 小熊卡沒有先讀本 Skill 的 `VERSION`，把 `v1` 當 package 版本，或從網路、

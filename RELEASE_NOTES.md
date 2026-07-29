@@ -2,6 +2,18 @@
 
 範圍說明：本檔各版本區段記錄對應版本的 release history；實際執行規則以使用者已安裝版本隨附的 Skill references 為準。
 
+## v0.2.5
+
+本版加強長期、多批 CER 的送達可靠性，並把同源證據與風險分層加速收斂為預設自適應排程：
+
+- 正式訊息及批次使用穩定 `messageId`、`batchId`、單調遞增 `batchSeq` 與不可變 `payloadDigest`；相同身份但不同內容立即阻塞
+- `create_thread` 或 `send_message` 結果不明時禁止盲目重試；先做一次有界對帳，以實際 `threadId`、`hostId`、零寫入 `READY` 或權威 receipt 判定
+- 舊批次修訂前先進入 `SUPERSEDED` 終態；延遲送達或重播的舊批次只能拒絕，不得重啟寫入
+- 同源證據可在來源身份與新鮮度未變時跨相依工作共用；無實質狀態變化的批次在預檢停止，新事實集中收集，驗收命令與反例合併執行
+- fresh Reviewer 只在完整高風險候選形成後建立；通訊、writer、證據、依賴或批次生命週期有任何不明時，自適應加速自行停用
+- 平台不會自動喚醒 idle Controller 時，只為已聲明狀態轉移使用有界事件等待；snapshot、commentary 或 task 完成狀態不能代替 direct-push 結果
+- 發布就緒已完成兩輪獨立 AI 真實流程 UAT，包括重複送達、批次取代、延遲舊批次拒絕、Reviewer 阻塞修正及 writer close；發布後使用者手動 UAT 仍未執行並須分開回報
+
 ## v0.2.4
 
 本版把 CER 在已由 Agent Handoff Kit 治理的 workspace 內遇到 Kit 指令時的行為收斂為權威轉交：

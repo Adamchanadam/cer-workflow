@@ -33,7 +33,7 @@ cycle label or guess a number.
 - The target contains only this Skill, with no source handoff or source-project context.
 - This Skill is for Codex only. Do not claim that this repository currently provides a
   Claude Code Skill.
-- The Skill root `VERSION` is one stable-semver line, currently `0.2.4`. Read it again before
+- The Skill root `VERSION` is one stable-semver line, currently `0.2.5`. Read it again before
   every bear card, and show `version unverified` when it is invalid.
 - A new C can start from only the Skill and the user's overall task.
 - `/CER-start` and `Start CER` trigger CER; a plain start/work message does not.
@@ -46,10 +46,11 @@ cycle label or guess a number.
 3. C completes communication preflight, uses official `create_thread` to create a brand-new
    sidebar-visible persistent `E1:01｜...` task in the same Codex project, reads back its title, thread
    ID, and formal return path, and receives a `ready` direct-push containing session/thread
-   coordinates.
+   coordinates. If the actual platform does not automatically wake an idle C, C may use one
+   bounded event wait on that E1; the wait snapshot is not ready evidence.
 4. C maps existing target-project sources of truth and the task knowledge foundation without creating fixed CER documents.
 5. For every successfully accepted `CER-start`, C's first user-visible success receipt is the
-   fixed open-eye `CER Workflow v0.2.4` / `🔵 CER started` card using the `╰ ^ ╯` foot, keeping the
+   fixed open-eye `CER Workflow v0.2.5` / `🔵 CER started` card using the `╰ ^ ╯` foot, keeping the
    complete three-line bear with version and status after its foot on the third line, separated by
    fixed `·` markers rather than a separate line, including single-batch work. Multi-stage,
    multi-batch, or first-public-alignment work then shows the initial roadmap with a real inline
@@ -114,6 +115,91 @@ cycle label or guess a number.
 - If `create_thread`, sidebar-visible title, verifiable thread ID, or formal return path is
   missing, E/R delegation is blocked. Do not downgrade to an inline sub-agent, fork, delegate, or
   existing task.
+
+## Ambiguous Tool Outcome And Batch Deduplication Scenarios
+
+- When `create_thread` reports an error or timeout but one bounded official enumeration finds one
+  new task matching the pre-create snapshot, C does not retry creation. Official metadata plus that
+  task's zero-write `ready` confirms it.
+- When one bounded reconciliation finds no candidate after an ambiguous `create_thread`, the state
+  is `blocked`. An immediate zero-candidate listing does not authorize automatic retry. Before a
+  later resume, startup, or creation of the same role, reconciliation runs again so a delayed task
+  is not treated as nonexistent.
+- When three candidates exist for the same role/cycle/root, all three remain zero-write. C selects
+  one and sends `STOP_ZERO_WRITE` to the other two. Formal work starts only after both direct-push
+  stop confirmation.
+- When one of three zero-write candidates cannot direct-push stop confirmation, only an officially
+  readable non-working terminal state may substitute. Without either proof, the flow is `blocked`
+  and no other candidate starts work.
+- When a task self-reports host `local` but official metadata shows another current actual hostId,
+  routing uses official metadata. The mismatch is reconciled before work; a display alias is not
+  authoritative identity.
+- When any duplicate E1 may have received a formal batch or written, C stops new dispatch and reads
+  back writer and workspace state. Only after every writer stops and workspace state is determinate
+  may one writer recover or E2 be created under takeover rules. Merely selecting one and canceling
+  the others is insufficient.
+- When E1 returns `BATCH_RECEIVED` and stops before work begins, the batch remains
+  `RECEIVED_ZERO_WRITE`. Delivery of the same `batchId` continues the original batch once rather
+  than starting a second execution.
+- When E1 stops after partial writes and batch state cannot be proven, mark `STATE_UNKNOWN`, stop
+  writing, and recover single-writer/workspace state before any rerun.
+- Repeated delivery of a `RESULT_READY` batch replays the same result. Only after C returns
+  `RESULT_ACCEPTED` does another delivery return just `DUPLICATE_IGNORED`.
+- A controlled resend after an ambiguous first send preserves identical content, `batchId`, and
+  `batchSeq`, and `payloadDigest`. Any acceptance or task-contract change uses a new `batchId` and
+  higher `batchSeq`.
+- The same `batchId` with a different `payloadDigest` blocks immediately. C cannot accept an old
+  batch result as the result of a new revision.
+- When old batch B1 has ambiguous delivery and a new contract needs B2, C first sends
+  `BATCH_SUPERSEDE B1 -> B2`. The recipient records B1 as `SUPERSEDED` and confirms it; delayed B1
+  is then rejected. If B1 started or may have written, stop and recover the workspace before
+  starting B2 with its higher `batchSeq`.
+- When any ready, `C_ACCEPTED`, stop, batch-state, result, or `RESULT_ACCEPTED` send is ambiguous,
+  the sender first performs one bounded receipt/destination readback for the same `messageId`.
+  If needed, only one controlled resend of the identical message is allowed; the receiver
+  deduplicates and replays its prior confirmation.
+- When E1 completed work but result push is ambiguous, C obtains the candidate through destination
+  readback for the same `messageId` or a duplicate result, then returns the same
+  `RESULT_ACCEPTED`. The flow neither waits forever nor accepts twice.
+- Failure readback for an exact `messageId` may run before push is received, but proves only that
+  message's delivery. It neither establishes the full ready/accept communication chain nor expands
+  into polling.
+- When the platform does not automatically wake an idle C, C uses one bounded event wait on the
+  known unique E1. Only E1's direct-push READY interrupting the wait allows continuation. A wait
+  snapshot, completion state, or commentary without direct-push still fails.
+- When one batch expects `BATCH_RECEIVED` and then a final result, they use separate
+  `eventWaitKey` values and the latest cursor, each with one initial wait. The first receipt does
+  not consume the final-result wait budget.
+- After timeout for one expected message, only reconciliation plus the single controlled resend
+  with the same `messageId` permits one recovery wait. Another timeout blocks; extra control
+  messages or renaming cannot reopen the budget.
+- When the platform has no idempotency key or authoritative operation receipt, CER uses bounded
+  reconciliation and `batchId` deduplication without inventing a platform receipt; the batch
+  identifier is used only for duplicate-delivery protection.
+
+## Adaptive Batch Acceleration Scenarios
+
+- Within one checkpoint, when the reviewed object, requirements, direct dependencies/environment,
+  delivery artifact, and validation method remain unchanged with no credible contradiction,
+  common-source evidence is read and located once and reused across dependent work.
+- A change to requirements, sources, direct dependencies, environment premises, delivery artifact,
+  or validation method immediately invalidates affected evidence and rebuilds only the minimum
+  sufficient evidence for that conclusion.
+- When current authoritative readback already proves acceptance before writing,
+  `no_material_delta` stops that write batch. Review, evidence, audit, and failure-recovery batches
+  are not skipped merely because they write no files.
+- New facts in one checkpoint are collected together and advance the validity window at most once.
+  Credible contradiction still reopens the affected conclusion after consolidation.
+- Compatible acceptance commands and counterexamples may run in one batch while retaining separate
+  output, exit status, provenance, and adjudication. Order-dependent or shared-mutable-state checks
+  run separately.
+- One fresh R reviews the complete stable high-risk candidate. An irreversible or high-consequence
+  action receives its required R before action, never after it for batching convenience.
+- Ambiguous communication or batch lifecycle, duplicate roles, unknown single-writer state,
+  uncertain evidence identity/freshness, or a required user decision sets acceleration to `off`
+  and restores normal CER.
+- A fresh R independently reads and challenges frozen raw evidence. C/E summaries may locate
+  evidence but do not replace it.
 
 ## Review Convergence Scenarios
 
@@ -232,10 +318,60 @@ cycle label or guess a number.
 - A cross-task prompt depends on prior conversation.
 - Work starts before the delivery chain is proven.
 - Only title, fork, or one-way send is proven, without E1 `ready/result` direct-pushes.
+- An ambiguous create timeout, error, or partial result is retried before bounded authoritative
+  reconciliation.
+- An immediate zero-candidate listing after ambiguous create is treated as definite failure and
+  automatically creates again.
+- A pending create is not authoritatively reconciled before a later resume, startup, or creation of
+  the same role, so a delayed orphan task is missed.
+- A task's self-reported `local` alias is used as authoritative routing when official metadata
+  disagrees.
+- Formal work is sent to a selected duplicate before every candidate is proven zero-write, proven
+  not to have received formal work, and every unselected candidate confirms stop.
+- Archive state, title, or merely sending a stop instruction substitutes for direct-push stop
+  confirmation.
+- A duplicate candidate has neither direct-push stop confirmation nor an official non-working
+  terminal state, but another candidate starts work.
+- A duplicate E1 may have written, but work continues without restoring one writer and reading back
+  workspace state.
+- A formal batch lacks a stable `batchId` or does not bind it to the selected threadId, current
+  actual hostId, cycle, target root, monotonically increasing `batchSeq`, and immutable
+  `payloadDigest`.
+- The same `batchId` carries different content or `payloadDigest`, or changed content keeps the old
+  `batchId`.
+- A batch is treated as complete immediately after `BATCH_RECEIVED`, or every repeated `batchId` is
+  blindly ignored or blindly rerun without consulting lifecycle state.
+- An `IN_PROGRESS` interruption or partial write reruns the batch without `STATE_UNKNOWN` and
+  writer/workspace recovery.
+- A repeated `RESULT_READY` delivery does not replay the stored result, or the batch is permanently
+  ignored before `RESULT_ACCEPTED`.
+- A ready, accept, stop, state, result, or result-acceptance message lacks stable `messageId`, or an
+  ambiguous outcome causes blind resend or permanent waiting.
+- An ambiguous send uses a new `messageId` or `batchId` to bypass deduplication.
+- A higher-`batchSeq` revision is dispatched or started before the old batch is canceled zero-write,
+  terminated, or fully recovered, or a delayed `SUPERSEDED`/lower-sequence batch still executes.
+- "Read only after push" is used to refuse bounded exact-`messageId` failure recovery and wait
+  forever, or failure readback is used as a substitute for complete communication preflight.
+- Adaptive acceleration remains active while communication, batch lifecycle, single-writer state,
+  source freshness, or evidence identity is uncertain.
+- Old evidence is reused after the reviewed object, requirements, direct dependencies/environment,
+  artifact, validation method, or credible counterevidence has changed.
+- Review, evidence, audit, or failure recovery is skipped solely because of `no_material_delta` or
+  zero file writes.
+- Required fresh-R review for irreversible or high-consequence action is delayed until after action.
+- Co-scheduled checks lose individual output, exit status, provenance, or adjudication, or
+  order-dependent/shared-mutable-state checks are mixed together.
 - A fork carrying source context is counted as fresh UAT.
 - The assignee does not return `ready/result`, but the loop is still claimed.
 - A new task lacks a visible `E1:`/`R1:` title or first-line label, or receipts omit session/thread coordinates.
-- C discovers results by polling.
+- C repeats event waits, waits again after timeout, discovers results by polling, or accepts a wait
+  snapshot, task completion state, commentary, or summary as ready/result evidence.
+- The `BATCH_RECEIVED` wait wrongly consumes the final-result wait budget, leaving a direct-pushed
+  result unable to advance.
+- A controlled resend with the same `messageId` is treated as a new logical send and can reopen
+  event waits indefinitely.
+- The platform requires an event wait to wake an idle C, but C absolutely forbids the single bounded
+  event wait, so an already direct-pushed READY/result cannot advance.
 - A knowledge-heavy task lacks a defined knowledge foundation, or R checks only format instead of challenging specialist claims.
 - Every internal step gets a card, or a material decision, blocker, or staged delivery gets no card.
 - A bear card does not first read this Skill's `VERSION`, treats `v1` as the package version, or

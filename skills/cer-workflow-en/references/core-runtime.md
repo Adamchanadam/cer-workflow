@@ -82,6 +82,90 @@ file counts, change size, or `high risk` wording alone neither widen nor narrow 
 rule governs scope once evidence is known; it does not replace targeted checks needed to discover
 unstable external claims or verify actual release/install artifacts.
 
+## Ambiguous Tool Outcomes, Role Reconciliation, And Batch Deduplication
+
+This section applies to side-effecting task/thread creation and to ready, accept, stop, formal
+dispatch, batch-state, result, and acceptance control messages. C uses only `confirmed`, `pending`,
+`outcome_unknown`, `duplicate`, and `blocked` for each operation. A tool failure, timeout, partial
+result, or non-authoritative alias must not be treated as proof that the operation did not happen.
+
+- Before creating a role, C takes one bounded pre-create snapshot over the participating hosts,
+  project, target root, cycle, and role for this cycle. The snapshot is transient reconciliation
+  evidence and must not become a lock, central registry, or CER run ID.
+- Creation is `confirmed` only when an official receipt or authoritative readback provides the
+  threadId, current actual hostId, project, and target root. A `clientThreadId`, timeout, error, or
+  partial result leaves the operation `pending` or `outcome_unknown`, not definitely failed.
+- `outcome_unknown` forbids automatic retry. C performs one bounded control-plane reconciliation:
+  compare the pre-create snapshot with official task/thread listings from every participating host,
+  matching candidates by project, target root, cycle, role, and creation intent. One reconciliation
+  may include authoritative snapshots before and after a platform-known settle interval. This is
+  failure recovery, not result polling.
+- Zero candidates after the settle interval still means `blocked` and does not authorize another
+  automatic create. Before any later resume, startup, or creation of the same role, the pending
+  operation must receive another authoritative reconciliation so a delayed orphan task is found.
+  One candidate still requires official metadata plus zero-write `ready`. More than one candidate
+  means `duplicate`.
+- Canonical routing coordinates come from C's official readback of threadId and current actual
+  hostId, not a task's self-reported `local` value or display alias. `ready` still identifies role,
+  target root, and return target. A mismatch with official metadata requires reconciliation before
+  formal work.
+- When duplicate roles exist, every candidate stays zero-write. C may select one only after every
+  candidate is proven not to have received formal work and to have made zero writes. Unselected
+  candidates receive `STOP_ZERO_WRITE` and prove stop through direct-push confirmation or an
+  officially readable non-working terminal state. Archive state, title, or merely sending the stop
+  instruction is not stop proof. Missing stop evidence for any candidate means `blocked`; availability
+  pressure does not weaken this boundary.
+- If any duplicate E1/E2 may have received formal work or written, C stops all new dispatch and
+  reads back writer and workspace state. First send a stop instruction with a stable `messageId` to
+  every possible writer, then prove every writer stopped through direct-push or official terminal
+  readback. Next determine touched surfaces, candidate outputs, and workspace consistency. Only
+  after state is determinate may C select one existing writer to recover or, after every old writer
+  has stopped, create E2 under the existing takeover rule. Do not roll back automatically or simply
+  choose one and continue.
+- Every formal batch uses a unique stable `batchId` for the cycle, bound to the cycle, role,
+  C-selected threadId, current actual hostId, target root, a recipient-local monotonically
+  increasing `batchSeq` for the cycle, and immutable `payloadDigest`. The digest covers the complete
+  self-contained dispatch. Any content or task-contract change uses a new `batchId` and higher
+  `batchSeq`. A controlled resend must repeat the exact same `batchId`, `batchSeq`, `payloadDigest`,
+  and content.
+- The recipient classifies each `batchId` as `RECEIVED_ZERO_WRITE`, `IN_PROGRESS`, `RESULT_READY`,
+  `RESULT_ACCEPTED`, or `STATE_UNKNOWN`, using task/thread history and workspace readback as
+  recovery evidence. After first verifying the binding, direct-push `BATCH_RECEIVED`, then begin
+  substantive work. Mark `IN_PROGRESS` before writing, `RESULT_READY` after the result is fixed,
+  and `RESULT_ACCEPTED` only after receiving C's `RESULT_ACCEPTED`.
+- On repeated delivery of the same `batchId`, `RECEIVED_ZERO_WRITE` may continue the original batch
+  once; `IN_PROGRESS` returns only `BATCH_IN_PROGRESS` without restarting; `RESULT_READY` replays
+  the same result; and only `RESULT_ACCEPTED` returns `DUPLICATE_IGNORED`. If state cannot be proven
+  after interruption, mark `STATE_UNKNOWN`, stop writing, and recover writer/workspace state first.
+  The same `batchId` with a different `payloadDigest` is always `blocked`.
+- When a new batch supersedes an unterminated old batch, C first sends `BATCH_SUPERSEDE` with a
+  stable `messageId`, naming the old/new `batchId` and `batchSeq`. The recipient records the old
+  batch as `SUPERSEDED` before anything else so any delayed delivery is rejected. If the old batch
+  started or may have written, stop it and complete writer/workspace recovery. C may dispatch or
+  start the revision only after receiving `BATCH_SUPERSEDED` and proving that the old batch was
+  canceled zero-write, terminated, or fully recovered. The recipient rejects any unauthorized
+  batch below its highest accepted `batchSeq`.
+- Every ready, accept, stop, batch receipt, state, result, and result-acceptance message uses a
+  stable `messageId` bound to message type, sender, recipient, related `batchId` when present, and
+  immutable message content. Recipients deduplicate by `messageId`; a repeat replays the existing
+  confirmation without repeating side effects.
+- An `outcome_unknown` for any control or result send must not be resent blindly. First use an
+  operation receipt, received matching confirmation, or one bounded destination/thread readback to
+  find the same `messageId`. If still unproven, one controlled resend with the same `messageId` and
+  identical content is allowed only while recipient identity remains unique and message
+  deduplication is available; otherwise the operation is `blocked`. Failure-recovery readback is a
+  bounded exception to the no-monitoring rule.
+  This exception also overrides Delivery's "read only after push" rule and Startup's ban on using
+  after-the-fact reads as communication proof, but only to prove delivery of that exact
+  `messageId`; it cannot establish the complete ready/accept communication chain by itself.
+- After C adjudicates a result, C returns `RESULT_ACCEPTED` with a stable `messageId`. If result
+  delivery or `RESULT_ACCEPTED` becomes ambiguous, sender and recipient deduplicate by the same
+  message identity so the result is neither lost nor accepted twice. Do not create an infinite
+  receipt-of-receipt chain.
+- When a platform later provides an idempotency key or authoritative operation receipt, prefer it
+  as evidence. CER must not pretend the capability exists and must not turn the key or receipt into
+  a CER lock or run ID.
+
 ## Startup
 
 1. C reads the installed CER runtime, the user's overall task, explicit constraints, and authoritative rules that actually exist in the target workspace.
@@ -124,7 +208,7 @@ unstable external claims or verify actual release/install artifacts.
     remains the same. A later cycle after a completed `/CER-close` uses a new cycle number, creates
     a brand-new E1 and only fresh Reviewers; it must not reuse any E/R task or coordinate from the
     previous closed C.
-13. If any communication preflight link is missing, or the assignee does not actually direct-push a qualifying zero-write `ready`, C shows only the open-eye `🔴 Major blocker` card and stops. C must not show the successful start card. Waiting, polling, after-the-fact reads, document review, successful forking, and successful one-way sends do not prove communication.
+13. If any communication preflight link is missing, or the assignee does not actually direct-push a qualifying zero-write `ready`, C shows only the open-eye `🔴 Major blocker` card and stops. C must not show the successful start card. A wait snapshot, completion state, commentary, polling, after-the-fact reads, document review, successful forking, and successful one-way sends do not prove communication. When the platform requires an event wait to wake an idle C, Delivery permits one bounded event wait; qualifying `ready` must still arrive by direct-push.
 14. Only now is `CER-start` successfully accepted. C's first user-visible success receipt must be the fixed open-eye `🔵 CER started` card from [roadmap.md](roadmap.md). Keep the complete three-line bear; render version and status after the foot on its third line with fixed `·` markers rather than a separate line. Single-batch and multi-batch starts use the same card. Do not use a closed-eye card or guess a version.
 15. Later batches in the same cycle do not repeat the handshake while C, E1, the return target, and verifiable coordinates remain the same. Repeat `ready` whenever the coordinates or return target changes.
 16. For long-running, multi-stage, multi-batch, or first-public-alignment work, show the initial progress surface under [roadmap.md](roadmap.md) after the fixed start card and before the first batch. A simple single-batch task with one clear endpoint needs only a short summary.
@@ -142,6 +226,7 @@ Each real E1 or R batch contains only what is needed:
 - allowed and forbidden scope;
 - acceptance checks and a counterexample that can disprove the solution;
 - stop conditions;
+- the stable `batchId`, monotonically increasing `batchSeq`, immutable `payloadDigest`, and bound cycle, recipient threadId, current actual hostId, and target root;
 - the frozen task contract, including handling of any `confirmed`, `safe inference`, or `critical missing` item, required source anchors, and counterfactual results;
 - C direct-push return target and session/thread ID or platform-equivalent coordinates;
 - the knowledge foundation, source coordinates, unknowns, and no-go boundaries needed for the batch;
@@ -168,11 +253,46 @@ active. `/CER-close` remains a CER-only command and does not trigger Kit full cl
 
 ## Delivery
 
-- E1 and R direct-push `ready` through the formal messaging tool before work.
-- `ready` includes the assignee's role, visible title or first-line label, session/thread ID or platform-equivalent coordinates, received target root, return target, and whether required sources are available.
-- On completion, blockage, or incomplete work, direct-push a short result to C before stopping. Include session/thread coordinates so C cannot accept another task's result by mistake.
-- C performs one bounded readback and adjudication only after receiving the push.
-- "No monitoring" forbids waiting, polling, background listening, repeated status probes, and passive thread reads before a push arrives. One bounded read explicitly requested by the user, or a verification read after a push, remains allowed.
+- E1 and R direct-push zero-write `ready` through the formal messaging tool before work. After a
+  formal batch arrives, direct-push `BATCH_RECEIVED` with that batch's `batchId` and
+  `payloadDigest`, then begin or recover work according to the batch lifecycle.
+- `ready` includes the assignee's role, visible title or first-line label, session/thread ID or
+  platform-equivalent coordinates, received target root, return target, and whether required
+  sources are available. Every message carries a stable `messageId`; `BATCH_RECEIVED` also includes
+  the current actual hostId and binding-check result.
+- On completion, blockage, or incomplete work, direct-push a short result to C before stopping.
+  Include `messageId`, `batchId`, `payloadDigest`, and session/thread coordinates so C cannot accept
+  another task's, another batch's, or another revision's result by mistake. C returns
+  `RESULT_ACCEPTED` after adjudication.
+- On repeated delivery of the same `batchId`, recover according to `RECEIVED_ZERO_WRITE`,
+  `IN_PROGRESS`, `RESULT_READY`, `RESULT_ACCEPTED`, or `STATE_UNKNOWN`; do not rerun blindly. The
+  same identity with a different digest blocks immediately.
+- Unless a participant has observed an explicit `outcome_unknown` and follows this section's
+  failure-recovery rule for the exact `messageId`, C performs one bounded readback and adjudication
+  only after receiving the push. Recovery readback must not expand into waiting, polling, or
+  background monitoring.
+- If the platform does not automatically wake an idle C with cross-task input, for each declared
+  expected direct-push state transition C forms an `eventWaitKey` from the known unique
+  threadId/hostId, current cursor, causal `messageId`, and expected message type, then arms one
+  bounded `wait_threads` or platform-equivalent event wait. Post-create `ready`, post-dispatch
+  `BATCH_RECEIVED`, the final result after `BATCH_RECEIVED`, and post-stop confirmation are separate
+  transitions and each may have one initial wait. The wait only keeps the receiver available for
+  direct-push. Completion state, commentary, summaries, or file claims in a wait snapshot are not
+  ready/result evidence. Direct-push must become actual recipient input or have an authoritative
+  receipt.
+- A matching direct-push completes that `eventWaitKey`; the next declared transition may use a new
+  key and latest cursor. Timeout without matching push marks that key `pending` or
+  `outcome_unknown` and requires bounded reconciliation. Commentary, task completion, or unrelated
+  input does not complete the transition.
+- A controlled resend of the same logical message is not a new formal send. Only the single
+  same-`messageId`, identical-content resend allowed after reconciliation may arm one `recovery`
+  wait for the same `eventWaitKey`; a second timeout is `blocked`. Only a new logical operation or
+  the next valid batch-lifecycle transition gets a new key. Extra control messages or renaming must
+  not reopen the wait budget.
+- "No monitoring" forbids repeated waiting, polling, background listening, repeated status probes,
+  accepting a wait snapshot as a result, and passive thread reads before push. The single bounded
+  event wait above, one bounded read explicitly requested by the user, and verification readback
+  after push remain allowed.
 - Unavailable delivery blocks delegation only. C may still perform authorized read-only research, analysis, and adjudication, but C may not write in E1's place.
 
 ## Execution Loop
@@ -191,6 +311,37 @@ active. `/CER-close` remains a CER-only command and does not trigger Kit full cl
 11. For long-running, multi-stage, or multi-batch work, progress updates and bear-card checkpoints follow [roadmap.md](roadmap.md). Use only facts read back and adjudicated after direct-push; do not poll E1.
 
 For an ordinary small change, C readback and proportionate tests are enough. Re-review only the affected boundary after a high-risk fix. More Reviewers do not replace clear acceptance conditions.
+
+## Adaptive Batch Acceleration
+
+Adaptive batch acceleration is C's default internal scheduling strategy, not a user mode, Turbo
+setting, or slash command. It does not change C/E/R roles, the single-writer invariant, safety
+gates, independent review, or acceptance standards:
+
+- C establishes an evidence-validity window at each checkpoint. One read and location pass may be
+  reused across dependent work only while the reviewed object, requirements, direct dependencies
+  and environment premises, delivery artifact, and validation method are unchanged or proven
+  equivalent, with no credible contradiction. A fresh R independently reads the frozen raw
+  evidence; C/E summaries do not substitute for R evidence.
+- `no_material_delta` may stop a planned write batch only when current authoritative readback
+  already proves acceptance. Evidence gathering, review, audit, and failure-recovery batches must
+  not be skipped merely because they make no file writes.
+- New facts within one checkpoint may be collected together and advance the validity window at
+  most once. Any change in requirements, sources, dependencies, environment, artifact, validation
+  method, or credible counterevidence immediately invalidates the affected conclusion and reopens
+  its minimum sufficient evidence.
+- Compatible acceptance commands and counterexamples may be co-scheduled, but each check retains
+  its own output, exit status, provenance, and adjudication. Checks that depend on order, share
+  mutable state, contend for exclusive resources, or can contaminate each other remain separate.
+- Create one fresh R for each stable risk boundary and let that R review the complete candidate.
+  Irreversible or high-consequence action requires the relevant R before the action and must not be
+  delayed for batch consolidation. The same round's R may re-test the frozen boundary after repair;
+  do not create a new R for every small step.
+- Acceleration automatically turns off when communication or batch lifecycle is `pending`,
+  `outcome_unknown`, `duplicate`, or `STATE_UNKNOWN`; single-writer state is unknown; source
+  freshness or evidence identity is uncertain; a user decision is required; or credible
+  contradiction appears. Normal CER rules then apply.
+  `/CER-status` may report `active`, `partial`, or `off` with the reason, but must not poll for it.
 
 ## YAGNI And Stop
 

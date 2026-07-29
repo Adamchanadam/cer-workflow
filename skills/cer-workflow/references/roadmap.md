@@ -27,13 +27,13 @@
 
 每次顯示任何 lifecycle 或 checkpoint 小熊卡前，重新讀取本 Skill 根目錄
 `VERSION`。穩定 semver `X.Y.Z` 顯示為 `vX.Y.Z`；缺失、不可讀或格式錯誤時
-顯示 `version unverified`。以下卡片依目前 `VERSION` `0.2.4` 呈現，不是硬編碼
+顯示 `version unverified`。以下卡片依目前 `VERSION` `0.2.5` 呈現，不是硬編碼
 工作流世代。
 
 ```text
    ()_()
  ( ◕ᴥ◕ )
-   ╰ ^ ╯ · CER 工作法 v0.2.4 · 🔵 CER 已啟動
+   ╰ ^ ╯ · CER 工作法 v0.2.5 · 🔵 CER 已啟動
 ```
 
 每次成功接受 `CER-start` 都使用以上固定開眼啟動卡，包括簡單單批任務。啟動
@@ -44,7 +44,7 @@
 ```text
    ()_()
  ( ᴗᴥᴗ )
-   ╰ ^ ╯ · CER 工作法 v0.2.4 · ⚪ CER 已停用 · CER inactive
+   ╰ ^ ╯ · CER 工作法 v0.2.5 · ⚪ CER 已停用 · CER inactive
 ```
 
 成功 `/CER-close` 使用固定閉眼收尾卡：
@@ -52,7 +52,7 @@
 ```text
    ()_()
  ( ᴗᴥᴗ )
-   ╰ ^ ╯ · CER 工作法 v0.2.4 · 🟢 CER 已收尾 · writer closed
+   ╰ ^ ╯ · CER 工作法 v0.2.5 · 🟢 CER 已收尾 · writer closed
 ```
 
 閉眼卡是已驗證終態，不是意圖回執。停用卡只可在沒有 active writer 或 writer
@@ -63,7 +63,7 @@
 ```text
    ()_()
  ( ◕ᴥ◕ )
-   ╰ ^ ╯ · CER 工作法 v0.2.4 · 🔴 重大阻礙 · checkpoint blocked
+   ╰ ^ ╯ · CER 工作法 v0.2.5 · 🔴 重大阻礙 · checkpoint blocked
 ```
 
 ## 其他固定停點卡
