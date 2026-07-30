@@ -1,4 +1,6 @@
 interface:
   display_name: "CER 工作法"
-  short_description: "以 C、E1、R 閉環執行跨 task 長期項目工作"
-  default_prompt: "使用 $cer-workflow 以 C、E1、R 分工和跨 task 直接回傳方式執行這項工作。"
+  short_description: "以正式角色閉環安全執行長期多批工作，並在合適時自動加速分析"
+  default_prompt: "使用 $cer-workflow 以唯一 writer 執行這項工作；按風險建立 fresh Reviewer，必要時在內部自動加速，無需額外設定。"
+policy:
+  allow_implicit_invocation: false

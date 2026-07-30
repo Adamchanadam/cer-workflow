@@ -1,4 +1,6 @@
 interface:
   display_name: "CER Workflow"
-  short_description: "Run long work through a C, E1, and R closed loop"
-  default_prompt: "Use $cer-workflow-en to run this work through C, E1, and R with direct cross-task return."
+  short_description: "Run long multi-batch work with safe adaptive acceleration"
+  default_prompt: "Use $cer-workflow-en with one writer for this work; create a fresh Reviewer in proportion to risk, and accelerate internally when useful without extra setup."
+policy:
+  allow_implicit_invocation: false

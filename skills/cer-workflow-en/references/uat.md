@@ -1,5 +1,22 @@
 # CER Core v1 Fresh UAT
 
+## Contents
+
+- [Installation Scenario](#installation-scenario)
+- [Full Flow](#full-flow)
+- [Remote Controller Scenarios](#remote-controller-scenarios)
+- [Cross-Cycle Isolation Scenarios](#cross-cycle-isolation-scenarios)
+- [Codex Task Topology Scenarios](#codex-task-topology-scenarios)
+- [Ambiguous Tool Outcome And Batch Deduplication Scenarios](#ambiguous-tool-outcome-and-batch-deduplication-scenarios)
+- [Adaptive Batch Acceleration Scenarios](#adaptive-batch-acceleration-scenarios)
+- [Parallel Candidate Producer Counterexamples](#parallel-candidate-producer-counterexamples)
+- [Review Convergence Scenarios](#review-convergence-scenarios)
+- [Controller Preflight QC Scenarios](#controller-preflight-qc-scenarios)
+- [Acceptance Validity Scenarios](#acceptance-validity-scenarios)
+- [Proportionate Close Scenarios](#proportionate-close-scenarios)
+- [Kit Authority Pass-Through Scenarios](#kit-authority-pass-through-scenarios)
+- [Failure Conditions](#failure-conditions)
+
 Fresh UAT must run in an independent clean project through sidebar-visible official new tasks. A
 task created, forked, or delegated by C in the source project carries source context and is not
 fresh.
@@ -33,9 +50,12 @@ cycle label or guess a number.
 - The target contains only this Skill, with no source handoff or source-project context.
 - This Skill is for Codex only. Do not claim that this repository currently provides a
   Claude Code Skill.
-- The Skill root `VERSION` is one stable-semver line, currently `0.2.6`. Read it again before
-  every bear card, and show `version unverified` when it is invalid.
+- The Skill root `VERSION` is one stable-semver line. Read it again before every bear card,
+  replace the `{package_version}` template completely, and show `version unverified` when it is
+  invalid. Never display the placeholder itself.
 - A new C can start from only the Skill and the user's overall task.
+- The default prompt says to create a fresh Reviewer in proportion to risk; it does not force a
+  Reviewer for simple work.
 - `/CER-start` and `Start CER` trigger CER; a plain start/work message does not.
 - `/CER-close` and `Close CER` trigger CER close; a plain close/finish message does not close CER and does not map to `/CER-stop`.
 
@@ -50,9 +70,10 @@ cycle label or guess a number.
    bounded event wait on that E1; the wait snapshot is not ready evidence.
 4. C maps existing target-project sources of truth and the task knowledge foundation without creating fixed CER documents.
 5. For every successfully accepted `CER-start`, C's first user-visible success receipt is the
-   fixed open-eye `CER Workflow v0.2.6` / `🔵 CER started` card using the `╰ ^ ╯` foot, keeping the
-   complete three-line bear with version and status after its foot on the third line, separated by
-   fixed `·` markers rather than a separate line, including single-batch work. Multi-stage,
+   fixed open-eye `CER Workflow v{package_version}` / `🔵 CER started` card using the `╰ ^ ╯`
+   foot. Before output, replace the placeholder from `VERSION`; keep the complete three-line bear
+   with version and status after its foot on the third line, separated by fixed `·` markers rather
+   than a separate line, including single-batch work. Multi-stage,
    multi-batch, or first-public-alignment work then shows the initial roadmap with a real inline
    visualization and explicitly confirms that it is not Mermaid-only.
 6. C uses the matching bear card only for startup, material decisions, major blockers, staged
@@ -109,9 +130,9 @@ cycle label or guess a number.
   writing, the workspace is in a known state, and C issues a takeover batch may C create E2
   through `create_thread`.
 - Every R is a fresh new task. Do not reuse an old R in the same cycle or across cycles.
-- C may use an inline "Exploration Helper" for read-only exploration, evidence organization, or
-  candidate analysis. It must not write the workspace, replace E or R, produce formal
-  ready/result, or count as CER Reviewer acceptance evidence.
+- C may use inline parallel candidate producers under
+  [parallel-producers.md](parallel-producers.md). They are not formal roles, do not enter role
+  titles, cycles, or lifecycle cards, and cannot replace E or R.
 - If `create_thread`, sidebar-visible title, verifiable thread ID, or formal return path is
   missing, E/R delegation is blocked. Do not downgrade to an inline sub-agent, fork, delegate, or
   existing task.
@@ -201,27 +222,31 @@ cycle label or guess a number.
 - A fresh R independently reads and challenges frozen raw evidence. C/E summaries may locate
   evidence but do not replace it.
 
-## Exploration Helper Auto-Scheduling Scenarios
+## Parallel Candidate Producer Counterexamples
 
-- A simple task that can be completed and accepted in one bounded read remains `auto-idle` and
-  uses zero Exploration Helpers.
-- A small number of helpers starts automatically only when at least two independent read-only
-  lanes, frozen inputs, non-duplicative concurrent C work, independently verifiable candidates,
-  and clear net time savings all hold. No slash command is added.
-- While helpers run, C concurrently completes different critical analysis, gating, or
-  adjudication work and personally reads back key sources. C does not degrade into a candidate
-  organizer.
-- When candidates contradict each other, C adjudicates from authoritative sources rather than
-  helper count, matching answers, or completion order.
-- Partial drift in frozen inputs invalidates only candidates that depend on that version.
-  Unaffected candidates are not rerun.
-- A successfully created helper that lacks its assigned source returns a blocked candidate with
-  zero writes. C may continue other adjudication.
-- When creation tooling or a required capability is unavailable, or a helper fails or times out,
-  that candidate becomes unavailable and C falls back to normal read-only analysis without
-  repeating the same failure. CER blocks only when the missing evidence is itself a blocker.
-- Helpers remain idle when dispatch, readback, deduplication, and adjudication cost is not lower
-  than expected savings, or any activation condition is uncertain.
+- When two lanes are independent, inputs are frozen, C has non-duplicative concurrent work,
+  candidates are independently verifiable, net time savings are material, and execution slots
+  are available, two candidates may arrive naturally and C may converge them.
+- For a simple bounded read, no subagent capability, uneconomic parallel cost, or any uncertain
+  eligibility condition, `producer_count=0`; C completes serially and the user does not configure
+  lanes, scratch roots, hashes, or roles.
+- A `read_only` lane that attempts any write is invalid.
+- An artifact scratch root inside the project or one of its ancestors, at a drive root, user root,
+  system root, symlink, junction, reparse point, mount, equal to or ancestral to another lane, or
+  used for an out-of-bounds write does not start or fails closed.
+- When frozen input drifts in only one lane, discard only the dependent candidate and do not rerun
+  unaffected candidates.
+- When sources conflict, C adjudicates from authoritative sources and not by vote, completion
+  order, or matching majority answers.
+- A late candidate, producer failure, unreplayable source, or artifact hash tamper invalidates the
+  candidate. Producer failure alone does not block CER unless the missing evidence is the task
+  blocker.
+- A producer impersonating E/R, sending directly to E1, E1 using unconverged scratch, or
+  C/R/producer writing the target project makes the whole dependent candidate fail closed.
+- `/CER-stop` or `/CER-close` does not wait for a producer; a late candidate cannot reopen a
+  closed intake.
+- Producers receive no formal title, cycle, ready, result, slash, lock, registry, or run id.
+  Roadmap role columns and lifecycle cards still contain formal roles only.
 
 ## Review Convergence Scenarios
 
@@ -294,8 +319,8 @@ cycle label or guess a number.
 
 - A temporary subagent substitutes for persistent E1.
 - An inline sub-agent, fork, delegate, or existing task is treated as formal E1, E2, or R.
-- C's inline sub-agent writes the workspace, produces formal ready/result, replaces E/R, or is
-  counted as CER Reviewer acceptance evidence.
+- A parallel candidate producer writes the target project, produces formal ready/result, replaces
+  E/R, or is counted as CER Reviewer acceptance evidence.
 - E1/R lacks official `create_thread` creation evidence, sidebar-visible title, verifiable
   thread ID, or formal return path, but work still starts.
 - Controller uses plain `C:` instead of `🚀 C:01｜...` as the visible title or first-line label.
@@ -420,6 +445,7 @@ cycle label or guess a number.
 - A second C starts while old C state or a participating host cannot be verified.
 - Mermaid is substituted for available inline visualization instead of being supplemental.
 - Ordinary small changes always create fresh R or trigger full-project review.
+- The default prompt requires a fresh Reviewer for every task, every item, or all work.
 - CER creates a fixed five-document project set or parallel progress source.
 - `$project-context-workflow` is treated as a CER installation prerequisite.
 - `/CER-stop` is followed by new E1/R work, or single-thread work resumes before an active writer is proven stopped.

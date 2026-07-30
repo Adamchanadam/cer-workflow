@@ -34,9 +34,11 @@ CER 的正式角色仍然只有 C／E／R。中大型任務往往需要同時搜
 代替 Executor 或 Reviewer，也不能自行宣布工作完成。Controller 仍會親自核對
 資料、處理不同答案及作最終決定，所以原有的寫檔和獨立驗收安排不會改變。
 
+![CER 探索助手決策樹：C 先判斷，小任務由 C 自己分析，中大型任務才啟動探索助手；候選回到 C，由 E1 寫檔，需要時才由 R 只讀驗收](assets/cer-exploration-helper-architecture.png)
+
 探索助手預設閒置。適合的是資料來源清楚、可以分頭核對，而且同時處理確實較省
 時間的中大型任務；是否啟動由 Controller 自動判斷。完整判斷條件只在
-[核心執行規則](skills/cer-workflow/references/core-runtime.md#探索助手自動調度)
+[探索助手完整規則](skills/cer-workflow/references/parallel-producers.md#啟動資格)
 定義，避免不同文件各自維護而出現差異。
 
 簡單任務不使用探索助手。如果資料途中改變，只重做受影響的部分；如果助手無法

@@ -1,6 +1,6 @@
 ---
 name: cer-workflow-en
-description: "Run the standalone CER multi-agent workflow in English for long-running, multi-batch, or interruption-prone work that needs a Controller, one persistent Executor, risk-based fresh Reviewers, self-contained cross-task delegation, direct return, checkpoints, and staged delivery. Use only for explicit CER-qualified commands or equivalent meaning, such as /CER-start, Start CER, /CER-stop, /CER-close, Close CER, or explicit CER roles and closed-loop execution. Plain start/work or close/finish messages are not CER triggers. This Skill does not prescribe project documents."
+description: "Run the standalone CER multi-agent workflow in English for long-running, multi-batch, or interruption-prone work that needs a Controller, one persistent Executor, risk-based fresh Reviewers, self-contained cross-task delegation, direct return, checkpoints, staged delivery, and on-demand parallel candidate analysis. Use only for explicit CER-qualified commands or equivalent meaning, such as /CER-start, Start CER, /CER-stop, /CER-close, Close CER, or explicit CER roles and closed-loop execution. Plain start/work or close/finish messages are not CER triggers. This Skill does not prescribe project documents."
 ---
 
 # CER Workflow
@@ -28,6 +28,9 @@ When the user explicitly says `/CER-start <overall task, constraints, priorities
    governance-bridge intent, read only the matching rule in "Self-Contained Dispatch" and do not
    redesign the Kit procedure.
 6. Read [uat.md](references/uat.md) in full only for installation acceptance or fresh UAT.
+7. Before C evaluates or uses parallel candidate producers, read
+   [parallel-producers.md](references/parallel-producers.md) in full. It is the sole complete
+   rule owner for this capability.
 
 ## Commands
 
@@ -56,12 +59,11 @@ Slash commands are stable text aliases. Register them in a slash-command, snippe
   conditions are met.
 - Create Reviewer (R) only for high risk or when C cannot reliably disprove a claim. Every R
   must be a fresh new task, read-only and bounded; do not reuse an old R.
-- C may use "Exploration Helpers" for inline read-only exploration, evidence organization, or
-  candidate analysis. Helpers are idle by default and simple tasks use none. They start
-  automatically only when every condition in "Exploration Helper Auto-Scheduling" in
-  [core-runtime.md](references/core-runtime.md) holds. They are not formal C/E/R roles, must not
-  write the workspace, replace E or R, produce formal ready/result, or count as CER Reviewer
-  acceptance evidence. C falls back to normal analysis when a helper fails.
+- C may use inline parallel candidate producers on demand under
+  [parallel-producers.md](references/parallel-producers.md). They are not formal roles and must
+  not become shared-workspace writers, replace E/R, communicate directly with E1/R, or produce
+  formal ready/result. When parallel work is not suitable, producer count is zero and C analyzes
+  serially.
 - Make every cross-task batch self-contained. E1 and R do not automatically inherit C's conversation.
 - When creating or identifying tasks or threads, the Controller uses a visible title or equivalent first-line label in the form `🚀 C:01｜...`. E1/R/E2 still use `E1:01｜...`, `R1:01｜...`, `R2:01｜...`, or `E2:01｜...` without the rocket. Tasks in the same cycle share the same short cycle number; a later cycle uses a new number. `00` may identify only a legacy/migration cycle that started before cycle numbering and cannot be reliably reconstructed; new cycles use `01` or higher and never show a question-mark cycle label. The cycle number is sidebar display only, not uniqueness evidence; the full threadId remains authoritative. Every return target must include a verifiable session/thread ID or platform-equivalent coordinate.
 - Before creating a task or starting validation, use real tools to prove the identity source, required parameters, send path, recipient, session/thread coordinates, and adjudication point. If any link is missing, stop that delegation architecture. Document review, after-the-fact thread reads, and assumptions do not replace communication proof.

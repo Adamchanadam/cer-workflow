@@ -1,5 +1,22 @@
 # CER Core v1 Fresh UAT
 
+## 目錄
+
+- [安裝情景](#安裝情景)
+- [完整流程](#完整流程)
+- [Remote Controller 情景](#remote-controller-情景)
+- [跨輪隔離情景](#跨輪隔離情景)
+- [Codex task 拓撲情景](#codex-task-拓撲情景)
+- [工具結果不明與批次去重情景](#工具結果不明與批次去重情景)
+- [自適應批次加速情景](#自適應批次加速情景)
+- [平行候選生產者反證情景](#平行候選生產者反證情景)
+- [審閱收斂情景](#審閱收斂情景)
+- [Controller preflight QC 情景](#controller-preflight-qc-情景)
+- [驗收有效性情景](#驗收有效性情景)
+- [比例化收尾情景](#比例化收尾情景)
+- [Kit 權威轉交情景](#kit-權威轉交情景)
+- [失敗條件](#失敗條件)
+
 Fresh UAT 必須在獨立乾淨 project 以側欄可見官方新 task 執行。來源專案的 C 建立、
 fork 或 delegate 出來的 task 帶有來源上下文，不算 fresh。
 
@@ -29,9 +46,11 @@ numbering 規則生效前已開始且無法可靠回推原 cycle number。cycle 
 
 - 目標只有本 Skill，沒有來源 handoff 或來源專案背景。
 - 本 Skill 只供 Codex；不得聲稱目前 repo 已提供 Claude Code 版 Skill。
-- Skill 根目錄 `VERSION` 只有一行穩定 semver，現值為 `0.2.6`；每張小熊卡顯示
-  前都重新讀取，格式無效時顯示 `version unverified`。
+- Skill 根目錄 `VERSION` 只有一行穩定 semver；每張小熊卡顯示前都重新讀取，
+  把模板 `{package_version}` 完整替換，格式無效時顯示
+  `version unverified`；不得原樣顯示佔位文字。
 - 新 C 能只靠 Skill 和使用者總任務啟動。
+- 預設提示使用「按風險建立 fresh Reviewer」；簡單任務不會因預設提示而強制建立 Reviewer。
 - `/CER-start`、`CER 啟動`、`CER 開始`、`CER 開工` 正常觸發 CER；單獨 `開工` 不觸發 CER。
 - `/CER-close`、`CER 收工`、`CER 關閉`、`關閉 CER` 正常觸發 CER close；單獨 `收工` 不觸發 CER close，也不映射為 `/CER-stop`。
 
@@ -45,7 +64,8 @@ numbering 規則生效前已開始且無法可靠回推原 cycle number。cycle 
    C 可對該 E1 使用一次有界 event wait；wait snapshot 不算 ready 證據。
 4. C 映射目標專案既有真源與本任務知識底座，不建立固定 CER 文件。
 5. 每次成功接受 `CER-start`，C 的第一個使用者可見成功回執都是固定開眼
-   `CER 工作法 v0.2.6`／`🔵 CER 已啟動` 卡；保留完整三行小熊，版本與狀態接在第三行
+   `CER 工作法 v{package_version}`／`🔵 CER 已啟動` 卡；實際輸出前先以
+   `VERSION` 替換佔位，保留完整三行小熊，版本與狀態接在第三行
    小熊腳後，以固定 `·` 分隔而不另起一行；單批也必須顯示。
    多階段／多批或需要首次公開對齊的任務再用真正 inline visualization 顯示初始路線圖，並確認不是
    只用 Mermaid。
@@ -90,9 +110,9 @@ numbering 規則生效前已開始且無法可靠回推原 cycle number。cycle 
 - 同一輪後續批次持續復用本輪同一 E1；只有 E1 停止寫入、workspace 可判定且
   C 發出接管批次後，才可用 `create_thread` 另建 E2。
 - 每個 R 都是 fresh 新 task；同一輪或跨輪都不得沿用舊 R。
-- C 可用「探索助手」作 inline 唯讀探索、證據整理或候選分析；它不得寫
-  workspace，不得代替 E 或 R，不得產生正式 ready/result，也不得作 CER
-  Reviewer 通過證據。
+- C 可依 [parallel-producers.md](parallel-producers.md) 使用 inline 平行候選
+  生產者；它不是正式角色，不加入角色 title／cycle／lifecycle 卡，也不能代替
+  E 或 R。
 - 缺少 `create_thread`、側欄可見 title、可核實 thread id 或正式回傳路徑時，
   E／R 委派受阻；不得降級使用 inline sub-agent、fork、delegate 或既有 task。
 
@@ -163,20 +183,25 @@ numbering 規則生效前已開始且無法可靠回推原 cycle number。cycle 
   或需要使用者裁決時，自適應加速為 `off`，回到一般 CER 規則。
 - fresh R 從凍結原始證據自行讀取並反證；C／E 的摘要只可定位，不可代替獨立證據。
 
-## 探索助手自動調度情景
+## 平行候選生產者反證情景
 
-- 可在一次有界讀取內完成及驗收的簡單任務保持 `auto-idle`，實際探索助手數為零。
-- 只有至少兩條獨立唯讀探索線、凍結輸入、C 的不重複同期工作、候選可獨立驗證
-  及明顯淨省時全部成立時，才自動啟動少量探索助手；不新增 slash command。
-- 探索助手運行時，C 同期完成不同的關鍵分析、守門或裁決工作，並親自讀回關鍵
-  來源；C 不退化成候選整理員。
-- 候選結論互相矛盾時，C 按權威來源裁決，不按票數、相同答案或完成先後接納。
-- 凍結輸入部分漂移時，只令依賴該版本的候選失效；未受影響的候選不重跑。
-- 助手成功建立但來源缺失時，回報候選受阻且零寫入；C 可繼續其他裁決。
-- 建立工具或所需能力不可用、助手失敗或逾時時，該候選不可用，C 回到一般唯讀
-  分析且不重複相同失敗。只有缺失證據本身是 blocker 才阻塞 CER。
-- 派工、讀回、去重及裁決成本不低於預期收益，或任一啟動條件無法判定時，
-  探索助手保持閒置。
+- 兩條互不依賴 lane、凍結輸入、C 有同期不重複工作、候選可獨立驗證、淨省時
+  明顯且槽位可用時，兩條候選可自然到達並由 C 合流。
+- 簡單一次讀取、沒有 subagent 能力、平行成本不划算或任一資格不可判定時，
+  `producer_count=0`，C 串行完成，使用者不需設定 lane、scratch、hash 或角色。
+- `read_only` lane 嘗試任何寫入時，候選失效。
+- artifact scratch 位於 project 內或其祖先、磁碟根、使用者根、系統根、
+  symlink、junction、reparse point、mount、與另一 lane 相等／互為祖先或越界
+  寫入時，該 lane 不啟動或 fail closed。
+- 凍結輸入只在一條 lane 漂移時，只淘汰相依候選；未受影響候選不重跑。
+- 來源衝突時，C 按權威來源裁決，不按票數、完成先後或多數相同答案接納。
+- 候選遲到、producer 失敗、來源不可重播或 artifact hash tamper 時，候選失效；
+  producer 失敗本身不阻塞 CER，除非缺失證據就是任務 blocker。
+- producer 冒充 E／R、直接送 E1、E1 採用未合流 scratch，或 C／R／producer
+  寫 target project 時，整個相依候選 fail closed。
+- `/CER-stop` 或 `/CER-close` 不等待 producer；遲到候選不重開已關閉 intake。
+- 生產者不取得正式 title、cycle、ready、result、slash、lock、registry 或 run id；
+  roadmap 的角色欄和 lifecycle 卡仍只有正式角色。
 
 ## 審閱收斂情景
 
@@ -240,7 +265,8 @@ numbering 規則生效前已開始且無法可靠回推原 cycle number。cycle 
 
 - 臨時 subagent 代替持久 E1。
 - inline sub-agent、fork、delegate 或既有 task 被當作正式 E1、E2 或 R。
-- C 的 inline sub-agent 寫 workspace、產生正式 ready/result、代替 E／R，或被列為 CER Reviewer 通過證據。
+- 平行候選生產者寫 target project、產生正式 ready/result、代替 E／R，或被列為
+  CER Reviewer 通過證據。
 - E1／R 缺少官方 `create_thread` 建立證據、側欄可見 title、可核實 thread id 或正式回傳路徑，仍開始工作。
 - Controller 使用單獨 `C:` 而不是 `🚀 C:01｜...` 作可見標題或首行標籤。
 - E1／R／E2 標題或首行標籤錯誤加上 `🚀`。
@@ -342,6 +368,7 @@ numbering 規則生效前已開始且無法可靠回推原 cycle number。cycle 
 - 舊 C 狀態或參與 host 不可核實，仍啟動第二 C。
 - 可用 inline visualization 時只顯示 Mermaid。
 - 普通小修改都建立 fresh R 或全專案重審。
+- 預設提示把 fresh Reviewer 寫成每次、每項或所有任務都必須建立。
 - CER 自行建立固定五份項目文件或平行進度。
 - 把 `$project-context-workflow` 當作 CER 安裝前置。
 - `/CER-stop` 後仍繼續派新 E1/R，或未證明 active writer 停止便當作已回到單 thread。

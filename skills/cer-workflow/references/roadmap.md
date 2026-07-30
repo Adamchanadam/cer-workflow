@@ -1,5 +1,16 @@
 # 使用者停點與路線圖
 
+## 目錄
+
+- [兩種介面](#兩種介面)
+- [Inline visualizer 標準時機](#inline-visualizer-標準時機)
+- [固定生命週期卡](#固定生命週期卡)
+- [其他固定停點卡](#其他固定停點卡)
+- [小熊卡使用時機](#小熊卡使用時機)
+- [顯示優先序](#顯示優先序)
+- [角色顯示邊界](#角色顯示邊界)
+- [路線圖真源](#路線圖真源)
+
 ## 兩種介面
 
 - **Inline visualizer 路線圖**是長期、多階段、多批次，或需要首次公開對齊的 CER
@@ -27,13 +38,13 @@
 
 每次顯示任何 lifecycle 或 checkpoint 小熊卡前，重新讀取本 Skill 根目錄
 `VERSION`。穩定 semver `X.Y.Z` 顯示為 `vX.Y.Z`；缺失、不可讀或格式錯誤時
-顯示 `version unverified`。以下卡片依目前 `VERSION` `0.2.6` 呈現，不是硬編碼
-工作流世代。
+顯示 `version unverified`。以下卡片中的 `{package_version}` 是模板佔位；
+輸出前必須以當次讀到的 `VERSION` 完整替換，絕不可把佔位文字原樣顯示。
 
 ```text
-   ()_()
+ ()_()
  ( ◕ᴥ◕ )
-   ╰ ^ ╯ · CER 工作法 v0.2.6 · 🔵 CER 已啟動
+   ╰ ^ ╯ · CER 工作法 v{package_version} · 🔵 CER 已啟動
 ```
 
 每次成功接受 `CER-start` 都使用以上固定開眼啟動卡，包括簡單單批任務。啟動
@@ -42,17 +53,17 @@
 成功 `/CER-stop` 使用固定閉眼停用卡：
 
 ```text
-   ()_()
+ ()_()
  ( ᴗᴥᴗ )
-   ╰ ^ ╯ · CER 工作法 v0.2.6 · ⚪ CER 已停用 · CER inactive
+   ╰ ^ ╯ · CER 工作法 v{package_version} · ⚪ CER 已停用 · CER inactive
 ```
 
 成功 `/CER-close` 使用固定閉眼收尾卡：
 
 ```text
-   ()_()
+ ()_()
  ( ᴗᴥᴗ )
-   ╰ ^ ╯ · CER 工作法 v0.2.6 · 🟢 CER 已收尾 · writer closed
+   ╰ ^ ╯ · CER 工作法 v{package_version} · 🟢 CER 已收尾 · writer closed
 ```
 
 閉眼卡是已驗證終態，不是意圖回執。停用卡只可在沒有 active writer 或 writer
@@ -61,9 +72,9 @@
 閉眼收尾卡只代表 writer close／必要讀回完成，不代表 title sync 全綠。任一證據不足時使用開眼紅色 blocker 卡：
 
 ```text
-   ()_()
+ ()_()
  ( ◕ᴥ◕ )
-   ╰ ^ ╯ · CER 工作法 v0.2.6 · 🔴 重大阻礙 · checkpoint blocked
+   ╰ ^ ╯ · CER 工作法 v{package_version} · 🔴 重大阻礙 · checkpoint blocked
 ```
 
 ## 其他固定停點卡
@@ -126,6 +137,12 @@ Inline 路線圖最少顯示：可驗收終點；有次序的階段及已完成�
 知識底座：<已確認／缺來源／不適用>
 角色：C=<狀態>｜E1=<狀態>｜R=<未建立／驗收中／完成>
 ```
+
+## 角色顯示邊界
+
+路線圖與生命週期卡只顯示正式 C、E1、R，以及接管時的 E2。平行候選生產者是
+C 的內部按需能力，不加入角色欄、生命週期卡、使用者設定或獨立進度；只有其
+缺失證據成為實質 blocker 時，才用一般風險語言呈現結果。
 
 ## 路線圖真源
 

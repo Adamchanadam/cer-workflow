@@ -36,11 +36,13 @@ formal role. They cannot change the project, replace the Executor or Reviewer, o
 work complete. The Controller still checks the information, resolves different answers, and makes
 the final decision, so the existing writing and independent-review arrangements do not change.
 
+![CER Exploration Helpers decision tree: C decides first, small tasks stay with C, medium-large tasks may use Exploration Helpers, candidates return to C, E1 writes, and R reviews read-only only when risk requires](assets/cer-exploration-helper-architecture.en.png)
+
 Helpers remain idle by default. They suit medium and large tasks where the sources are clear,
 the work can be checked in separate parts, and doing those parts together offers a worthwhile
 time saving. The Controller decides automatically whether to start them. The complete conditions
 are defined only in the
-[core runtime](skills/cer-workflow-en/references/core-runtime.md#exploration-helper-auto-scheduling)
+[complete Exploration Helper rules](skills/cer-workflow-en/references/parallel-producers.md#activation-eligibility)
 so separate documents do not drift apart.
 
 Simple tasks use no helpers. If the information changes, only the affected part is redone. If a

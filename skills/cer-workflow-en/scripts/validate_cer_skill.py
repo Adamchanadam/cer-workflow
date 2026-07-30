@@ -1,0 +1,484 @@
+#!/usr/bin/env python3
+"""Validate the installed CER skill package using only the standard library."""
+
+from __future__ import annotations
+
+import argparse
+import copy
+import re
+import sys
+from pathlib import Path, PurePosixPath
+
+
+EXPECTED_FILES = {
+    "SKILL.md",
+    "VERSION",
+    "agents/openai.yaml",
+    "references/core-runtime.md",
+    "references/roadmap.md",
+    "references/uat.md",
+    "references/parallel-producers.md",
+    "scripts/validate_cer_skill.py",
+}
+TEXT_FILES = EXPECTED_FILES - {"VERSION"}
+SEMVER_RE = re.compile(r"(?<![0-9])\d+\.\d+\.\d+(?![0-9])")
+OWNER_MARKER = "<!-- cer-parallel-producers-owner -->"
+EXPECTED_DEFAULT_PROMPT = (
+    "Use $cer-workflow-en with one writer for this work; create a fresh Reviewer in "
+    "proportion to risk, and accelerate internally when useful without extra setup."
+)
+FORMAL_COMMANDS = {
+    "/CER-start",
+    "/CER-stop",
+    "/CER-close",
+    "/CER-status",
+    "/CER-help",
+}
+
+REVIEWER_PROPORTIONALITY_COUNTEREXAMPLES = {
+    "simple_fixed_fresh_reviewer": "Every simple task always creates a fresh Reviewer",
+    "every_simple_task_reviewer": "A Reviewer is assigned by default to every simple task",
+    "simple_task_fixed_r": "Simple work always gets R",
+    "reverse_low_risk_fresh_reviewer": "A fresh Reviewer is used by default for all low-risk tasks",
+    "passive_simple_task_reviewer": "An independent reviewer is always assigned to simple work",
+    "low_risk_independent_reviewer": "Low-risk tasks always receive an independent reviewer",
+}
+
+OWNER_REQUIREMENTS = {
+    "formal_roles": "CER has only the formal roles C, E1, R, and E2",
+    "not_fifth_role": "not a fifth role",
+    "no_new_lifecycle": "receives no formal title, cycle, ready, result, batch lifecycle, or Reviewer identity",
+    "no_new_commands": "adds no slash command",
+    "two_independent_lanes": "At least two work lanes are independent and need no result from each other, shared mutable state, or fixed execution order",
+    "frozen_input_version": "Each lane's input and source identity is frozen",
+    "concurrent_controller_work": "C has non-duplicative critical analysis, gating, or adjudication work to do concurrently",
+    "independently_verifiable_candidates": "C can independently verify each candidate against authoritative sources",
+    "material_time_saving": "Expected net time savings materially exceed startup, readback, hashing, deduplication, and adjudication costs",
+    "available_execution_slots": "Required parallel execution slots are available without reducing capacity needed by formal E1 or a fresh R",
+    "read_only": "`read_only`",
+    "isolated_artifact": "`isolated_artifact`",
+    "read_only_zero_write": "zero writes everywhere",
+    "project_noncontainment": "`scratch_root` and the target project do not contain each other",
+    "dangerous_roots": "not a drive root, user root, system root",
+    "link_boundary": "symlink, junction, Windows reparse point, mount",
+    "lane_nonoverlap": "Lane roots are distinct, are not ancestors of one another",
+    "actual_tool_permission_boundary": "Actual tool permissions allow only that lane's explicit root. Relative paths, wildcards, environment fallback, or a producer-selected location cannot expand the boundary",
+    "lane_contract_label": "`lane_label`",
+    "lane_contract_goal": "One objective",
+    "lane_contract_input": "Input identity and version, source identity, and verifiable source coordinates",
+    "lane_contract_scope": "Allowed and forbidden scope",
+    "lane_contract_output": "Expected candidate output",
+    "lane_contract_acceptance": "Acceptance method",
+    "lane_contract_stop": "Stop condition",
+    "scratch_root": "`scratch_root`",
+    "candidate_claims": "`claims`",
+    "candidate_unknowns": "`unknowns`",
+    "verifiable_source_coordinates": "Actual source coordinates",
+    "candidate_hash": "actual absolute path and SHA-256",
+    "controller_readback": "C personally reads back",
+    "rehash": "recomputes SHA-256",
+    "no_vote": "must not accept by vote",
+    "merged_batch": "E1 receives only that C-converged batch",
+    "no_direct_e1": "must not use raw producer communication",
+    "no_wait_poll": "C does not wait, poll, or background-monitor producers",
+    "late": "A late candidate",
+    "input_drift": "Input or source drift",
+    "tamper": "hash drift, tamper",
+    "out_of_bounds": "out-of-bounds",
+    "producer_failure": "producer creation fails",
+    "stop_close": "`/CER-stop` and `/CER-close` do not wait for producers",
+    "serial_fallback": "`producer_count=0`",
+    "user_simplicity": "The user does not configure producers",
+    "material_only_report": "Report only results, unknowns, blockers, or risks that materially affect the user",
+}
+
+UAT_REQUIREMENTS = {
+    "default_prompt_risk_proportionate": "create a fresh Reviewer in proportion to risk",
+    "default_prompt_simple_task": "does not force a Reviewer for simple work",
+    "normal_two_lanes": "two lanes are independent",
+    "auto_idle": "`producer_count=0`",
+    "no_subagent": "no subagent capability",
+    "cost_fallback": "uneconomic parallel cost",
+    "read_only_write": "A `read_only` lane that attempts any write",
+    "root_boundary": "inside the project or one of its ancestors, at a drive root, user root, system root",
+    "link_boundary": "symlink, junction, reparse point, mount",
+    "lane_overlap": "equal to or ancestral to another lane",
+    "partial_drift": "discard only the dependent candidate",
+    "source_conflict": "not by vote",
+    "late_candidate": "A late candidate",
+    "producer_failure": "producer failure",
+    "artifact_tamper": "artifact hash tamper",
+    "role_impersonation": "producer impersonating E/R",
+    "direct_to_e1": "sending directly to E1",
+    "unmerged_scratch": "E1 using unconverged scratch",
+    "project_write": "C/R/producer writing the target project",
+    "stop_close": "`/CER-stop` or `/CER-close` does not wait",
+    "no_lifecycle_identity": "no formal title, cycle, ready, result, slash, lock, registry, or run id",
+    "roadmap_boundary": "Roadmap role columns and lifecycle cards still contain formal roles only",
+}
+
+
+def read_texts(root: Path) -> dict[str, str]:
+    texts: dict[str, str] = {}
+    for relative in EXPECTED_FILES:
+        path = root / Path(relative)
+        if path.is_file():
+            texts[relative] = path.read_text(encoding="utf-8-sig")
+    return texts
+
+
+def frontmatter_findings(skill_text: str) -> list[str]:
+    findings: list[str] = []
+    match = re.match(r"\A---\n([\s\S]*?)\n---\n", skill_text)
+    if not match:
+        return ["SKILL.md frontmatter is missing or malformed"]
+    keys: list[str] = []
+    for line in match.group(1).splitlines():
+        key_match = re.match(r"^([a-z_]+):", line)
+        if not key_match:
+            findings.append(f"SKILL.md frontmatter malformed line: {line}")
+            continue
+        keys.append(key_match.group(1))
+    if keys != ["name", "description"]:
+        findings.append(f"SKILL.md frontmatter keys must be name,description; actual={keys}")
+    if not re.search(r'^name:\s*cer-workflow-en\s*$', match.group(1), re.MULTILINE):
+        findings.append("SKILL.md name must be cer-workflow-en")
+    if "explicit CER-qualified" not in match.group(1) or "on-demand parallel candidate" not in match.group(1):
+        findings.append("SKILL.md description lacks explicit CER trigger or on-demand parallel capability")
+    return findings
+
+
+def openai_yaml_findings(text: str) -> list[str]:
+    findings: list[str] = []
+    required_lines = (
+        'interface:',
+        '  display_name: "CER Workflow"',
+        '  short_description: "',
+        '  default_prompt: "',
+        'policy:',
+        '  allow_implicit_invocation: false',
+    )
+    for required in required_lines:
+        if required not in text:
+            findings.append(f"agents/openai.yaml missing required shape: {required}")
+    if "$cer-workflow-en" not in text:
+        findings.append("agents/openai.yaml default_prompt must include $cer-workflow-en")
+    default_prompt_match = re.search(
+        r'^\s+default_prompt:\s*"([^"]+)"\s*$', text, re.MULTILINE
+    )
+    if default_prompt_match:
+        default_prompt = default_prompt_match.group(1)
+        # This is controlled package metadata, so exact equality is safer than
+        # an open-ended synonym blacklist.
+        if default_prompt != EXPECTED_DEFAULT_PROMPT:
+            findings.append(
+                "agents/openai.yaml default_prompt must exactly match the canonical "
+                "risk-proportionate prompt and must not force Reviewer for simple work"
+            )
+    if re.search(r"\b(?:producer|lane|scratch|hash)\b", text, re.IGNORECASE):
+        findings.append("agents/openai.yaml must not expose producer setup vocabulary")
+    if re.search(r"^\s*(?:icon_small|icon_large|brand_color|dependencies):", text, re.MULTILINE):
+        findings.append("agents/openai.yaml contains an unprovided icon, brand or dependency")
+    top_keys = re.findall(r"^([a-z_]+):\s*$", text, re.MULTILINE)
+    if top_keys != ["interface", "policy"]:
+        findings.append(f"agents/openai.yaml top-level keys mismatch: {top_keys}")
+    for line in text.splitlines():
+        if re.match(r"^\s+(?:display_name|short_description|default_prompt):", line):
+            if not re.search(r':\s*"[^"]*"\s*$', line):
+                findings.append(f"agents/openai.yaml interface value must be quoted: {line}")
+    short_match = re.search(r'^\s+short_description:\s*"([^"]+)"\s*$', text, re.MULTILINE)
+    if short_match and not 25 <= len(short_match.group(1)) <= 64:
+        findings.append("agents/openai.yaml short_description must be 25-64 characters")
+    return findings
+
+
+def link_findings(root: Path, texts: dict[str, str]) -> list[str]:
+    findings: list[str] = []
+    link_re = re.compile(r"\[[^\]]+\]\(([^)]+)\)")
+    for relative, text in texts.items():
+        if not relative.endswith(".md"):
+            continue
+        source = PurePosixPath(relative)
+        for target in link_re.findall(text):
+            target_path = target.split("#", 1)[0]
+            if not target_path or "://" in target_path:
+                continue
+            resolved = (root / Path(str(source.parent / target_path))).resolve()
+            try:
+                resolved.relative_to(root.resolve())
+            except ValueError:
+                findings.append(f"relative link escapes skill root: {relative} -> {target}")
+                continue
+            if not resolved.is_file():
+                findings.append(f"relative link target missing: {relative} -> {target}")
+    return findings
+
+
+def validate_texts(root: Path, texts: dict[str, str]) -> list[str]:
+    findings: list[str] = []
+    missing = sorted(EXPECTED_FILES - set(texts))
+    if missing:
+        findings.append(f"required files missing: {missing}")
+        return findings
+
+    version = texts["VERSION"]
+    if not re.fullmatch(r"\d+\.\d+\.\d+\n?", version):
+        findings.append("VERSION must contain exactly one stable semver line")
+    for relative in TEXT_FILES:
+        matches = SEMVER_RE.findall(texts[relative])
+        if matches:
+            findings.append(f"concrete package semver outside VERSION: {relative}: {matches}")
+
+    findings.extend(frontmatter_findings(texts["SKILL.md"]))
+    findings.extend(openai_yaml_findings(texts["agents/openai.yaml"]))
+    findings.extend(link_findings(root, texts))
+
+    skill_commands = {
+        match.group(1)
+        for match in re.finditer(r"^\|\s*`(/CER-[a-z]+)(?:\s+[^`]*)?`", texts["SKILL.md"], re.MULTILINE)
+    }
+    if skill_commands != FORMAL_COMMANDS:
+        findings.append(f"slash commands must remain exactly five: {sorted(skill_commands)}")
+
+    all_markdown = "\n".join(
+        texts[relative] for relative in sorted(texts) if relative.endswith(".md")
+    )
+    if all_markdown.count(OWNER_MARKER) != 1:
+        findings.append("parallel producer owner marker must occur exactly once")
+    if OWNER_MARKER not in texts["references/parallel-producers.md"]:
+        findings.append("parallel producer owner marker is not in its sole owner")
+
+    owner = re.sub(r"\s+", " ", texts["references/parallel-producers.md"])
+    for label, required in OWNER_REQUIREMENTS.items():
+        if required not in owner:
+            findings.append(f"parallel producer owner missing {label}")
+    if "## Exploration Helper Auto-Scheduling" in all_markdown:
+        findings.append("legacy exploration-helper owner section remains")
+
+    skill = texts["SKILL.md"]
+    core = texts["references/core-runtime.md"]
+    uat = re.sub(r"\s+", " ", texts["references/uat.md"])
+    roadmap = re.sub(r"\s+", " ", texts["references/roadmap.md"])
+    if "[parallel-producers.md](references/parallel-producers.md)" not in skill:
+        findings.append("SKILL.md lacks direct progressive-disclosure route")
+    if "[Parallel Candidate Producers](parallel-producers.md)" not in core:
+        findings.append("core-runtime role summary lacks owner pointer")
+    if "CER has only the formal roles C, E1, R, and E2" not in core:
+        findings.append("core-runtime formal role boundary is incomplete")
+    fifth_role_patterns = (
+        r"CER\s+has\s+only\s+the\s+formal\s+roles\s+C,\s*E1,\s*R,\s*E2,\s*P",
+        r"(?:producer|candidate producer|P)\s+is\s+(?:a\s+)?formal\s+(?:CER\s+)?role",
+        r"(?:fifth|5th)\s+(?:CER\s+)?formal\s+role",
+    )
+    for pattern in fifth_role_patterns:
+        if re.search(pattern, all_markdown, flags=re.IGNORECASE):
+            findings.append("a fifth formal CER role must not be declared")
+            break
+    if "## Parallel Candidate Producer Counterexamples" not in uat:
+        findings.append("uat.md lacks bounded producer counterexamples")
+    for label, required in UAT_REQUIREMENTS.items():
+        if required not in uat:
+            findings.append(f"uat.md missing producer counterexample {label}")
+    if "Parallel candidate producers are C's internal on-demand capability. They do not enter role columns" not in roadmap:
+        findings.append("roadmap.md lacks display-only producer boundary")
+    for relative in (
+        "references/core-runtime.md",
+        "references/roadmap.md",
+        "references/uat.md",
+        "references/parallel-producers.md",
+    ):
+        if "## Contents" not in texts[relative]:
+            findings.append(f"long reference lacks concise table of contents: {relative}")
+    if "{package_version}" not in roadmap or "{package_version}" not in uat:
+        findings.append("card/UAT templates lack package_version placeholder")
+    if "never display the placeholder itself" not in roadmap:
+        findings.append("roadmap lacks mandatory package_version substitution boundary")
+    if re.search(r"(?:formal roles|role columns).{0,40}(?:producer).{0,20}(?:enter|add|include)", roadmap, re.IGNORECASE):
+        findings.append("roadmap adds producer to formal role display")
+    return findings
+
+
+def validate(root: Path) -> list[str]:
+    root = root.resolve()
+    actual_files = {
+        path.relative_to(root).as_posix()
+        for path in root.rglob("*")
+        if path.is_file()
+    }
+    unexpected = sorted(actual_files - EXPECTED_FILES)
+    if unexpected:
+        return [f"unexpected package files: {unexpected}"]
+    return validate_texts(root, read_texts(root))
+
+
+def mutation_matrix(root: Path) -> tuple[int, list[str]]:
+    baseline = read_texts(root)
+    failures: list[str] = []
+    cases: list[tuple[str, dict[str, str]]] = []
+
+    def mutated(relative: str, old: str, new: str = "") -> dict[str, str]:
+        candidate = copy.deepcopy(baseline)
+        if old not in candidate[relative]:
+            raise RuntimeError(f"self-test anchor missing: {relative}: {old}")
+        candidate[relative] = candidate[relative].replace(old, new, 1)
+        return candidate
+
+    def mutated_all(relative: str, old: str, new: str = "") -> dict[str, str]:
+        candidate = copy.deepcopy(baseline)
+        if old not in candidate[relative]:
+            raise RuntimeError(f"self-test anchor missing: {relative}: {old}")
+        candidate[relative] = candidate[relative].replace(old, new)
+        return candidate
+
+    def mutated_fragment(relative: str, fragment: str) -> dict[str, str]:
+        candidate = copy.deepcopy(baseline)
+        pattern = re.escape(fragment).replace(r"\ ", r"\s+")
+        changed, count = re.subn(pattern, "", candidate[relative])
+        if count < 1:
+            raise RuntimeError(f"self-test normalized anchor missing: {relative}: {fragment}")
+        candidate[relative] = changed
+        return candidate
+
+    cases.append(("version_invalid", mutated("VERSION", baseline["VERSION"], "version\n")))
+    cases.append(
+        (
+            "semver_outside_version",
+            mutated(
+                "references/roadmap.md",
+                "# User Checkpoints And Roadmap",
+                "# User Checkpoints And Roadmap " + ".".join(("9", "9", "9")),
+            ),
+        )
+    )
+    cases.append(("frontmatter_extra", mutated("SKILL.md", "name: cer-workflow-en", "name: cer-workflow-en\nmetadata: bad")))
+    cases.append(
+        (
+            "extra_slash_command",
+            mutated(
+                "SKILL.md",
+                "| `/CER-help`",
+                "| `/CER-producer` | `producer` | forbidden |\n| `/CER-help`",
+            ),
+        )
+    )
+    cases.append(("owner_marker_duplicate", mutated("SKILL.md", "# CER Workflow", f"# CER Workflow\n{OWNER_MARKER}")))
+    cases.append(("owner_marker_missing", mutated("references/parallel-producers.md", OWNER_MARKER)))
+    cases.append(
+        (
+            "implicit_invocation_true",
+            mutated("agents/openai.yaml", "allow_implicit_invocation: false", "allow_implicit_invocation: true"),
+        )
+    )
+    cases.append(("default_prompt_missing_skill", mutated("agents/openai.yaml", "$cer-workflow-en", "CER")))
+    cases.append(
+        (
+            "default_prompt_unconditional_reviewer",
+            mutated(
+                "agents/openai.yaml",
+                "with one writer for this work; create a fresh Reviewer in proportion to risk",
+                "with one writer and a fresh Reviewer for this work",
+            ),
+        )
+    )
+    for label, counterexample in REVIEWER_PROPORTIONALITY_COUNTEREXAMPLES.items():
+        cases.append(
+            (
+                f"default_prompt_{label}",
+                mutated(
+                    "agents/openai.yaml",
+                    "without extra setup",
+                    f"without extra setup; {counterexample}",
+                ),
+            )
+        )
+    cases.append(
+        (
+            "user_prompt_exposes_setup",
+            mutated(
+                "agents/openai.yaml",
+                "without extra setup",
+                "after configuring producer lanes, scratch roots, and hashes",
+            ),
+        )
+    )
+    cases.append(
+        (
+            "unprovided_dependency",
+            mutated("agents/openai.yaml", "policy:", "dependencies:\n  tools: []\npolicy:"),
+        )
+    )
+    cases.append(
+        (
+            "missing_progressive_link",
+            mutated_all(
+                "SKILL.md",
+                "[parallel-producers.md](references/parallel-producers.md)",
+                "parallel producers",
+            ),
+        )
+    )
+    for label, fragment in OWNER_REQUIREMENTS.items():
+        cases.append(
+            (
+                f"owner_missing_{label}",
+                mutated_fragment("references/parallel-producers.md", fragment),
+            )
+        )
+    for label, fragment in UAT_REQUIREMENTS.items():
+        cases.append(
+            (f"uat_missing_{label}", mutated_fragment("references/uat.md", fragment))
+        )
+    cases.append(
+        (
+            "roadmap_adds_producer_role",
+            mutated(
+                "references/roadmap.md",
+                "do not enter role columns,",
+                "enter role columns,",
+            ),
+        )
+    )
+    cases.append(
+        (
+            "fifth_formal_role",
+            mutated(
+                "references/core-runtime.md",
+                "CER has only the formal roles C, E1, R, and E2",
+                "CER has only the formal roles C, E1, R, E2, and P",
+            ),
+        )
+    )
+
+    for name, candidate in cases:
+        if not validate_texts(root, candidate):
+            failures.append(name)
+    return len(cases), failures
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description="Validate the CER skill package")
+    parser.add_argument("root", nargs="?", default=".", help="CER skill root")
+    parser.add_argument("--self-test", action="store_true", help="run in-memory mutation matrix")
+    args = parser.parse_args()
+    root = Path(args.root).resolve()
+    findings = validate(root)
+    if findings:
+        for finding in findings:
+            print(f"FAIL: {finding}")
+        print(f"status: failed ({len(findings)} findings)")
+        return 1
+    print("status: passed")
+    print(f"version: {(root / 'VERSION').read_text(encoding='utf-8-sig').strip()}")
+    print(f"files: {len(EXPECTED_FILES)}")
+    if args.self_test:
+        count, failures = mutation_matrix(root)
+        print(f"mutation_cases: {count}")
+        if failures:
+            print(f"FAIL: mutation false-green: {failures}")
+            return 1
+        print("mutation_status: passed")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

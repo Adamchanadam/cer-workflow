@@ -4,6 +4,37 @@ Scope note: each version section records release history for that version; unrel
 explicitly marked as a candidate. Runtime authority remains the Skill references bundled with the
 version the user has installed.
 
+## v0.3.0
+
+This release turns the Exploration Helpers introduced in v0.2.6 into a complete, mechanically
+verifiable capability that can be reused across projects. It also fixes two issues that could add
+unnecessary work or let validation pass when a core rule was missing:
+
+- Users still only start CER; they configure no helper and learn no new command. The complete
+  rules now live in the sole `parallel-producers.md` owner, while README remains an introduction
+  instead of becoming a second rule source
+- Simple work uses zero Exploration Helpers. C starts parallel exploration only when at least two
+  lanes are independent, inputs are frozen, C has different important work to do concurrently,
+  candidates can be checked separately, meaningful net time savings are expected, and execution
+  capacity is available
+- Exploration Helpers return candidates only. Read-only work performs zero writes. Candidate
+  files may be created only in a verified isolated temporary area, with source coordinates and
+  file hashes recorded before C personally reads back, deduplicates, and adjudicates them
+- The default prompt no longer implies that every task requires a Reviewer. C performs
+  proportionate checks for simple low-risk work and creates a fresh Reviewer only when risk or
+  reliable disproof requires one. The validator requires the complete prompt to match the sole
+  approved sentence exactly, so any appended or substituted contradiction fails without relying
+  on a growing synonym blacklist
+- The validator generates rule-deletion counterexamples from the same owner requirement list.
+  Each language package now has 87 mutation cases. It rejects deletion of any of the eight
+  parallel safety and evidence requirements and active, passive, or reordered wording that forces
+  a Reviewer onto simple or low-risk work
+- The English and Traditional Chinese Skills, READMEs, and new node infographics now present the
+  same architecture. Public rules contain no project-specific name, path, or decision
+- The Traditional Chinese global repair, both Skill structure checks, both 87-case self-tests,
+  and final independent review of the public bilingual candidate have passed. Post-release user
+  manual UAT has not been run and will be reported separately
+
 ## v0.2.6
 
 This release adds Controller-managed Exploration Helpers without changing formal C/E/R

@@ -1,5 +1,16 @@
 # User Checkpoints And Roadmap
 
+## Contents
+
+- [Two Different Surfaces](#two-different-surfaces)
+- [Standard Inline Visualizer Timing](#standard-inline-visualizer-timing)
+- [Fixed Lifecycle Cards](#fixed-lifecycle-cards)
+- [Other Fixed Checkpoint Cards](#other-fixed-checkpoint-cards)
+- [Bear Card Timing](#bear-card-timing)
+- [Display Priority](#display-priority)
+- [Role Display Boundary](#role-display-boundary)
+- [Roadmap Source](#roadmap-source)
+
 ## Two Different Surfaces
 
 - The **inline visualizer roadmap** is the standard progress surface for long-running,
@@ -32,13 +43,13 @@ direct-push and C adjudication.
 
 Before showing any lifecycle or checkpoint bear card, read `VERSION` again from this Skill root.
 Stable semver `X.Y.Z` renders as `vX.Y.Z`; a missing, unreadable, or malformed value renders as
-`version unverified`. The cards below reflect the current `VERSION` value `0.2.6`; they do not
-hard-code the workflow generation.
+`version unverified`. `{package_version}` in the cards below is a template placeholder. Replace
+it completely with the current `VERSION` before output and never display the placeholder itself.
 
 ```text
-   ()_()
+ ()_()
  ( ◕ᴥ◕ )
-   ╰ ^ ╯ · CER Workflow v0.2.6 · 🔵 CER started
+   ╰ ^ ╯ · CER Workflow v{package_version} · 🔵 CER started
 ```
 
 Every successfully accepted `CER-start`, including simple single-batch work, uses this fixed
@@ -48,17 +59,17 @@ on the third line, separated by fixed `·` markers rather than a separate line.
 A successful `/CER-stop` uses this fixed closed-eye stop card:
 
 ```text
-   ()_()
+ ()_()
  ( ᴗᴥᴗ )
-   ╰ ^ ╯ · CER Workflow v0.2.6 · ⚪ CER stopped · CER inactive
+   ╰ ^ ╯ · CER Workflow v{package_version} · ⚪ CER stopped · CER inactive
 ```
 
 A successful `/CER-close` uses this fixed closed-eye close card:
 
 ```text
-   ()_()
+ ()_()
  ( ᴗᴥᴗ )
-   ╰ ^ ╯ · CER Workflow v0.2.6 · 🟢 CER closed · writer closed
+   ╰ ^ ╯ · CER Workflow v{package_version} · 🟢 CER closed · writer closed
 ```
 
 A closed-eye card is proof of a verified terminal state, not an intent receipt. Show the stop
@@ -69,9 +80,9 @@ back either a `✓` appended to this cycle's cycle number in every verifiable C/
 all-green title sync. When any evidence is missing, use the open-eye red blocker card:
 
 ```text
-   ()_()
+ ()_()
  ( ◕ᴥ◕ )
-   ╰ ^ ╯ · CER Workflow v0.2.6 · 🔴 Major blocker · checkpoint blocked
+   ╰ ^ ╯ · CER Workflow v{package_version} · 🔴 Major blocker · checkpoint blocked
 ```
 
 ## Other Fixed Checkpoint Cards
@@ -138,6 +149,13 @@ Next checkpoint: <one sentence>
 Knowledge foundation: <confirmed / source missing / not applicable>
 Roles: C=<state> | E1=<state> | R=<not created / reviewing / complete>
 ```
+
+## Role Display Boundary
+
+Roadmaps and lifecycle cards show only formal C, E1, R, and E2 when takeover occurs. Parallel
+candidate producers are C's internal on-demand capability. They do not enter role columns,
+lifecycle cards, user settings, or separate progress displays. Only report missing evidence in
+ordinary risk language when it becomes a material blocker.
 
 ## Roadmap Source
 

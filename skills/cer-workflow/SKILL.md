@@ -1,6 +1,6 @@
 ---
 name: cer-workflow
-description: "執行獨立的 CER 多代理工作法，適用於長期、多批、容易中斷，或需要 Controller、同一持久 Executor、按風險建立 fresh Reviewer、自足跨 task 派工、主動回傳、停點及分階段交付的工作。只在使用者明確帶 CER 的指令或同等語意時使用，例如 /CER-start、CER 啟動、CER 開始、CER 開工、/CER-stop、/CER-close、CER 收工、CER 關閉、關閉 CER，或明示需要 CER 角色及閉環執行。單獨「開工／收工」不是 CER 觸發。本 Skill 不規定項目文件。"
+description: "執行獨立的 CER 多代理工作法，適用於長期、多批、容易中斷，或需要 Controller、同一持久 Executor、按風險建立 fresh Reviewer、自足跨 task 派工、主動回傳、停點、分階段交付及按需平行候選分析的工作。只在使用者明確帶 CER 的指令或同等語意時使用，例如 /CER-start、CER 啟動、CER 開始、CER 開工、/CER-stop、/CER-close、CER 收工、CER 關閉、關閉 CER，或明示需要 CER 角色及閉環執行。單獨「開工／收工」不是 CER 觸發。本 Skill 不規定項目文件。"
 ---
 
 # CER 工作法
@@ -25,6 +25,9 @@ CER Core v1 是只供 Codex 使用、可獨立運行的工作法。Claude Code �
    bridge 語意，只讀取 `core-runtime.md` 的「自足派工」相應規則，不另行設計
    Kit 程序。
 6. 只有執行安裝驗收或 fresh UAT 時，完整讀取 [uat.md](references/uat.md)。
+7. C 要評估或使用平行候選生產者時，先完整讀取
+   [parallel-producers.md](references/parallel-producers.md)；該檔是此能力的
+   唯一完整規則 owner。
 
 ## 操作指令
 
@@ -50,11 +53,10 @@ slash command 是文字別名。平台支援 slash、snippet 或 Snap 時，可�
   writer。E2 只在接管條件成立後另建新 task。
 - Reviewer（R）只在高風險或 C 不能可靠反證時建立；每個 R 都必須是 fresh
   新 task、唯讀、有界，不可沿用舊 R。
-- C 可按需使用「探索助手」作 inline 唯讀探索、證據整理或候選分析。探索助手
-  預設閒置，簡單任務不用；只有 [core-runtime.md](references/core-runtime.md)
-  「探索助手自動調度」的全部條件成立時才自動啟動。它不是 C／E／R 正式角色，
-  不得寫 workspace、代替 E 或 R、產生正式 ready/result，或作 CER Reviewer
-  通過證據；失敗時 C 回到一般分析。
+- C 可依 [parallel-producers.md](references/parallel-producers.md) 按需使用
+  inline 平行候選生產者。它不是正式角色，不得成為共享 workspace writer、
+  代替 E／R、直接與 E1／R 通訊或產生正式 ready/result；不適合平行時生產者
+  數量為零，由 C 串行分析。
 - 每個跨 task 批次必須 self-contained；E1／R 不會自動繼承 C 的對話。
 - 新建或識別 task／thread 時，Controller 使用 `🚀 C:01｜...` 形式的可見標題或等價首行標籤；E1／R／E2 仍使用 `E1:01｜...`、`R1:01｜...`、`R2:01｜...` 或 `E2:01｜...`，不加 rocket；同輪共用同一短 cycle 編號，下一輪用新編號。`00` 只可標示 cycle numbering 規則生效前已開始且無法可靠回推原編號的 legacy/migration cycle；新 cycle 必須用 `01` 以上，不顯示問號 cycle label。cycle 編號只供側欄辨識，不是唯一性證據；完整 threadId 仍是權威。回傳目標必須包含可核實 session／thread id 或平台等價座標。
 - 建立 task 或開始驗證前，先以實際工具證明身份來源、必要參數、發送路徑、接收者、session／thread 座標與裁決點。任一環缺失即停止該委派架構；不得以文件審閱、事後 thread read 或猜測代替通訊驗證。
