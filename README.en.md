@@ -23,6 +23,36 @@ An independent Codex task that checks in read-only mode, gives conclusions, and 
 
 Sidebar labels such as `C:01`, `E1:01`, and `R1:01` mark the roles in the same CER cycle.
 
+## Exploration Helpers: Accelerating Controller Analysis
+
+CER still has only three formal roles: C, E, and R. Medium and large tasks often require several
+kinds of preparation at once, such as finding information, comparing options, exploring interface
+ideas, and identifying possible problems early. When the Controller handles every direction one
+by one, this preparation can slow down the whole workflow.
+
+The Controller may therefore start a small number of Exploration Helpers to examine and organize
+different information at the same time. Exploration Helpers support C; they are not a fourth
+formal role. They cannot change the project, replace the Executor or Reviewer, or declare the
+work complete. The Controller still checks the information, resolves different answers, and makes
+the final decision, so the existing writing and independent-review arrangements do not change.
+
+Helpers remain idle by default. They suit medium and large tasks where the sources are clear,
+the work can be checked in separate parts, and doing those parts together offers a worthwhile
+time saving. The Controller decides automatically whether to start them. The complete conditions
+are defined only in the
+[core runtime](skills/cer-workflow-en/references/core-runtime.md#exploration-helper-auto-scheduling)
+so separate documents do not drift apart.
+
+Simple tasks use no helpers. If the information changes, only the affected part is redone. If a
+helper cannot start, times out, or cannot find the required information, the Controller continues
+the analysis directly instead of needlessly stopping the whole CER workflow.
+
+In one practical test using a medium-sized task, two information-gathering jobs would have taken
+about 71 seconds if completed one after the other. Running them together took about 43 seconds,
+reducing the wait by roughly two-fifths. During that time, the Controller also checked the
+information and workflow rules. This shows that Exploration Helpers can save real time on suitable
+tasks, but it is one test example and does not promise the same improvement for every project.
+
 ## Install Or Upgrade With One Prompt
 
 Paste this into Codex:

@@ -56,10 +56,12 @@ Slash commands are stable text aliases. Register them in a slash-command, snippe
   conditions are met.
 - Create Reviewer (R) only for high risk or when C cannot reliably disprove a claim. Every R
   must be a fresh new task, read-only and bounded; do not reuse an old R.
-- C may use an inline sub-agent for read-only exploration, evidence organization, or candidate
-  analysis, but it is not a formal C/E/R role, must not write the workspace, must not replace E
-  or R, must not produce formal ready/result, and must not count as CER Reviewer acceptance
-  evidence.
+- C may use "Exploration Helpers" for inline read-only exploration, evidence organization, or
+  candidate analysis. Helpers are idle by default and simple tasks use none. They start
+  automatically only when every condition in "Exploration Helper Auto-Scheduling" in
+  [core-runtime.md](references/core-runtime.md) holds. They are not formal C/E/R roles, must not
+  write the workspace, replace E or R, produce formal ready/result, or count as CER Reviewer
+  acceptance evidence. C falls back to normal analysis when a helper fails.
 - Make every cross-task batch self-contained. E1 and R do not automatically inherit C's conversation.
 - When creating or identifying tasks or threads, the Controller uses a visible title or equivalent first-line label in the form `🚀 C:01｜...`. E1/R/E2 still use `E1:01｜...`, `R1:01｜...`, `R2:01｜...`, or `E2:01｜...` without the rocket. Tasks in the same cycle share the same short cycle number; a later cycle uses a new number. `00` may identify only a legacy/migration cycle that started before cycle numbering and cannot be reliably reconstructed; new cycles use `01` or higher and never show a question-mark cycle label. The cycle number is sidebar display only, not uniqueness evidence; the full threadId remains authoritative. Every return target must include a verifiable session/thread ID or platform-equivalent coordinate.
 - Before creating a task or starting validation, use real tools to prove the identity source, required parameters, send path, recipient, session/thread coordinates, and adjudication point. If any link is missing, stop that delegation architecture. Document review, after-the-fact thread reads, and assumptions do not replace communication proof.

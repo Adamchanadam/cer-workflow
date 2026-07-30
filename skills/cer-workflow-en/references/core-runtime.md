@@ -15,9 +15,10 @@
   original E1 has verifiably stopped writing, the workspace is in a known state, and C has issued
   a takeover batch. Parallel writers are forbidden.
 
-C may use an inline sub-agent for read-only exploration, evidence organization, or candidate
-analysis. It is not a formal CER C/E/R role, must not write the workspace, must not replace E or
-R, must not produce formal ready/result, and must not count as CER Reviewer acceptance evidence.
+C may use an inline sub-agent under "Exploration Helper Auto-Scheduling" for read-only
+exploration, evidence organization, or candidate analysis. An Exploration Helper is not a formal
+CER C/E/R role, must not write the workspace, replace E or R, produce formal ready/result, or
+count as CER Reviewer acceptance evidence.
 
 ## Knowledge Foundation
 
@@ -311,6 +312,37 @@ active. `/CER-close` remains a CER-only command and does not trigger Kit full cl
 11. For long-running, multi-stage, or multi-batch work, progress updates and bear-card checkpoints follow [roadmap.md](roadmap.md). Use only facts read back and adjudicated after direct-push; do not poll E1.
 
 For an ordinary small change, C readback and proportionate tests are enough. Re-review only the affected boundary after a high-risk fix. More Reviewers do not replace clear acceptance conditions.
+
+## Exploration Helper Auto-Scheduling
+
+Exploration Helpers are C's on-demand read-only support and default to `auto-idle`. There is no
+resident helper, user mode, or new slash command. C starts a small number of helpers only when
+all of these conditions hold:
+
+1. The task has at least two independent read-only exploration lanes.
+2. Each lane has a frozen goal, input version, source identity, acceptance, and stop condition.
+3. C still has non-duplicative critical analysis, gating, or adjudication work to do concurrently.
+4. Each candidate is independently verifiable from sources and does not depend on shared writes,
+   execution order, or another candidate.
+5. Expected time saved clearly exceeds dispatch, readback, deduplication, and adjudication cost.
+
+If any condition fails or is uncertain, helpers remain idle. A simple task that C can complete
+and verify in one bounded read must use zero Exploration Helpers.
+
+- Before dispatch, C records the source identity on which each candidate depends and separates
+  lane scope. Helpers return candidates only; they do not modify formal coverage, contracts,
+  models, generated data, document sources of truth, or progress.
+- C retains primary analysis and final adjudication and advances non-duplicative critical work
+  while helpers run. Candidate acceptance must not be decided by helper count, matching answers,
+  or completion order.
+- Input or source drift invalidates only candidates that depend on that version. Unaffected lanes
+  are not rerun.
+- When creation tooling or a required capability is unavailable, or a helper fails, times out,
+  lacks a source, or returns an unverifiable candidate, mark that candidate unavailable, do not
+  repeat the same failure, and let C fall back to normal read-only analysis. Helper failure does
+  not block CER unless the missing evidence is itself a real blocker.
+- If a helper attempts to write, impersonate a formal role, or leave its frozen scope, C stops it
+  and discards the candidate.
 
 ## Adaptive Batch Acceleration
 

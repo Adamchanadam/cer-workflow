@@ -33,7 +33,7 @@ cycle label or guess a number.
 - The target contains only this Skill, with no source handoff or source-project context.
 - This Skill is for Codex only. Do not claim that this repository currently provides a
   Claude Code Skill.
-- The Skill root `VERSION` is one stable-semver line, currently `0.2.5`. Read it again before
+- The Skill root `VERSION` is one stable-semver line, currently `0.2.6`. Read it again before
   every bear card, and show `version unverified` when it is invalid.
 - A new C can start from only the Skill and the user's overall task.
 - `/CER-start` and `Start CER` trigger CER; a plain start/work message does not.
@@ -50,7 +50,7 @@ cycle label or guess a number.
    bounded event wait on that E1; the wait snapshot is not ready evidence.
 4. C maps existing target-project sources of truth and the task knowledge foundation without creating fixed CER documents.
 5. For every successfully accepted `CER-start`, C's first user-visible success receipt is the
-   fixed open-eye `CER Workflow v0.2.5` / `🔵 CER started` card using the `╰ ^ ╯` foot, keeping the
+   fixed open-eye `CER Workflow v0.2.6` / `🔵 CER started` card using the `╰ ^ ╯` foot, keeping the
    complete three-line bear with version and status after its foot on the third line, separated by
    fixed `·` markers rather than a separate line, including single-batch work. Multi-stage,
    multi-batch, or first-public-alignment work then shows the initial roadmap with a real inline
@@ -109,9 +109,9 @@ cycle label or guess a number.
   writing, the workspace is in a known state, and C issues a takeover batch may C create E2
   through `create_thread`.
 - Every R is a fresh new task. Do not reuse an old R in the same cycle or across cycles.
-- C may use an inline sub-agent for read-only exploration, evidence organization, or candidate
-  analysis. It must not write the workspace, replace E or R, produce formal ready/result, or
-  count as CER Reviewer acceptance evidence.
+- C may use an inline "Exploration Helper" for read-only exploration, evidence organization, or
+  candidate analysis. It must not write the workspace, replace E or R, produce formal
+  ready/result, or count as CER Reviewer acceptance evidence.
 - If `create_thread`, sidebar-visible title, verifiable thread ID, or formal return path is
   missing, E/R delegation is blocked. Do not downgrade to an inline sub-agent, fork, delegate, or
   existing task.
@@ -200,6 +200,28 @@ cycle label or guess a number.
   and restores normal CER.
 - A fresh R independently reads and challenges frozen raw evidence. C/E summaries may locate
   evidence but do not replace it.
+
+## Exploration Helper Auto-Scheduling Scenarios
+
+- A simple task that can be completed and accepted in one bounded read remains `auto-idle` and
+  uses zero Exploration Helpers.
+- A small number of helpers starts automatically only when at least two independent read-only
+  lanes, frozen inputs, non-duplicative concurrent C work, independently verifiable candidates,
+  and clear net time savings all hold. No slash command is added.
+- While helpers run, C concurrently completes different critical analysis, gating, or
+  adjudication work and personally reads back key sources. C does not degrade into a candidate
+  organizer.
+- When candidates contradict each other, C adjudicates from authoritative sources rather than
+  helper count, matching answers, or completion order.
+- Partial drift in frozen inputs invalidates only candidates that depend on that version.
+  Unaffected candidates are not rerun.
+- A successfully created helper that lacks its assigned source returns a blocked candidate with
+  zero writes. C may continue other adjudication.
+- When creation tooling or a required capability is unavailable, or a helper fails or times out,
+  that candidate becomes unavailable and C falls back to normal read-only analysis without
+  repeating the same failure. CER blocks only when the missing evidence is itself a blocker.
+- Helpers remain idle when dispatch, readback, deduplication, and adjudication cost is not lower
+  than expected savings, or any activation condition is uncertain.
 
 ## Review Convergence Scenarios
 

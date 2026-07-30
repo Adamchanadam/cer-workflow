@@ -29,7 +29,7 @@ numbering 規則生效前已開始且無法可靠回推原 cycle number。cycle 
 
 - 目標只有本 Skill，沒有來源 handoff 或來源專案背景。
 - 本 Skill 只供 Codex；不得聲稱目前 repo 已提供 Claude Code 版 Skill。
-- Skill 根目錄 `VERSION` 只有一行穩定 semver，現值為 `0.2.5`；每張小熊卡顯示
+- Skill 根目錄 `VERSION` 只有一行穩定 semver，現值為 `0.2.6`；每張小熊卡顯示
   前都重新讀取，格式無效時顯示 `version unverified`。
 - 新 C 能只靠 Skill 和使用者總任務啟動。
 - `/CER-start`、`CER 啟動`、`CER 開始`、`CER 開工` 正常觸發 CER；單獨 `開工` 不觸發 CER。
@@ -45,7 +45,7 @@ numbering 規則生效前已開始且無法可靠回推原 cycle number。cycle 
    C 可對該 E1 使用一次有界 event wait；wait snapshot 不算 ready 證據。
 4. C 映射目標專案既有真源與本任務知識底座，不建立固定 CER 文件。
 5. 每次成功接受 `CER-start`，C 的第一個使用者可見成功回執都是固定開眼
-   `CER 工作法 v0.2.5`／`🔵 CER 已啟動` 卡；保留完整三行小熊，版本與狀態接在第三行
+   `CER 工作法 v0.2.6`／`🔵 CER 已啟動` 卡；保留完整三行小熊，版本與狀態接在第三行
    小熊腳後，以固定 `·` 分隔而不另起一行；單批也必須顯示。
    多階段／多批或需要首次公開對齊的任務再用真正 inline visualization 顯示初始路線圖，並確認不是
    只用 Mermaid。
@@ -90,8 +90,9 @@ numbering 規則生效前已開始且無法可靠回推原 cycle number。cycle 
 - 同一輪後續批次持續復用本輪同一 E1；只有 E1 停止寫入、workspace 可判定且
   C 發出接管批次後，才可用 `create_thread` 另建 E2。
 - 每個 R 都是 fresh 新 task；同一輪或跨輪都不得沿用舊 R。
-- C 可用 inline sub-agent 作唯讀探索、證據整理或候選分析；它不得寫 workspace，
-  不得代替 E 或 R，不得產生正式 ready/result，也不得作 CER Reviewer 通過證據。
+- C 可用「探索助手」作 inline 唯讀探索、證據整理或候選分析；它不得寫
+  workspace，不得代替 E 或 R，不得產生正式 ready/result，也不得作 CER
+  Reviewer 通過證據。
 - 缺少 `create_thread`、側欄可見 title、可核實 thread id 或正式回傳路徑時，
   E／R 委派受阻；不得降級使用 inline sub-agent、fork、delegate 或既有 task。
 
@@ -161,6 +162,21 @@ numbering 規則生效前已開始且無法可靠回推原 cycle number。cycle 
 - 通訊結果、批次生命週期、角色重複、唯一 writer、證據身份／新鮮度任一不明，
   或需要使用者裁決時，自適應加速為 `off`，回到一般 CER 規則。
 - fresh R 從凍結原始證據自行讀取並反證；C／E 的摘要只可定位，不可代替獨立證據。
+
+## 探索助手自動調度情景
+
+- 可在一次有界讀取內完成及驗收的簡單任務保持 `auto-idle`，實際探索助手數為零。
+- 只有至少兩條獨立唯讀探索線、凍結輸入、C 的不重複同期工作、候選可獨立驗證
+  及明顯淨省時全部成立時，才自動啟動少量探索助手；不新增 slash command。
+- 探索助手運行時，C 同期完成不同的關鍵分析、守門或裁決工作，並親自讀回關鍵
+  來源；C 不退化成候選整理員。
+- 候選結論互相矛盾時，C 按權威來源裁決，不按票數、相同答案或完成先後接納。
+- 凍結輸入部分漂移時，只令依賴該版本的候選失效；未受影響的候選不重跑。
+- 助手成功建立但來源缺失時，回報候選受阻且零寫入；C 可繼續其他裁決。
+- 建立工具或所需能力不可用、助手失敗或逾時時，該候選不可用，C 回到一般唯讀
+  分析且不重複相同失敗。只有缺失證據本身是 blocker 才阻塞 CER。
+- 派工、讀回、去重及裁決成本不低於預期收益，或任一啟動條件無法判定時，
+  探索助手保持閒置。
 
 ## 審閱收斂情景
 

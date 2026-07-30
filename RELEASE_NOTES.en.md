@@ -1,6 +1,30 @@
 # Release Notes
 
-Scope note: each version section records release history for that version; the runtime authority is the Skill references bundled with the version the user has installed.
+Scope note: each version section records release history for that version; unreleased content is
+explicitly marked as a candidate. Runtime authority remains the Skill references bundled with the
+version the user has installed.
+
+## v0.2.6
+
+This release adds Controller-managed Exploration Helpers without changing formal C/E/R
+roles, the single-writer rule, or independent Reviewer boundaries:
+
+- Exploration Helpers can help C find information, compare options, organize interface ideas, and
+  identify possible problems at the same time. They are not a fourth formal role, cannot change
+  the project or replace E1/R, and add no new command
+- Helpers normally remain off. C starts them automatically only when the work can be split safely,
+  the information and goal are clear, each result can be checked separately, and using helpers is
+  expected to save meaningful time
+- Simple tasks use no helpers. C still performs the main analysis and makes the final decision;
+  matching answers from several helpers are not accepted automatically
+- If information changes, only the affected part is redone. If a helper cannot start, times out,
+  or cannot find the required information, C continues directly instead of needlessly stopping CER
+- In one practical test using a medium-sized task, two jobs would have taken about 71 seconds one
+  after the other. Running them together took about 43 seconds, reducing the wait by roughly
+  two-fifths. This is one test example, not a promise of the same improvement for every project
+- The local files, Skill structure, Kit health check, full static release review, and two AI real
+  workflow UAT cycles have passed. Post-release user manual UAT has not been run and will be
+  reported separately
 
 ## v0.2.5
 
