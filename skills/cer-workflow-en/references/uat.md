@@ -12,6 +12,7 @@
 - [Parallel Candidate Producer Counterexamples](#parallel-candidate-producer-counterexamples)
 - [Review Convergence Scenarios](#review-convergence-scenarios)
 - [Controller Preflight QC Scenarios](#controller-preflight-qc-scenarios)
+- [Unexpected Failure And Scope-Exception Scenarios](#unexpected-failure-and-scope-exception-scenarios)
 - [Acceptance Validity Scenarios](#acceptance-validity-scenarios)
 - [Proportionate Close Scenarios](#proportionate-close-scenarios)
 - [Kit Authority Pass-Through Scenarios](#kit-authority-pass-through-scenarios)
@@ -261,6 +262,33 @@ cycle label or guess a number.
 - If missing information has multiple reasonable answers and different answers would materially change the deliverable, permissions/risk, acceptance, or cause major rework, C must mark the item `critical missing` and stop for questions.
 - C's frozen task contract and E1/R dispatches preserve the three states, required source anchors, and counterfactual results. They must not invent user confirmation.
 
+## Unexpected Failure And Scope-Exception Scenarios
+
+These scenarios only test the unexpected-failure gate in
+[core-runtime.md](core-runtime.md); they do not define another rule:
+
+<!-- cer-uat-unexpected-failure:gate-off -->
+- An ordinary batch with no unexpected failure does not activate the gate or add a baseline,
+  form, or reporting procedure.
+<!-- cer-uat-unexpected-failure:caused -->
+- The current batch directly caused a regression and the repair preserves frozen meaning, owner,
+  source, and permission: E1 may repair it in the current batch. A purely technical refactor that
+  preserves output, sources, owners, and cross-subsystem behavior may also continue.
+<!-- cer-uat-unexpected-failure:preexisting -->
+- A comparable pre-batch baseline proves the failure already existed: E1 reports without repair.
+<!-- cer-uat-unexpected-failure:unknown -->
+- No comparable baseline is available, or a flaky test, environment, or dependency leaves
+  causality unknown: E1 stops further writes without a guessed repair.
+<!-- cer-uat-unexpected-failure:semantic-boundary -->
+- A file is in allowed scope, but repair would change another owner, authoritative source,
+  fallback, admission condition, or cross-subsystem behavior: E1 stops. Tests or an allowlist/diff
+  check that pass only because of that expansion are still false-green.
+<!-- cer-uat-unexpected-failure:acceptance-boundary -->
+- A direct acceptance test may be wrong, or full regression outside direct acceptance fails: E1
+  attributes and reports without changing product meaning or automatically repairing adjacent
+  behavior. Full regression in frozen acceptance may block the candidate but still does not expand
+  repair authority.
+
 ## Acceptance Validity Scenarios
 
 - A version-only or release-docs-only change may retain unaffected runtime UAT, but must validate
@@ -346,6 +374,12 @@ cycle label or guess a number.
 - C labels an item `safe inference` and dispatches even though the opposite assumption would materially change the deliverable, permissions/risk, acceptance, or cause major rework.
 - The frozen task contract or dispatch writes an unsupported assumption as `confirmed`.
 - C dispatches instead of stopping when critical endpoint, permission, or acceptance information is missing.
+- E1 treats a test failure as new modification authority, or treats an allowed file as authority to
+  change every meaning in that file.
+- E1 continues writing while causality is unknown or repair would widen an owner, authoritative
+  source, fallback, or admission condition, then treats passing tests as proof of correctness.
+- Full-regression failure automatically triggers an adjacent repair, or E1 expands scope without C
+  refreezing and dispatching a new batch.
 - Missing root cause leads to a quick fix, or acceptance counterexamples expand into defensive whole-project review.
 - A task expands into whole-project re-review only because of a `high risk`/release label, file
   count, or change size.

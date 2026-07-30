@@ -317,12 +317,41 @@ active. `/CER-close` remains a CER-only command and does not trigger Kit full cl
 
 1. C gives this cycle's same E1 one batch based on the user's task and accepted project plan or sources of truth.
 2. E1 completes only that batch, reads back and tests the work, then direct-pushes a candidate.
+
+<!-- cer-unexpected-failure-gate-owner -->
+An unexpected failure does not change the batch authority: tests produce evidence but do not grant
+more modification authority. A file being in allowed scope does not authorize E1 to change another
+owner, authoritative source, or protected meaning inside that file.
+The gate stays inactive when an ordinary batch has no unexpected failure, or when a failure does
+not motivate a new or expanded write.
+
+Before any new or expanded write motivated by an unexpected failure, E1 performs bounded read-only
+attribution:
+
+- Reproducible evidence proves the current batch directly caused the failure, and the repair does
+  not change the frozen owner, meaning, source, permission, or acceptance: E1 may repair it in the
+  current batch.
+- A comparable, verifiable pre-batch baseline proves the problem already existed: report it without
+  repairing it.
+- Causality cannot be proved; the failure comes from a flaky test, environment, or dependency;
+  acceptance itself may be wrong; or repair would change another owner, authoritative source,
+  admission condition, fallback, product or specialist meaning, or cross-subsystem behavior: stop
+  further writes and return the current result, checks run, unknowns, and blocker to C.
+
+Direct acceptance determines whether the batch candidate may be accepted. Full regression only
+finds integration risk; its failure does not automatically authorize an adjacent repair. Even when
+full regression is part of frozen acceptance, it blocks the candidate but does not expand E1's
+repair authority.
+Only C may refreeze the contract and expand scope by dispatching a new batch with a new
+`batchId` and `payloadDigest`; C freezes the outcome and semantic boundary, not line-by-line
+implementation.
+
 3. C reads back the actual result and either adjudicates it or creates a fresh R through official `create_thread` according to risk.
 4. R tests only the specified risk and product logic, not format alone.
 <!-- cer-review-convergence -->
 5. After R first reports a defect, C groups related findings by common root cause and user consequence, then performs one bounded read-only impact check to find the current sources of truth, delivery surfaces, and check locations that carry this round's contract.
 6. C freezes this round's `owner/affected surfaces/acceptance/counterexample family` and gives the same E1 one batch to repair the whole affected boundary.
-7. After the repair, R re-tests only the frozen scope. Expansion is allowed only for a different root cause, a different user consequence, or a new regression caused by the latest repair.
+7. After the repair, R re-tests only the frozen scope. If a different root cause, different user consequence, or new regression caused by the latest repair appears, only C may attribute it, refreeze the boundary, and dispatch a new batch; E1 must not expand scope alone.
 8. Changed wording, sentence order, or synonymous phrasing remains the same problem. Do not append rules or validator patterns sentence by sentence. If the same counterexample family keeps escaping a mechanical check, C changes the checking method or narrows the validator's claimed capability.
 9. When the frozen counterexamples pass and no material new defect remains, C accepts the result. Only then may E1 update an existing authoritative project-progress source; if none exists, do not create one.
 10. C stops after required state is converged. List adjacent improvements separately without adding a Reviewer, governance layer, or whole-repository re-review.

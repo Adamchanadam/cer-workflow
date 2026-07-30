@@ -23,6 +23,7 @@ EXPECTED_FILES = {
 TEXT_FILES = EXPECTED_FILES - {"VERSION"}
 SEMVER_RE = re.compile(r"(?<![0-9])\d+\.\d+\.\d+(?![0-9])")
 OWNER_MARKER = "<!-- cer-parallel-producers-owner -->"
+UNEXPECTED_FAILURE_OWNER_MARKER = "<!-- cer-unexpected-failure-gate-owner -->"
 EXPECTED_DEFAULT_PROMPT = (
     "Use $cer-workflow-en with one writer for this work; create a fresh Reviewer in "
     "proportion to risk, and accelerate internally when useful without extra setup."
@@ -117,7 +118,33 @@ UAT_REQUIREMENTS = {
     "roadmap_boundary": "Roadmap role columns and lifecycle cards still contain formal roles only",
 }
 
+UNEXPECTED_FAILURE_REQUIREMENTS = {
+    "test_not_authority": "tests produce evidence but do not grant more modification authority",
+    "allowlist_not_semantics": "does not authorize E1 to change another owner, authoritative source, or protected meaning inside that file",
+    "gate_off": "The gate stays inactive",
+    "caused": "E1 may repair it in the current batch",
+    "preexisting": "report it without repairing it",
+    "unknown_or_boundary": "stop further writes",
+    "regression_boundary": "does not expand E1's repair authority",
+    "controller_only": "Only C may refreeze the contract and expand scope by dispatching a new batch with a new `batchId` and `payloadDigest`",
+}
 
+UNEXPECTED_FAILURE_UAT_MARKERS = {
+    "gate_off": "<!-- cer-uat-unexpected-failure:gate-off -->",
+    "caused": "<!-- cer-uat-unexpected-failure:caused -->",
+    "preexisting": "<!-- cer-uat-unexpected-failure:preexisting -->",
+    "unknown": "<!-- cer-uat-unexpected-failure:unknown -->",
+    "semantic_boundary": "<!-- cer-uat-unexpected-failure:semantic-boundary -->",
+    "acceptance_boundary": "<!-- cer-uat-unexpected-failure:acceptance-boundary -->",
+}
+
+UNEXPECTED_FAILURE_FORBIDDEN = {
+    "test_grants_authority": "A test failure grants E1 more modification authority",
+    "allowlist_grants_semantics": "A file in the allowlist authorizes E1 to change every meaning in that file",
+    "missing_baseline_guess": "Without a baseline, E1 should guess and repair",
+    "executor_expands_scope": "E1 may expand scope without C refreezing a new batch",
+    "controller_expands_without_new_identity": "C may expand scope while reusing the old `batchId` and `payloadDigest`",
+}
 def read_texts(root: Path) -> dict[str, str]:
     texts: dict[str, str] = {}
     for relative in EXPECTED_FILES:
@@ -243,10 +270,15 @@ def validate_texts(root: Path, texts: dict[str, str]) -> list[str]:
     all_markdown = "\n".join(
         texts[relative] for relative in sorted(texts) if relative.endswith(".md")
     )
+    normalized_markdown = re.sub(r"\s+", " ", all_markdown)
     if all_markdown.count(OWNER_MARKER) != 1:
         findings.append("parallel producer owner marker must occur exactly once")
     if OWNER_MARKER not in texts["references/parallel-producers.md"]:
         findings.append("parallel producer owner marker is not in its sole owner")
+    if all_markdown.count(UNEXPECTED_FAILURE_OWNER_MARKER) != 1:
+        findings.append("unexpected-failure gate owner marker must occur exactly once")
+    if UNEXPECTED_FAILURE_OWNER_MARKER not in texts["references/core-runtime.md"]:
+        findings.append("unexpected-failure gate owner marker is not in core-runtime.md")
 
     owner = re.sub(r"\s+", " ", texts["references/parallel-producers.md"])
     for label, required in OWNER_REQUIREMENTS.items():
@@ -259,6 +291,23 @@ def validate_texts(root: Path, texts: dict[str, str]) -> list[str]:
     core = texts["references/core-runtime.md"]
     uat = re.sub(r"\s+", " ", texts["references/uat.md"])
     roadmap = re.sub(r"\s+", " ", texts["references/roadmap.md"])
+    unexpected_failure_match = re.search(
+        r"^## Execution Loop[ \t]*\n([\s\S]*?)(?=^## |\Z)", core, re.MULTILINE
+    )
+    if not unexpected_failure_match:
+        findings.append("core-runtime.md lacks the execution-loop owner section")
+    else:
+        unexpected_failure_owner = re.sub(
+            r"\s+", " ", unexpected_failure_match.group(1)
+        )
+        if UNEXPECTED_FAILURE_OWNER_MARKER not in unexpected_failure_owner:
+            findings.append("unexpected-failure gate marker is outside its owner section")
+        for label, required in UNEXPECTED_FAILURE_REQUIREMENTS.items():
+            if required not in unexpected_failure_owner:
+                findings.append(f"unexpected-failure gate owner missing {label}")
+    for label, forbidden in UNEXPECTED_FAILURE_FORBIDDEN.items():
+        if forbidden in normalized_markdown:
+            findings.append(f"unexpected-failure fixed contradiction present {label}")
     if "[parallel-producers.md](references/parallel-producers.md)" not in skill:
         findings.append("SKILL.md lacks direct progressive-disclosure route")
     if "[Parallel Candidate Producers](parallel-producers.md)" not in core:
@@ -279,6 +328,18 @@ def validate_texts(root: Path, texts: dict[str, str]) -> list[str]:
     for label, required in UAT_REQUIREMENTS.items():
         if required not in uat:
             findings.append(f"uat.md missing producer counterexample {label}")
+    unexpected_failure_uat_match = re.search(
+        r"^## Unexpected Failure And Scope-Exception Scenarios[ \t]*\n([\s\S]*?)(?=^## |\Z)",
+        texts["references/uat.md"],
+        re.MULTILINE,
+    )
+    if not unexpected_failure_uat_match:
+        findings.append("uat.md lacks unexpected-failure scope-exception scenarios")
+    else:
+        unexpected_failure_uat = unexpected_failure_uat_match.group(1)
+        for label, marker in UNEXPECTED_FAILURE_UAT_MARKERS.items():
+            if all_markdown.count(marker) != 1 or marker not in unexpected_failure_uat:
+                findings.append(f"unexpected-failure UAT marker invalid {label}")
     if "Parallel candidate producers are C's internal on-demand capability. They do not enter role columns" not in roadmap:
         findings.append("roadmap.md lacks display-only producer boundary")
     for relative in (
@@ -365,6 +426,33 @@ def mutation_matrix(root: Path) -> tuple[int, list[str]]:
     cases.append(("owner_marker_missing", mutated("references/parallel-producers.md", OWNER_MARKER)))
     cases.append(
         (
+            "unexpected_failure_owner_marker_duplicate",
+            mutated(
+                "SKILL.md",
+                "# CER Workflow",
+                f"# CER Workflow\n{UNEXPECTED_FAILURE_OWNER_MARKER}",
+            ),
+        )
+    )
+    cases.append(
+        (
+            "unexpected_failure_owner_marker_missing",
+            mutated("references/core-runtime.md", UNEXPECTED_FAILURE_OWNER_MARKER),
+        )
+    )
+    wrong_section_marker = mutated(
+        "references/core-runtime.md", UNEXPECTED_FAILURE_OWNER_MARKER
+    )
+    wrong_section_marker["references/core-runtime.md"] = wrong_section_marker[
+        "references/core-runtime.md"
+    ].replace(
+        "## YAGNI And Stop",
+        f"{UNEXPECTED_FAILURE_OWNER_MARKER}\n## YAGNI And Stop",
+        1,
+    )
+    cases.append(("unexpected_failure_owner_marker_wrong_section", wrong_section_marker))
+    cases.append(
+        (
             "implicit_invocation_true",
             mutated("agents/openai.yaml", "allow_implicit_invocation: false", "allow_implicit_invocation: true"),
         )
@@ -427,6 +515,31 @@ def mutation_matrix(root: Path) -> tuple[int, list[str]]:
     for label, fragment in UAT_REQUIREMENTS.items():
         cases.append(
             (f"uat_missing_{label}", mutated_fragment("references/uat.md", fragment))
+        )
+    for label, fragment in UNEXPECTED_FAILURE_REQUIREMENTS.items():
+        cases.append(
+            (
+                f"unexpected_failure_owner_missing_{label}",
+                mutated_fragment("references/core-runtime.md", fragment),
+            )
+        )
+    for label, marker in UNEXPECTED_FAILURE_UAT_MARKERS.items():
+        cases.append(
+            (
+                f"unexpected_failure_uat_marker_missing_{label}",
+                mutated("references/uat.md", marker),
+            )
+        )
+    for label, contradiction in UNEXPECTED_FAILURE_FORBIDDEN.items():
+        cases.append(
+            (
+                f"unexpected_failure_contradiction_{label}",
+                mutated(
+                    "references/core-runtime.md",
+                    "## Execution Loop",
+                    f"## Execution Loop\n\n{contradiction}.",
+                ),
+            )
         )
     cases.append(
         (

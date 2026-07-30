@@ -4,6 +4,33 @@ Scope note: each version section records release history for that version; unrel
 explicitly marked as a candidate. Runtime authority remains the Skill references bundled with the
 version the user has installed.
 
+## v0.3.1
+
+This release fixes a generic CER Core gap where E1 could treat an unexpected test failure,
+or a file allowlist, as authority to expand the batch's modification scope. It does not add
+Keyring-specific semantics, roles, commands, modes, or helpers:
+
+- The execution loop in `core-runtime.md` now states that an unexpected failure does not change
+  the batch authority. Tests produce evidence but do not grant more modification authority. A file
+  being in allowed scope does not authorize E1 to change another owner, authoritative source, or
+  protected meaning inside that file
+- Before any new or expanded write motivated by an unexpected failure, E1 must perform bounded
+  read-only attribution. E1 may fix within the batch only when reproducible evidence proves the
+  batch directly caused the failure and the fix preserves the frozen owner, meaning, source,
+  permissions, and acceptance
+- If causality is unclear, the failure may be flaky, environmental, or dependency-related, the
+  acceptance itself may be wrong, or the fix would change another owner, authoritative source,
+  admission condition, fallback, product/professional meaning, or cross-subsystem behavior, E1
+  must stop further writes and return a blocker
+- Direct acceptance decides whether the batch candidate can be accepted. Full regression only
+  discovers integration risk. A full-regression failure may block the candidate, but it does not
+  automatically authorize adjacent repair
+- Only C may refreeze the contract and expand scope by dispatching a new batch with a new
+  `batchId` and `payloadDigest`
+- The bilingual UAT counterexamples and Skill validators now include fixed scenarios for this
+  gate. Each language package has 109 mutation cases. Post-release user manual UAT remains
+  reported separately
+
 ## v0.3.0
 
 This release turns the Exploration Helpers introduced in v0.2.6 into a complete, mechanically
