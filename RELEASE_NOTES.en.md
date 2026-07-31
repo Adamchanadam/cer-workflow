@@ -4,6 +4,25 @@ Scope note: each version section records release history for that version; unrel
 explicitly marked as a candidate. Runtime authority remains the Skill references bundled with the
 version the user has installed.
 
+## v0.3.2
+
+This release fixes a formal-dispatch gap where a Controller could leave placeholders, relative
+recipient identity, or missing Reviewer candidate evidence in a packet while still self-rating it
+as ready to send:
+
+- C may keep a `draft_packet` internally, but a real `sendable_packet` must fill actual
+  `threadId`, `hostId`, `returnTarget`, `messageId`, `batchId`, `batchSeq`, and
+  `payloadDigest`
+- Relative wording such as `same E1`, `the E1 above`, or `next sequence` is draft-only; before
+  sending to E1 or R, it must be replaced with verifiable concrete values
+- R dispatch must include actual `candidateIdentity`, `candidateManifest`, and candidate delivery
+  evidence. Missing any one leaves the packet at `dispatch_blocked` or `decision_blocked`
+- The bilingual UAT counterexamples and Skill validators now cover this reusable failure class.
+  Each language package has 122 mutation cases, without replacing class-level QA with a
+  one-prompt hard code
+- AI real workflow UAT completed two cycles: the second cycle used new C/E1/R tasks and did not
+  reuse the first cycle's C/E1/R. Post-release user manual UAT remains reported separately
+
 ## v0.3.1
 
 This release fixes a generic CER Core gap where E1 could treat an unexpected test failure,

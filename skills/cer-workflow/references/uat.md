@@ -329,6 +329,11 @@ numbering 規則生效前已開始且無法可靠回推原 cycle number。cycle 
 - 只送出 candidate `C_READY`，但未由發送方實際收到、讀回並回送 `C_ACCEPTED`，就宣稱 Remote C 身份或通訊路徑成立。
 - 為唯一 C 新增 lock file、central registry、run ID、conflict engine、新角色或測試例外。
 - 跨 task prompt 依賴既有對話。
+- 正式 `sendable_packet` 仍保留 `<...>` 佔位符，或缺實際 `threadId`、`hostId`、
+  `returnTarget`、`messageId`、`batchId`、`batchSeq`、`payloadDigest` 仍自評 PASS。
+- 正式派工用 `同一 E1`／`上述 E1`／`下一個序號` 等相對說法代替可核實實值。
+- R 派工缺實際 `candidateIdentity`、`candidateManifest` 或候選 delivery evidence，
+  仍要求 Reviewer 審閱。
 - 未證明送達鏈便開始工作。
 - 只證明 title、fork 或單向 send，沒有 E1 direct-push ready/result。
 - create 結果為逾時、錯誤或部分結果時，在有界權威對帳前立即重試。

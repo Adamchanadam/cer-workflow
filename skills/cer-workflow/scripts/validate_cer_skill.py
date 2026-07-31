@@ -145,6 +145,30 @@ UNEXPECTED_FAILURE_FORBIDDEN = {
     "executor_expands_scope": "E1 可自行擴大範圍，不需要 C 重凍結新批次",
     "controller_expands_without_new_identity": "C 可沿用舊 `batchId`／`payloadDigest` 擴大範圍",
 }
+
+SENDABLE_PACKET_REQUIREMENTS = {
+    "draft_sendable_split": "`draft_packet`",
+    "no_placeholders": "`sendable_packet` 不得保留 `<...>` 佔位符",
+    "concrete_bindings": "正式派工必須填入實際 `threadId`、`hostId`、`returnTarget`、`messageId`、`batchId`、`batchSeq` 及 `payloadDigest`",
+    "relative_identity_draft_only": "`同一 E1`／`上述 E1`／`下一個序號` 等相對說法只可作草稿",
+    "review_manifest": "R 派工必須填入實際 `candidateIdentity`、`candidateManifest` 及候選 delivery evidence",
+    "missing_blocks": "缺任一項即停在 `dispatch_blocked` 或 `decision_blocked`",
+}
+
+SENDABLE_PACKET_UAT_REQUIREMENTS = {
+    "placeholder_self_pass": "正式 `sendable_packet` 仍保留 `<...>` 佔位符",
+    "relative_identity": "正式派工用 `同一 E1`／`上述 E1`／`下一個序號` 等相對說法",
+    "review_manifest_missing": "R 派工缺實際 `candidateIdentity`、`candidateManifest` 或候選 delivery evidence",
+}
+
+SENDABLE_PACKET_FORBIDDEN = {
+    "placeholder_allowed": "正式可送出的派工包可以保留 `<...>` 佔位符",
+    "relative_identity_allowed": "`同一 E1`／`上述 E1`／`下一個序號` 可作為正式派工身份",
+    "review_manifest_optional": "R 派工可以省略 `candidateManifest`",
+    "draft_pass": "`draft_packet` 可自評為可送出",
+}
+
+
 def read_texts(root: Path) -> dict[str, str]:
     texts: dict[str, str] = {}
     for relative in EXPECTED_FILES:
@@ -305,9 +329,22 @@ def validate_texts(root: Path, texts: dict[str, str]) -> list[str]:
         for label, required in UNEXPECTED_FAILURE_REQUIREMENTS.items():
             if required not in unexpected_failure_owner:
                 findings.append(f"unexpected-failure gate owner missing {label}")
+    self_contained_match = re.search(
+        r"^## 自足派工[ \t]*\n([\s\S]*?)(?=^## |\Z)", core, re.MULTILINE
+    )
+    if not self_contained_match:
+        findings.append("core-runtime.md lacks the self-contained dispatch section")
+    else:
+        self_contained_owner = re.sub(r"\s+", " ", self_contained_match.group(1))
+        for label, required in SENDABLE_PACKET_REQUIREMENTS.items():
+            if required not in self_contained_owner:
+                findings.append(f"sendable-packet gate missing {label}")
     for label, forbidden in UNEXPECTED_FAILURE_FORBIDDEN.items():
         if forbidden in normalized_markdown:
             findings.append(f"unexpected-failure fixed contradiction present {label}")
+    for label, forbidden in SENDABLE_PACKET_FORBIDDEN.items():
+        if forbidden in normalized_markdown:
+            findings.append(f"sendable-packet fixed contradiction present {label}")
     if "[parallel-producers.md](references/parallel-producers.md)" not in skill:
         findings.append("SKILL.md lacks direct progressive-disclosure route")
     if "[平行候選生產者](parallel-producers.md)" not in core:
@@ -328,6 +365,9 @@ def validate_texts(root: Path, texts: dict[str, str]) -> list[str]:
     for label, required in UAT_REQUIREMENTS.items():
         if required not in uat:
             findings.append(f"uat.md missing producer counterexample {label}")
+    for label, required in SENDABLE_PACKET_UAT_REQUIREMENTS.items():
+        if required not in uat:
+            findings.append(f"uat.md missing sendable-packet counterexample {label}")
     unexpected_failure_uat_match = re.search(
         r"^## 未預期失敗與範圍例外情景[ \t]*\n([\s\S]*?)(?=^## |\Z)",
         texts["references/uat.md"],
@@ -523,6 +563,20 @@ def mutation_matrix(root: Path) -> tuple[int, list[str]]:
                 mutated_fragment("references/core-runtime.md", fragment),
             )
         )
+    for label, fragment in SENDABLE_PACKET_REQUIREMENTS.items():
+        cases.append(
+            (
+                f"sendable_packet_owner_missing_{label}",
+                mutated_fragment("references/core-runtime.md", fragment),
+            )
+        )
+    for label, fragment in SENDABLE_PACKET_UAT_REQUIREMENTS.items():
+        cases.append(
+            (
+                f"sendable_packet_uat_missing_{label}",
+                mutated_fragment("references/uat.md", fragment),
+            )
+        )
     for label, marker in UNEXPECTED_FAILURE_UAT_MARKERS.items():
         cases.append(
             (
@@ -538,6 +592,17 @@ def mutation_matrix(root: Path) -> tuple[int, list[str]]:
                     "references/core-runtime.md",
                     "## 執行閉環",
                     f"## 執行閉環\n\n{contradiction}。",
+                ),
+            )
+        )
+    for label, contradiction in SENDABLE_PACKET_FORBIDDEN.items():
+        cases.append(
+            (
+                f"sendable_packet_contradiction_{label}",
+                mutated(
+                    "references/core-runtime.md",
+                    "## 自足派工",
+                    f"## 自足派工\n\n{contradiction}。",
                 ),
             )
         )

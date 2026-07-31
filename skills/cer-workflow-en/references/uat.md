@@ -397,6 +397,13 @@ These scenarios only test the unexpected-failure gate in
 - Remote C identity or communication path is claimed after merely sending candidate `C_READY`, without the sender actually receiving it, reading it back, and returning `C_ACCEPTED`.
 - A lock file, central registry, run ID, conflict engine, new role, or test exception is added for unique C.
 - A cross-task prompt depends on prior conversation.
+- A formal `sendable_packet` still contains `<...>` placeholders, or lacks actual `threadId`,
+  `hostId`, `returnTarget`, `messageId`, `batchId`, `batchSeq`, or `payloadDigest` but is still
+  self-rated PASS.
+- A formal dispatch uses relative wording such as `same E1`, `the E1 above`, or `next sequence`
+  instead of verifiable concrete values.
+- R dispatch lacks actual `candidateIdentity`, `candidateManifest`, or candidate delivery evidence,
+  but still asks the Reviewer to review.
 - Work starts before the delivery chain is proven.
 - Only title, fork, or one-way send is proven, without E1 `ready/result` direct-pushes.
 - An ambiguous create timeout, error, or partial result is retried before bounded authoritative

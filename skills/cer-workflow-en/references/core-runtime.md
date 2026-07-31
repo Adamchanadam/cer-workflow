@@ -252,6 +252,8 @@ Each real E1 or R batch contains only what is needed:
 
 Do not write "see above" or ask the assignee to reconstruct C's context. Add background and counterexamples for high-risk batches. Keep low-risk batches short and avoid oversized templates. If E1/R finds a contradiction between the frozen contract and the sources, report a blocker or candidate correction first; do not rewrite the contract and continue alone.
 
+A dispatch packet may remain a `draft_packet` inside C, but a sendable `sendable_packet` must not retain `<...>` placeholders. A real dispatch must fill actual `threadId`, `hostId`, `returnTarget`, `messageId`, `batchId`, `batchSeq`, and `payloadDigest`; relative wording such as `same E1`, `the E1 above`, or `next sequence` is draft-only and must be replaced with verifiable concrete values before send. R dispatch must fill actual `candidateIdentity`, `candidateManifest`, and candidate delivery evidence. Missing any one of these leaves the packet at `dispatch_blocked` or `decision_blocked`; C must not self-rate it as sendable or ask E1/R to guess.
+
 While CER is active, if the target workspace's `AGENTS.md` clearly routes the user's intent to
 Agent Handoff Kit full closeout (for example, `Wrap up Agent Handoff`, `收工`, or equivalent
 session-closeout intent), or clearly routes a specified document to governance bridge, C gives

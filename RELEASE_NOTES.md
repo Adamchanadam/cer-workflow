@@ -3,6 +3,24 @@
 範圍說明：本檔各版本區段記錄對應版本的 release history；未發布內容會明確標示
 為候選。實際執行規則以使用者已安裝版本隨附的 Skill references 為準。
 
+## v0.3.2
+
+本版修正正式派工封包可能仍保留佔位符、相對身份或缺少 Reviewer 候選證據，
+但 Controller 仍自評為可送出的缺口：
+
+- C 可在內部保留 `draft_packet`，但正式 `sendable_packet` 必須填入實際
+  `threadId`、`hostId`、`returnTarget`、`messageId`、`batchId`、`batchSeq`
+  及 `payloadDigest`
+- `同一 E1`、`上述 E1`、`下一個序號` 等相對說法只可作草稿；正式交給 E1
+  或 R 前必須換成可核實實值
+- R 派工必須帶實際 `candidateIdentity`、`candidateManifest` 及候選 delivery
+  evidence；缺任一項即停在 `dispatch_blocked` 或 `decision_blocked`
+- 中英文 UAT 反例及 Skill validator 已加入同類 failure class 的固定情景；
+  兩語套件各有 122 個 mutation cases，不以單次 prompt 字句 hard code 取代
+  同類事件檢查
+- AI 真實流程 UAT 已完成兩輪：第二輪使用全新 C／E1／R task，未重用第一輪
+  C／E1／R；發布後使用者手動 UAT 仍獨立回報
+
 ## v0.3.1
 
 本版修正 Executor 遇到未預期測試失敗時可能誤把測試結果或 allowlist 當成擴大

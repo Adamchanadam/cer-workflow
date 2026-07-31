@@ -209,6 +209,8 @@ source／package mismatch 或發布／安裝產物不一致，或可信理由顯
 
 不得寫「見上文」或要求 assignee 自行重建 C 的上下文。高風險批次補足背景與反例；低風險小修改保持短，不套巨型表格。E1／R 發現凍結契約與真源矛盾時，先回報 blocker 或候選修正，不自行改寫契約後繼續。
 
+派工包可在 C 內部暫為 `draft_packet`；但正式可送出的 `sendable_packet` 不得保留 `<...>` 佔位符。正式派工必須填入實際 `threadId`、`hostId`、`returnTarget`、`messageId`、`batchId`、`batchSeq` 及 `payloadDigest`；`同一 E1`／`上述 E1`／`下一個序號` 等相對說法只可作草稿，正式派工必須換成可核實實值。R 派工必須填入實際 `candidateIdentity`、`candidateManifest` 及候選 delivery evidence；缺任一項即停在 `dispatch_blocked` 或 `decision_blocked`，不得自評為可送出或要求 E1／R 盲猜。
+
 CER 已啟動時，若目標 workspace 的 `AGENTS.md` 把使用者語意明確路由為
 Agent Handoff Kit full closeout（例如 `收工`、`Wrap up Agent Handoff` 或同等
 session closeout 意圖），或把指定文件明確路由為 governance bridge，C 只把
