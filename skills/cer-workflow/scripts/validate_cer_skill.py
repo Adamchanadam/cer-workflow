@@ -36,6 +36,26 @@ FORMAL_COMMANDS = {
     "/CER-help",
 }
 
+ZH_TRIGGER_MATRIX_EXPECTATIONS = {
+    "frontmatter": (
+        "只在使用者明確帶 CER 的指令或同等語意時使用",
+        "單獨「開工／收工」不是 CER 觸發",
+    ),
+    "start_row": ("單獨 `開工` 不啟動 CER",),
+    "close_row": ("單獨 `收工` 不觸發 CER close",),
+    "startup_owner": ("單獨 `開工` 屬於目標 workspace 既有治理，不是 CER trigger",),
+    "stop_owner": ("單獨 `收工` 屬於目標 workspace 既有治理，不映射為 CER stop 或 close",),
+    "uat_install_start": (
+        "`/CER-start`、`CER 啟動`、`CER 開始`、`CER 開工` 正常觸發 CER",
+        "單獨 `開工` 不觸發 CER",
+    ),
+    "uat_install_close": (
+        "`/CER-close`、`CER 收工`、`CER 關閉`、`關閉 CER` 正常觸發 CER close",
+        "單獨 `收工` 不觸發 CER close，也不映射為 `/CER-stop`",
+    ),
+    "uat_failure": ("單獨 `開工` 啟動 CER，或單獨 `收工` 觸發 CER close／stop",),
+}
+
 REVIEWER_PROPORTIONALITY_COUNTEREXAMPLES = {
     "simple_fixed_fresh_reviewer": "簡單任務也固定建立 fresh Reviewer",
     "every_simple_task_reviewer": "每個簡單任務均安排 Reviewer",
@@ -252,6 +272,104 @@ def openai_yaml_findings(text: str) -> list[str]:
     return findings
 
 
+def normalized_contains(text: str, snippet: str) -> bool:
+    return re.sub(r"\s+", " ", snippet) in re.sub(r"\s+", " ", text)
+
+
+def markdown_section(text: str, heading: str) -> str:
+    match = re.search(
+        rf"^{re.escape(heading)}[ \t]*\n([\s\S]*?)(?=^## |\Z)",
+        text,
+        flags=re.MULTILINE,
+    )
+    return match.group(1) if match else ""
+
+
+def command_table_row(text: str, command: str) -> str:
+    pattern = r"^\|\s*`" + re.escape(command) + r"(?:\s+[^`]*)?`\s*\|.*$"
+    match = re.search(pattern, text, flags=re.MULTILINE)
+    return match.group(0) if match else ""
+
+
+def assert_snippets_present(
+    text: str,
+    snippets: tuple[str, ...],
+    label: str,
+    findings: list[str],
+) -> None:
+    for snippet in snippets:
+        if not normalized_contains(text, snippet):
+            findings.append(f"trigger matrix missing {label}: {snippet}")
+
+
+def trigger_matrix_findings(texts: dict[str, str]) -> list[str]:
+    findings: list[str] = []
+    skill = texts["SKILL.md"]
+    core = texts["references/core-runtime.md"]
+    uat = texts["references/uat.md"]
+
+    frontmatter = re.match(r"\A---\n([\s\S]*?)\n---\n", skill)
+    description = frontmatter.group(1) if frontmatter else ""
+    assert_snippets_present(
+        description,
+        ZH_TRIGGER_MATRIX_EXPECTATIONS["frontmatter"],
+        "SKILL.md frontmatter trigger boundary",
+        findings,
+    )
+    for label, source in (
+        ("SKILL.md /CER-start row", command_table_row(skill, "/CER-start")),
+        ("core-runtime.md /CER-start row", command_table_row(core, "/CER-start")),
+    ):
+        assert_snippets_present(
+            source,
+            ZH_TRIGGER_MATRIX_EXPECTATIONS["start_row"],
+            label,
+            findings,
+        )
+    for label, source in (
+        ("SKILL.md /CER-close row", command_table_row(skill, "/CER-close")),
+        ("core-runtime.md /CER-close row", command_table_row(core, "/CER-close")),
+    ):
+        assert_snippets_present(
+            source,
+            ZH_TRIGGER_MATRIX_EXPECTATIONS["close_row"],
+            label,
+            findings,
+        )
+    assert_snippets_present(
+        markdown_section(core, "## 啟動"),
+        ZH_TRIGGER_MATRIX_EXPECTATIONS["startup_owner"],
+        "core-runtime.md startup owner",
+        findings,
+    )
+    assert_snippets_present(
+        markdown_section(core, "## 停用 CER"),
+        ZH_TRIGGER_MATRIX_EXPECTATIONS["stop_owner"],
+        "core-runtime.md stop owner",
+        findings,
+    )
+    install = markdown_section(uat, "## 安裝情景")
+    assert_snippets_present(
+        install,
+        ZH_TRIGGER_MATRIX_EXPECTATIONS["uat_install_start"],
+        "uat.md installation start matrix",
+        findings,
+    )
+    assert_snippets_present(
+        install,
+        ZH_TRIGGER_MATRIX_EXPECTATIONS["uat_install_close"],
+        "uat.md installation close matrix",
+        findings,
+    )
+    assert_snippets_present(
+        markdown_section(uat, "## 失敗條件"),
+        ZH_TRIGGER_MATRIX_EXPECTATIONS["uat_failure"],
+        "uat.md failure-condition matrix",
+        findings,
+    )
+    return findings
+
+
 def link_findings(root: Path, texts: dict[str, str]) -> list[str]:
     findings: list[str] = []
     link_re = re.compile(r"\[[^\]]+\]\(([^)]+)\)")
@@ -292,6 +410,7 @@ def validate_texts(root: Path, texts: dict[str, str]) -> list[str]:
     findings.extend(frontmatter_findings(texts["SKILL.md"]))
     findings.extend(openai_yaml_findings(texts["agents/openai.yaml"]))
     findings.extend(link_findings(root, texts))
+    findings.extend(trigger_matrix_findings(texts))
 
     skill_commands = {
         match.group(1)
@@ -535,6 +654,106 @@ def mutation_matrix(root: Path) -> tuple[int, list[str]]:
                 "agents/openai.yaml",
                 "無需額外設定",
                 "請設定 producer lane、scratch root 及 hash",
+            ),
+        )
+    )
+    cases.append(
+        (
+            "trigger_frontmatter_plain_close_reversed",
+            mutated(
+                "SKILL.md",
+                "單獨「開工／收工」不是 CER 觸發",
+                "單獨「開工／收工」會觸發 CER close",
+            ),
+        )
+    )
+    cases.append(
+        (
+            "trigger_skill_start_row_reversed",
+            mutated(
+                "SKILL.md",
+                "單獨 `開工` 不啟動 CER",
+                "單獨 `開工` 啟動 CER",
+            ),
+        )
+    )
+    cases.append(
+        (
+            "trigger_skill_close_row_reversed",
+            mutated(
+                "SKILL.md",
+                "單獨 `收工` 不觸發 CER close",
+                "單獨 `收工` 觸發 CER close",
+            ),
+        )
+    )
+    cases.append(
+        (
+            "trigger_core_start_row_reversed",
+            mutated(
+                "references/core-runtime.md",
+                "單獨 `開工` 不啟動 CER",
+                "單獨 `開工` 啟動 CER",
+            ),
+        )
+    )
+    cases.append(
+        (
+            "trigger_core_close_row_reversed",
+            mutated(
+                "references/core-runtime.md",
+                "單獨 `收工` 不觸發 CER close",
+                "單獨 `收工` 觸發 CER close",
+            ),
+        )
+    )
+    cases.append(
+        (
+            "trigger_core_startup_owner_reversed",
+            mutated(
+                "references/core-runtime.md",
+                "單獨 `開工` 屬於目標 workspace 既有治理，不是 CER trigger",
+                "單獨 `開工` 屬於 CER trigger",
+            ),
+        )
+    )
+    cases.append(
+        (
+            "trigger_core_stop_owner_reversed",
+            mutated(
+                "references/core-runtime.md",
+                "單獨 `收工` 屬於目標 workspace 既有治理，不映射為 CER stop 或 close",
+                "單獨 `收工` 屬於 CER 指令，映射為 CER stop 或 close",
+            ),
+        )
+    )
+    cases.append(
+        (
+            "trigger_uat_install_start_reversed",
+            mutated(
+                "references/uat.md",
+                "單獨 `開工` 不觸發 CER",
+                "單獨 `開工` 觸發 CER",
+            ),
+        )
+    )
+    cases.append(
+        (
+            "trigger_uat_install_close_reversed",
+            mutated(
+                "references/uat.md",
+                "單獨 `收工` 不觸發 CER close，也不映射為 `/CER-stop`",
+                "單獨 `收工` 觸發 CER close，並映射為 `/CER-stop`",
+            ),
+        )
+    )
+    cases.append(
+        (
+            "trigger_uat_failure_condition_lost",
+            mutated(
+                "references/uat.md",
+                "單獨 `開工` 啟動 CER，或單獨 `收工` 觸發 CER close／stop",
+                "單獨 `開工` 不啟動 CER，且單獨 `收工` 不觸發 CER close／stop",
             ),
         )
     )

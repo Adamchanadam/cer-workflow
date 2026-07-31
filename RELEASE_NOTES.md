@@ -3,6 +3,22 @@
 範圍說明：本檔各版本區段記錄對應版本的 release history；未發布內容會明確標示
 為候選。實際執行規則以使用者已安裝版本隨附的 Skill references 為準。
 
+## v0.3.3
+
+本版修正 v0.3.2 後確認的驗收弱點：文件文字已正確說明普通 `開工`／
+`收工` 屬於 Agent Handoff Kit 語意，但 Skill validator 未能機械防止未來
+把「單獨收工」誤改成 CER 收尾觸發：
+
+- 中英文 Skill validator 新增 context-aware trigger matrix 檢查，分開驗證
+  frontmatter、命令表、runtime 啟動／停止 owner，以及 UAT 安裝與失敗矩陣
+- 合法的 CER 指令仍只限 `/CER-start`、`/CER-stop`、`/CER-close`、`/CER-status`
+  和 `/CER-help`；普通 `開工`／`收工` 或 `start`／`close` 不會單獨觸發 CER
+- UAT 內的 failure example 可保留「錯誤寫法」作反例；validator 不使用全域
+  禁字，而是按章節語境檢查，避免假陽性與假綠燈
+- 兩語套件各由 131 個 mutation cases 增至 141 個，新增反例會把
+  SKILL、core runtime 或 UAT 中的單獨 close／start 語意漂移判為失敗
+- 本版不改 CER runtime 觸發語意、不新增指令、不改 Keyring 或任何單一專案專用規則
+
 ## v0.3.2
 
 本版修正正式派工封包可能仍保留佔位符、相對身份或缺少 Reviewer 候選證據，

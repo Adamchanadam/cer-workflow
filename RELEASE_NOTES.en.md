@@ -4,6 +4,25 @@ Scope note: each version section records release history for that version; unrel
 explicitly marked as a candidate. Runtime authority remains the Skill references bundled with the
 version the user has installed.
 
+## v0.3.3
+
+This release fixes the validation weakness confirmed after v0.3.2: the docs correctly said that
+plain `start` / `close` wording belongs to Agent Handoff Kit semantics, but the Skill validator did
+not mechanically prevent a future edit from turning a standalone close into a CER close trigger:
+
+- The English and Traditional Chinese Skill validators now include a context-aware trigger matrix
+  covering frontmatter, command tables, runtime startup/stop ownership, and UAT install/failure
+  matrices
+- The only valid CER commands remain `/CER-start`, `/CER-stop`, `/CER-close`, `/CER-status`, and
+  `/CER-help`; plain `開工` / `收工` or `start` / `close` wording does not independently trigger CER
+- UAT failure examples may still contain the intentionally wrong wording as counterexamples; the
+  validator checks section context instead of using a global forbidden-string list, avoiding both
+  false positives and false green results
+- Each language package now has 141 mutation cases, up from 131. The new counterexamples fail when
+  SKILL, core runtime, or UAT text drifts toward standalone close/start as a CER trigger
+- This release does not change CER runtime trigger semantics, add commands, or add Keyring-specific
+  or project-specific rules
+
 ## v0.3.2
 
 This release fixes a formal-dispatch gap where a Controller could leave placeholders, relative
