@@ -111,7 +111,9 @@ result, or non-authoritative alias must not be treated as proof that the operati
   project, target root, cycle, and role for this cycle. The snapshot is transient reconciliation
   evidence and must not become a lock, central registry, or CER run ID.
 - Creation is `confirmed` only when an official receipt or authoritative readback provides the
-  threadId, current actual hostId, project, and target root. A `clientThreadId`, timeout, error, or
+  actual coordinates required by the active tool schema, project, and target root. This usually
+  includes at least threadId; hostId is used only when the active tool schema or receipt requires
+  or provides it. A `clientThreadId`, timeout, error, or
   partial result leaves the operation `pending` or `outcome_unknown`, not definitely failed.
 - `outcome_unknown` forbids automatic retry. C performs one bounded control-plane reconciliation:
   compare the pre-create snapshot with official task/thread listings from every participating host,
@@ -123,10 +125,11 @@ result, or non-authoritative alias must not be treated as proof that the operati
   operation must receive another authoritative reconciliation so a delayed orphan task is found.
   One candidate still requires official metadata plus zero-write `ready`. More than one candidate
   means `duplicate`.
-- Canonical routing coordinates come from C's official readback of threadId and current actual
-  hostId, not a task's self-reported `local` value or display alias. `ready` still identifies role,
-  target root, and return target. A mismatch with official metadata requires reconciliation before
-  formal work.
+- Canonical routing coordinates come from C's official readback under the active tool schema:
+  threadId plus any routing coordinate the receipt explicitly requires. Do not make hostId a hard
+  requirement. Do not derive hostId from a task's self-reported `local` value, display alias, title,
+  sessionId, threadId shape, or an error message. `ready` still identifies role, target root, and
+  return target. A mismatch with official metadata requires reconciliation before formal work.
 - When duplicate roles exist, every candidate stays zero-write. C may select one only after every
   candidate is proven not to have received formal work and to have made zero writes. Unselected
   candidates receive `STOP_ZERO_WRITE` and prove stop through direct-push confirmation or an
@@ -141,7 +144,8 @@ result, or non-authoritative alias must not be treated as proof that the operati
   has stopped, create E2 under the existing takeover rule. Do not roll back automatically or simply
   choose one and continue.
 - Every formal batch uses a unique stable `batchId` for the cycle, bound to the cycle, role,
-  C-selected threadId, current actual hostId, target root, a recipient-local monotonically
+  C-selected threadId or platform-equivalent coordinate, routing coordinates explicitly required by
+  the active tool schema/receipt, target root, a recipient-local monotonically
   increasing `batchSeq` for the cycle, and immutable `payloadDigest`. The digest covers the complete
   self-contained dispatch. Any content or task-contract change uses a new `batchId` and higher
   `batchSeq`. A controlled resend must repeat the exact same `batchId`, `batchSeq`, `payloadDigest`,
@@ -190,7 +194,7 @@ result, or non-authoritative alias must not be treated as proof that the operati
 2. The startup gate is owned by the Remote sender or the local start task. A receiver task may only return candidate `C_READY`; it must not blanket-reject Remote C solely because the message came from another task, and it must not use silence, no response, or its own inability to see other tasks as proof of unique C.
 3. The startup gate judges unique C only inside the actual collaboration domain for this start: use the official task/thread list or a platform-equivalent tool to enumerate every participating host this start will use; for readable candidates, verify resolved target_root/cwd, `🚀 C:` identity, and active/idle/closed/handed-off state; also require the sender to explicitly state that it has not assigned the same root to another C. Only when all participating hosts are enumerable and no active C exists may the gate judge no active C. Do not scan outside-platform or non-participating hosts, but also do not treat invisible tasks as nonexistent.
 4. A known active C may only be reused within the same cycle. Transfer requires an actual message or state readback showing the old C explicitly handed off/closed. After `/CER-close`, the old C and its E/R tasks remain history only and the whole set must not receive work for a later cycle in the same workspace. A later cycle must use a new task as C; the gate reads back that the old C is `closed`/`handed-off`, that no active C exists, and that every participating host is verifiable. If any participating host cannot be enumerated, old C state or candidate root/identity/state cannot be read back, coordinates are incomplete, or evidence conflicts, the state is unknown and the gate stops without creating a second C.
-5. After an explicit Remote CER start, the Remote receiver task first direct-pushes candidate `C_READY`, including its threadId, hostId, target_root, and return target/path. After the sender completes unique-C verification and actually reads back `C_READY`, the sender must send `C_ACCEPTED` to the receiver through the same usable return path. The receiver becomes active C and starts Controller preflight only after receiving `C_ACCEPTED`. Merely sending `C_READY`, failing to read back `C_READY`, or missing `C_ACCEPTED` leaves Remote C identity and communication path unestablished. If the sender was the active C, it must complete handoff/close before sending `C_ACCEPTED`.
+5. After an explicit Remote CER start, the Remote receiver task first direct-pushes candidate `C_READY`, including its threadId or platform-equivalent coordinate, target_root, return target/path, and any return or routing coordinate explicitly required by the active tool schema/receipt; it must not guess hostId. After the sender completes unique-C verification and actually reads back `C_READY`, the sender must send `C_ACCEPTED` to the receiver through the same usable return path. The receiver becomes active C and starts Controller preflight only after receiving `C_ACCEPTED`. Merely sending `C_READY`, failing to read back `C_READY`, or missing `C_ACCEPTED` leaves Remote C identity and communication path unestablished. If the sender was the active C, it must complete handoff/close before sending `C_ACCEPTED`.
 6. Do not add a lock file, central registry, run ID, conflict engine, new role, or test exception for unique C; uniqueness is judged only from existing sources, official enumeration, explicit coordinates, and this-turn actual return/readback evidence.
 7. C assigns a short project-local cycle number for sidebar recognition on every CER-start. New
    cycles after this rule is active must not use `00`; C uses the official project task/title
@@ -206,7 +210,7 @@ result, or non-authoritative alias must not be treated as proof that the operati
    task/thread as `🚀 C:01｜<very short task name>`. If the platform cannot change the title, use an
    equivalent role label in the first visible message or checkpoint card. Plain `C:` is not an acceptable Controller title/label.
 8. C completes Controller preflight and freezes this task contract. If anything is `critical missing`, C may only perform necessary read-only investigation or stop for questions; C must not create/reuse E1 or dispatch real work.
-9. After Controller preflight passes, C completes a communication preflight. Use available tools to prove the actual path, including identity source, target root, required parameters, send path, recipient, visible title or role label, return source available to the assignee, verifiable session/thread ID or platform-equivalent coordinates, and C's adjudication point.
+9. After Controller preflight passes, C completes a communication preflight. Use available tools to prove the actual path, including identity source, target root, required parameters, send path, recipient, visible title or role label, return source available to the assignee, verifiable threadId or platform-equivalent coordinates, and C's adjudication point. sessionId is recorded only when the active tool schema/receipt explicitly requires or provides it, and never substitutes for threadId or derives hostId.
 10. If the official `create_thread` tool for new tasks is unavailable, or C cannot read back a
     sidebar-visible title, verifiable thread ID, and formal return path, E/R delegation is
     blocked. Do not downgrade to an inline sub-agent, fork, delegate, or existing task as a
@@ -218,7 +222,7 @@ result, or non-authoritative alias must not be treated as proof that the operati
     use the same cycle number; the next cycle uses a new cycle number. A legacy/migration cycle may
     use `00`. Every dispatch, `ready` receipt, and result receipt must include sender role,
     recipient, return target, and
-    session/thread ID or platform-equivalent coordinates.
+    threadId or platform-equivalent coordinates.
 12. C creates a brand-new persistent E1 for this cycle through official `create_thread`. E1 first
     direct-pushes a zero-write `ready`. C must actually receive a qualifying zero-write `ready`
     with the correct role, cycle number, sidebar-visible title/label, thread coordinates, and
@@ -244,15 +248,15 @@ Each real E1 or R batch contains only what is needed:
 - allowed and forbidden scope;
 - acceptance checks and a counterexample that can disprove the solution;
 - stop conditions;
-- the stable `batchId`, monotonically increasing `batchSeq`, immutable `payloadDigest`, and bound cycle, recipient threadId, current actual hostId, and target root;
+- the stable `batchId`, monotonically increasing `batchSeq`, immutable `payloadDigest`, and bound cycle, recipient threadId or platform-equivalent coordinate, routing coordinates explicitly required by the active tool schema/receipt, and target root;
 - the frozen task contract, including handling of any `confirmed`, `safe inference`, or `critical missing` item, required source anchors, and counterfactual results;
-- C direct-push return target and session/thread ID or platform-equivalent coordinates;
+- C direct-push return target and threadId or platform-equivalent coordinates; sessionId is recorded only when the active tool schema/receipt explicitly requires or provides it, and never substitutes for threadId or derives hostId;
 - the knowledge foundation, source coordinates, unknowns, and no-go boundaries needed for the batch;
 - a short result format.
 
 Do not write "see above" or ask the assignee to reconstruct C's context. Add background and counterexamples for high-risk batches. Keep low-risk batches short and avoid oversized templates. If E1/R finds a contradiction between the frozen contract and the sources, report a blocker or candidate correction first; do not rewrite the contract and continue alone.
 
-A dispatch packet may remain a `draft_packet` inside C, but a sendable `sendable_packet` must not retain `<...>` placeholders. A real dispatch must fill actual `threadId`, `hostId`, `returnTarget`, `messageId`, `batchId`, `batchSeq`, and `payloadDigest`; relative wording such as `same E1`, `the E1 above`, or `next sequence` is draft-only and must be replaced with verifiable concrete values before send. R dispatch must fill actual `candidateIdentity`, `candidateManifest`, and candidate delivery evidence. Missing any one of these leaves the packet at `dispatch_blocked` or `decision_blocked`; C must not self-rate it as sendable or ask E1/R to guess.
+A dispatch packet may remain a `draft_packet` inside C, but a sendable `sendable_packet` must not retain `<...>` placeholders. A real dispatch must fill actual `threadId` or platform-equivalent coordinate, `returnTarget`, `messageId`, `batchId`, `batchSeq`, `payloadDigest`, and any routing coordinate explicitly required by the active tool schema/receipt. sessionId is not a substitute for threadId as a formal dispatch coordinate. hostId is used only when the active tool schema or receipt requires or provides it; do not make hostId a cross-platform hard requirement, and do not derive hostId from `local`, title, sessionId, threadId shape, or an error message. Relative wording such as `same E1`, `the E1 above`, or `next sequence` is draft-only and must be replaced with verifiable concrete values before send. R dispatch must fill actual `candidateIdentity`, `candidateManifest`, and candidate delivery evidence. Missing any one of these leaves the packet at `dispatch_blocked` or `decision_blocked`; C must not self-rate it as sendable or ask E1/R to guess.
 
 While CER is active, if the target workspace's `AGENTS.md` clearly routes the user's intent to
 Agent Handoff Kit full closeout (for example, `Wrap up Agent Handoff`, `收工`, or equivalent
@@ -276,12 +280,13 @@ active. `/CER-close` remains a CER-only command and does not trigger Kit full cl
 - E1 and R direct-push zero-write `ready` through the formal messaging tool before work. After a
   formal batch arrives, direct-push `BATCH_RECEIVED` with that batch's `batchId` and
   `payloadDigest`, then begin or recover work according to the batch lifecycle.
-- `ready` includes the assignee's role, visible title or first-line label, session/thread ID or
+- `ready` includes the assignee's role, visible title or first-line label, threadId or
   platform-equivalent coordinates, received target root, return target, and whether required
-  sources are available. Every message carries a stable `messageId`; `BATCH_RECEIVED` also includes
-  the current actual hostId and binding-check result.
+  sources are available. sessionId is recorded only when the active tool schema/receipt explicitly
+  requires or provides it, and never substitutes for threadId or derives hostId. Every message carries a stable `messageId`; `BATCH_RECEIVED` also includes routing
+  coordinates explicitly required by the active tool schema/receipt and the binding-check result.
 - On completion, blockage, or incomplete work, direct-push a short result to C before stopping.
-  Include `messageId`, `batchId`, `payloadDigest`, and session/thread coordinates so C cannot accept
+  Include `messageId`, `batchId`, `payloadDigest`, and threadId or platform-equivalent coordinates so C cannot accept
   another task's, another batch's, or another revision's result by mistake. C returns
   `RESULT_ACCEPTED` after adjudication.
 - On repeated delivery of the same `batchId`, recover according to `RECEIVED_ZERO_WRITE`,
@@ -293,7 +298,8 @@ active. `/CER-close` remains a CER-only command and does not trigger Kit full cl
   background monitoring.
 - If the platform does not automatically wake an idle C with cross-task input, for each declared
   expected direct-push state transition C forms an `eventWaitKey` from the known unique
-  threadId/hostId, current cursor, causal `messageId`, and expected message type, then arms one
+  threadId or platform-equivalent coordinate, any coordinate required by the active event tool
+  schema, current cursor, causal `messageId`, and expected message type, then arms one
   bounded `wait_threads` or platform-equivalent event wait. Post-create `ready`, post-dispatch
   `BATCH_RECEIVED`, the final result after `BATCH_RECEIVED`, and post-stop confirmation are separate
   transitions and each may have one initial wait. The wait only keeps the receiver available for

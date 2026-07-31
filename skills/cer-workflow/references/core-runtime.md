@@ -109,8 +109,9 @@ source／package mismatch 或發布／安裝產物不一致，或可信理由顯
 - 建立角色前，C 先對本輪實際參與 host、project、target root、cycle 與 role
   做一次有界建立前快照。快照只供本次對帳，不得演變成 lock、central registry
   或 CER run ID。
-- 只有官方 receipt 或權威讀回同時給出 threadId、目前實際 hostId、project
-  與 target root，建立才是 `confirmed`。只有 `clientThreadId`、逾時、錯誤或
+- 只有官方 receipt 或權威讀回給出當前工具 schema 所需的實際座標、project
+  與 target root，建立才是 `confirmed`。這通常至少包括 threadId；hostId 只在
+  當前工具 schema 或 receipt 明示需要／提供時使用。只有 `clientThreadId`、逾時、錯誤或
   部分結果時，操作是 `pending` 或 `outcome_unknown`，不是確定失敗。
 - `outcome_unknown` 禁止自動重試。C 只做一次有界控制面對帳：比較建立前快照，
   在全部實際參與 host 的官方 task/thread 列表中，以 project、target root、
@@ -120,9 +121,10 @@ source／package mismatch 或發布／安裝產物不一致，或可信理由顯
   pending operation 必須在任何後續 resume、startup 或新建同 role 前先重做
   一次權威對帳，以捕捉延遲出現的孤立 task。一個候選須再以官方 metadata
   及零寫入 `ready` 確認；多於一個候選即 `duplicate`。
-- 路由座標以 C 讀回的官方 threadId 與目前實際 hostId 為準，不信任 task
-  自報的 `local` 或顯示別名。`ready` 仍須自報角色、target root 及回傳目標；
-  與官方 metadata 不一致時先對帳，不派正式工作。
+- 路由座標以 C 按當前工具 schema 讀回的官方 threadId 及 receipt 明示必需座標
+  為準。不得硬性要求 hostId；不得由 task 自報的 `local`、顯示別名、title、
+  sessionId、threadId 形狀或錯誤訊息推導 hostId。`ready` 仍須自報角色、target root
+  及回傳目標；與官方 metadata 不一致時先對帳，不派正式工作。
 - 發現重複角色時，所有候選保持零寫入。只有全部候選都證明未收到正式工作且
   零寫入，C 才可選定一個；其餘候選收到 `STOP_ZERO_WRITE` 後，須以 direct-push
   停止確認或官方可讀的不可工作終態證明停止。archive、title 或發出停止訊息
@@ -133,7 +135,8 @@ source／package mismatch 或發布／安裝產物不一致，或可信理由顯
   workspace 一致性。只有狀態可判定後，C 才可選定其中一名恢復，或在全部舊 writer
   已停止後依既有接管規則建立 E2；不得自動回滾或簡單選一個繼續。
 - 每個正式批次使用本輪唯一且穩定的 `batchId`，綁定 cycle、角色、C 選定的
-  threadId、目前實際 hostId、target root、該接收者本輪單調遞增的 `batchSeq`
+  threadId 或平台等價座標、當前工具 schema／receipt 明示必需的路由座標、
+  target root、該接收者本輪單調遞增的 `batchSeq`
   及不可變 `payloadDigest`。digest 覆蓋完整自足派工內容；內容或任務契約有任何
   改變便使用新 `batchId` 及較高 `batchSeq`。受控重送只能重送完全相同的
   `batchId`、`batchSeq`、`payloadDigest` 及內容。
@@ -175,13 +178,13 @@ source／package mismatch 或發布／安裝產物不一致，或可信理由顯
 2. 啟動閘門由 Remote 發送方或本地啟動 task 負責；接收 task 只能回 candidate `C_READY`，不得只因訊息來自另一 task 而全面拒絕 Remote C，也不得用沉默、沒有回應或自己看不到其他 task 來證明唯一 C。
 3. 啟動閘門只在本次實際協作域判定唯一 C：用官方 task／thread 列表或平台等價工具，枚舉此啟動會使用的每個參與 host；對可讀候選核實 resolved target_root／cwd、`🚀 C:` 身份及 active／idle／closed／handed-off 狀態；再加上發送方明示自己沒有把同一 root 交給另一 C。所有參與 host 都可枚舉且沒有 active C，才可判 no active C；不掃描平台外或未參與 host，也不得把不可見 task 當不存在。
 4. 同一輪已知 active C 只可沿用；轉移須有舊 C 明確 handoff／close 的實際訊息或狀態讀回。完成 `/CER-close` 的舊 C 及其 E／R task 整組只可保留作歷史，不可接收同一 workspace 新一輪工作。新一輪只能由新 task 成為 C；閘門必須讀回舊 C 已 `closed`／`handed-off`、沒有 active C，且所有參與 host 可核實。任一參與 host 不可枚舉、舊 C 狀態或候選 root／身份／狀態不可讀回、座標不完整或證據衝突，即為 unknown 並停止，不建立第二 C。
-5. Remote 接收 task 收到明確 Remote CER 啟動語意後，先 direct-push candidate `C_READY`，必含自身 threadId、hostId、target_root、return target／path。發送方完成唯一性核實並實際讀回 `C_READY` 後，必須以同一可用回傳路徑向接收者發 `C_ACCEPTED`；接收者收到 `C_ACCEPTED` 後才成為 active C 並做 Controller preflight。只發送 `C_READY`、未讀回 `C_READY` 或未收到 `C_ACCEPTED`，Remote C 身份及通訊路徑都不成立。若發送方原本是 active C，須先完成 handoff／close 才可發 `C_ACCEPTED`。
+5. Remote 接收 task 收到明確 Remote CER 啟動語意後，先 direct-push candidate `C_READY`，必含自身 threadId 或平台等價座標、target_root、return target／path，以及當前工具 schema／receipt 明示必需的回傳或路由座標；不得猜 hostId。發送方完成唯一性核實並實際讀回 `C_READY` 後，必須以同一可用回傳路徑向接收者發 `C_ACCEPTED`；接收者收到 `C_ACCEPTED` 後才成為 active C 並做 Controller preflight。只發送 `C_READY`、未讀回 `C_READY` 或未收到 `C_ACCEPTED`，Remote C 身份及通訊路徑都不成立。若發送方原本是 active C，須先完成 handoff／close 才可發 `C_ACCEPTED`。
 6. 不得為唯一 C 新增 lock file、central registry、run ID、conflict engine、新角色或測試例外；唯一性只靠已存在真源、官方枚舉、明示座標與本輪實際回傳／讀回證據判定。
 7. C 為每輪 CER-start 分配 project 內側欄辨識用短 cycle 編號。規則生效後的新 cycle 不得使用 `00`，必須用官方 project task/title 枚舉讀回既有數字 cycle 標籤，選下一個未使用正整數，至少兩位顯示為 `01`、`02`；超過 99 可自然擴展。不得新增 central registry、lock 或 run ID。`00` 只表示 cycle numbering 規則生效前已開始、無法可靠回推原 cycle number 的 legacy/migration cycle；它和其他 cycle 編號一樣只供顯示，不是 lock、run ID、唯一 C 證據或 thread 身份，完整 threadId 仍是權威。若新 cycle 無法可靠枚舉或設定 title，保留最短 role title 並報真實 `title sync warning`；不得顯示問號 cycle 標籤、不得猜測數字，也不得因顯示標籤失敗冒充 lifecycle 或 identity failure。C 命名或識別自身可見 task／thread 為 `🚀 C:01｜<極短任務名>`；平台不能改 title 時，在首則可見訊息或停點卡首行標示同等角色標籤。單獨 `C:` 不是合格 Controller title／label。
 8. C 完成 Controller preflight，凍結本次任務契約；若有 `關鍵缺失`，只做必要唯讀調查或停問，不建立／復用 E1，也不派實際批次。
-9. Controller preflight 通過後，C 完成通訊 preflight：以可用工具證明本次實際採用的路徑可用，包括身份來源、目標 root、必要參數、發送路徑、接收者、可見標題或角色標籤、assignee 可取得的回傳來源、可核實 session／thread id 或平台等價座標，以及 C 的裁決點。
+9. Controller preflight 通過後，C 完成通訊 preflight：以可用工具證明本次實際採用的路徑可用，包括身份來源、目標 root、必要參數、發送路徑、接收者、可見標題或角色標籤、assignee 可取得的回傳來源、可核實 threadId 或平台等價座標，以及 C 的裁決點。sessionId 只在當前工具 schema／receipt 明示需要／提供時附帶記錄，不可代替 threadId 或推導 hostId。
 10. 若官方 `create_thread` 新建 task 工具不可用，或無法讀回側欄可見 title、可核實 thread id 與正式回傳路徑，E／R 委派即阻塞；不得降級用 inline sub-agent、fork、delegate 或既有 task 冒充正式 E／R。
-11. 新建 E1／R／E2 時，標題或首行標籤必須分別以 `E1:01｜<極短任務名>`、`R1:01｜<極短審閱名>`／`R2:01｜...`、`E2:01｜...` 格式開首，不加 `🚀`；角色序號在冒號前，cycle 編號在冒號後，避免把第二輪 E1 誤作 E2。同輪所有 C／E／R 使用相同 cycle 編號，下一輪使用新 cycle 編號；legacy/migration cycle 可用 `00`。每個派工包和 ready／結果回執都要包含發送者角色、接收者、回傳目標、session／thread id 或平台等價座標。
+11. 新建 E1／R／E2 時，標題或首行標籤必須分別以 `E1:01｜<極短任務名>`、`R1:01｜<極短審閱名>`／`R2:01｜...`、`E2:01｜...` 格式開首，不加 `🚀`；角色序號在冒號前，cycle 編號在冒號後，避免把第二輪 E1 誤作 E2。同輪所有 C／E／R 使用相同 cycle 編號，下一輪使用新 cycle 編號；legacy/migration cycle 可用 `00`。每個派工包和 ready／結果回執都要包含發送者角色、接收者、回傳目標、threadId 或平台等價座標。
 12. C 透過官方 `create_thread` 建立本輪全新持久 E1。E1 先零寫入 direct-push `ready`；C 必須實際收到含正確角色、cycle 編號、側欄可見標題／標籤、thread 座標和回傳目標的合格零寫入 `ready`。同一輪後續批次持續復用該同一 E1 且 E1 threadId 保持相同；完成上一輪 `/CER-close` 後的新一輪必須建立全新 E1、使用新 cycle 編號，所有 R 也必須 fresh；不得復用上一輪 closed C 的任何 E／R task 或座標。
 13. 任一通訊 preflight 環節缺失，或 assignee 沒有實際 direct-push 合格零寫入 `ready`，C 只顯示開眼 `🔴 重大阻礙` 卡並停止；不得顯示成功啟動卡，也不得用 wait snapshot、完成狀態、commentary、輪詢、事後 read、文件審閱、fork 建立成功或單向 send 成功冒充通訊驗證。平台需要事件等待才會喚醒 idle C 時，只可依「送達」使用一次有界 event wait，真正 `ready` 仍須以 direct-push 到達。
 14. 到此才算成功接受 `CER-start`。C 的第一個使用者可見成功回執必須是 [roadmap.md](roadmap.md) 的固定開眼 `🔵 CER 已啟動` 卡；保留完整三行小熊，版本與狀態在第三行小熊腳後以固定 `·` 分隔，不另起一行。單批與多批都相同；不得用閉眼卡或猜測版本。
@@ -201,15 +204,15 @@ source／package mismatch 或發布／安裝產物不一致，或可信理由顯
 - 允許及禁止範圍；
 - 驗收與能推翻方案的反例；
 - 停止條件；
-- 本批穩定 `batchId`、單調遞增 `batchSeq`、不可變 `payloadDigest`，以及所綁定的 cycle、接收者 threadId、目前實際 hostId 與 target root；
+- 本批穩定 `batchId`、單調遞增 `batchSeq`、不可變 `payloadDigest`，以及所綁定的 cycle、接收者 threadId 或平台等價座標、當前工具 schema／receipt 明示必需的路由座標與 target root；
 - 凍結任務契約，以及任何 `已確認`、`可安全推定`、`關鍵缺失` 的處置、必要來源錨點和反事實結果；
-- 回傳 C 的 direct-push 目標、session／thread id 或平台等價座標；
+- 回傳 C 的 direct-push 目標、threadId 或平台等價座標；sessionId 只在當前工具 schema／receipt 明示需要／提供時附帶記錄，不可代替 threadId 或推導 hostId；
 - 本批需要的知識底座、來源座標、未知與禁止越界範圍；
 - 短回報要求。
 
 不得寫「見上文」或要求 assignee 自行重建 C 的上下文。高風險批次補足背景與反例；低風險小修改保持短，不套巨型表格。E1／R 發現凍結契約與真源矛盾時，先回報 blocker 或候選修正，不自行改寫契約後繼續。
 
-派工包可在 C 內部暫為 `draft_packet`；但正式可送出的 `sendable_packet` 不得保留 `<...>` 佔位符。正式派工必須填入實際 `threadId`、`hostId`、`returnTarget`、`messageId`、`batchId`、`batchSeq` 及 `payloadDigest`；`同一 E1`／`上述 E1`／`下一個序號` 等相對說法只可作草稿，正式派工必須換成可核實實值。R 派工必須填入實際 `candidateIdentity`、`candidateManifest` 及候選 delivery evidence；缺任一項即停在 `dispatch_blocked` 或 `decision_blocked`，不得自評為可送出或要求 E1／R 盲猜。
+派工包可在 C 內部暫為 `draft_packet`；但正式可送出的 `sendable_packet` 不得保留 `<...>` 佔位符。正式派工必須填入實際 `threadId` 或平台等價座標、`returnTarget`、`messageId`、`batchId`、`batchSeq`、`payloadDigest`，以及當前工具 schema／receipt 明示必需的路由座標。sessionId 不可代替 threadId 作正式派工座標。hostId 只在當前工具 schema 或 receipt 明示需要／提供時使用；不得把 hostId 寫成跨平台硬性必填，不得由 `local`、title、sessionId、threadId 形狀或錯誤訊息推導 hostId。`同一 E1`／`上述 E1`／`下一個序號` 等相對說法只可作草稿，正式派工必須換成可核實實值。R 派工必須填入實際 `candidateIdentity`、`candidateManifest` 及候選 delivery evidence；缺任一項即停在 `dispatch_blocked` 或 `decision_blocked`，不得自評為可送出或要求 E1／R 盲猜。
 
 CER 已啟動時，若目標 workspace 的 `AGENTS.md` 把使用者語意明確路由為
 Agent Handoff Kit full closeout（例如 `收工`、`Wrap up Agent Handoff` 或同等
@@ -229,14 +232,15 @@ Governance bridge 完成後只作一般成果讀回與裁決，CER 保持啟動�
 ## 送達
 
 - E1／R 工作前以正式送訊工具 direct-push 零寫入 `ready`；收到正式批次後，再以該批 `batchId` 及 `payloadDigest` direct-push `BATCH_RECEIVED`，依批次生命週期開始或恢復工作。
-- `ready` 必須回傳自身角色、可見標題或首行標籤、session／thread id 或平台等價座標、收到的目標 root、回傳目標及是否具備必要來源。所有訊息都帶穩定 `messageId`；`BATCH_RECEIVED` 還須回傳目前實際 hostId 與綁定核對結果。
-- 完成、受阻或未完成時，先 direct-push 短結果給 C，再停止；結果回執帶 `messageId`、`batchId`、`payloadDigest` 及 session／thread 座標，避免 C 將另一個 task、另一批或另一修訂的結果誤接納。C 裁決後回 `RESULT_ACCEPTED`。
+- `ready` 必須回傳自身角色、可見標題或首行標籤、threadId 或平台等價座標、收到的目標 root、回傳目標及是否具備必要來源。sessionId 只在當前工具 schema／receipt 明示需要／提供時附帶記錄，不可代替 threadId，也不可用來推導 hostId。所有訊息都帶穩定 `messageId`；`BATCH_RECEIVED` 還須回傳當前工具 schema／receipt 明示必需的路由座標及綁定核對結果。
+- 完成、受阻或未完成時，先 direct-push 短結果給 C，再停止；結果回執帶 `messageId`、`batchId`、`payloadDigest` 及 threadId 或平台等價座標，避免 C 將另一個 task、另一批或另一修訂的結果誤接納。C 裁決後回 `RESULT_ACCEPTED`。
 - 相同 `batchId` 重複送達時，接收者依 `RECEIVED_ZERO_WRITE`、`IN_PROGRESS`、`RESULT_READY`、`RESULT_ACCEPTED` 或 `STATE_UNKNOWN` 恢復，不得盲目重做；相同身份但不同 digest 立即阻塞。
 - 除非某參與者已觀察到明確 `outcome_unknown` 並依本節故障恢復規則讀取精確
   `messageId`，C 只有收到 push 後才做一次有界讀回及裁決。故障讀回不可擴成
   waiting、polling 或背景監聽。
 - 若平台不會自動以跨 task 輸入喚醒 idle C，C 可對每個已聲明的預期
-  direct-push 狀態轉移，以該次已知唯一 threadId／hostId、目前 cursor、因果
+  direct-push 狀態轉移，以該次已知唯一 threadId 或平台等價座標、當前 event 工具 schema
+  所需座標、目前 cursor、因果
   `messageId` 及預期訊息種類形成 `eventWaitKey`，啟動一次有界 `wait_threads`
   或平台等價 event wait。建立後的 `ready`、正式批次後的 `BATCH_RECEIVED`、
   `BATCH_RECEIVED` 後的最終結果、stop 後的停止確認各是不同狀態轉移，可各有

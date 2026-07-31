@@ -104,7 +104,7 @@ CER is a continuous loop, but it does not show a card for every small step:
    alignment work adds the full inline roadmap in the same message.
 2. Use `🟡 Direction decision` when the user must choose a material direction, scope,
    deliverable shape, cost, knowledge source, or acceptance standard.
-3. Use `🔴 Major blocker` when a communication path, session/thread coordinate, permission,
+3. Use `🔴 Major blocker` when a communication path, threadId or platform-equivalent coordinate, permission,
    source of truth, knowledge foundation, platform capability, or safety condition is
    insufficient for reliable continuation.
 4. Use `🟢 Staged delivery` when an observable stage is ready for user acceptance after C

@@ -66,8 +66,9 @@ cycle label or guess a number.
 2. C identifies the main task with a `🚀 C:01｜<very short task name>` title or first-line label and completes Controller preflight. A complete task passes directly; sourced `confirmed` items and `safe inference` items that pass the counterfactual test do not block; missing critical endpoint/permission/acceptance information produces a yellow checkpoint with at most three questions.
 3. C completes communication preflight, uses official `create_thread` to create a brand-new
    sidebar-visible persistent `E1:01｜...` task in the same Codex project, reads back its title, thread
-   ID, and formal return path, and receives a `ready` direct-push containing session/thread
-   coordinates. If the actual platform does not automatically wake an idle C, C may use one
+   ID, and formal return path, and receives a `ready` direct-push containing threadId or
+   platform-equivalent coordinates. sessionId is recorded only when the active tool schema/receipt
+   explicitly requires or provides it, and never substitutes for threadId or derives hostId. If the actual platform does not automatically wake an idle C, C may use one
    bounded event wait on that E1; the wait snapshot is not ready evidence.
 4. C maps existing target-project sources of truth and the task knowledge foundation without creating fixed CER documents.
 5. For every successfully accepted `CER-start`, C's first user-visible success receipt is the
@@ -101,7 +102,7 @@ cycle label or guess a number.
 
 ## Remote Controller Scenarios
 
-- When an explicit Remote `/CER-start` or equivalent CER-qualified start designates a receiver task, that receiver first direct-pushes candidate `C_READY` with threadId, hostId, target_root, and return target/path.
+- When an explicit Remote `/CER-start` or equivalent CER-qualified start designates a receiver task, that receiver first direct-pushes candidate `C_READY` with threadId or a platform-equivalent coordinate, target_root, return target/path, and any return or routing coordinate explicitly required by the active tool schema/receipt; it must not guess hostId.
 - The sender/local startup gate uses the official task/thread list or platform-equivalent tool to fully enumerate this start's participating hosts, reads back candidate root/`🚀 C:` identity/active state, and explicitly states that it has not assigned the same root to another C. After that, it sends `C_ACCEPTED` over the same path, and the receiver becomes active `🚀 C:` only after receiving it.
 - If participating-host enumeration is incomplete, candidate root/identity/state cannot be read back, coordinates are incomplete, or evidence conflicts, stop.
 - If an active C already exists, reuse it, or transfer only after the old C explicitly hands off/closes and that evidence is read back. If the sender was the active C, it must hand off/close before sending `C_ACCEPTED`.
@@ -397,9 +398,15 @@ These scenarios only test the unexpected-failure gate in
 - Remote C identity or communication path is claimed after merely sending candidate `C_READY`, without the sender actually receiving it, reading it back, and returning `C_ACCEPTED`.
 - A lock file, central registry, run ID, conflict engine, new role, or test exception is added for unique C.
 - A cross-task prompt depends on prior conversation.
-- A formal `sendable_packet` still contains `<...>` placeholders, or lacks actual `threadId`,
-  `hostId`, `returnTarget`, `messageId`, `batchId`, `batchSeq`, or `payloadDigest` but is still
-  self-rated PASS.
+- A formal `sendable_packet` still contains `<...>` placeholders, or lacks actual `threadId` /
+  platform-equivalent coordinate, `returnTarget`, `messageId`, `batchId`, `batchSeq`,
+  `payloadDigest`, or routing coordinates explicitly required by the active tool schema/receipt,
+  but is still self-rated PASS.
+- When the active tool schema requires only `threadId`, Controller still hard-requires `hostId`, or
+  derives hostId from `local`, title, sessionId, threadId shape, or an error message, then self-rates
+  PASS.
+- A formal dispatch uses sessionId instead of threadId as the formal dispatch coordinate, or asks
+  the recipient to derive threadId/hostId from sessionId before continuing.
 - A formal dispatch uses relative wording such as `same E1`, `the E1 above`, or `next sequence`
   instead of verifiable concrete values.
 - R dispatch lacks actual `candidateIdentity`, `candidateManifest`, or candidate delivery evidence,
@@ -422,8 +429,9 @@ These scenarios only test the unexpected-failure gate in
   terminal state, but another candidate starts work.
 - A duplicate E1 may have written, but work continues without restoring one writer and reading back
   workspace state.
-- A formal batch lacks a stable `batchId` or does not bind it to the selected threadId, current
-  actual hostId, cycle, target root, monotonically increasing `batchSeq`, and immutable
+- A formal batch lacks a stable `batchId` or does not bind it to the selected threadId /
+  platform-equivalent coordinate, routing coordinates explicitly required by the active tool
+  schema/receipt, cycle, target root, monotonically increasing `batchSeq`, and immutable
   `payloadDigest`.
 - The same `batchId` carries different content or `payloadDigest`, or changed content keeps the old
   `batchId`.
@@ -451,7 +459,7 @@ These scenarios only test the unexpected-failure gate in
   order-dependent/shared-mutable-state checks are mixed together.
 - A fork carrying source context is counted as fresh UAT.
 - The assignee does not return `ready/result`, but the loop is still claimed.
-- A new task lacks a visible `E1:`/`R1:` title or first-line label, or receipts omit session/thread coordinates.
+- A new task lacks a visible `E1:`/`R1:` title or first-line label, or receipts omit threadId or platform-equivalent coordinates.
 - C repeats event waits, waits again after timeout, discovers results by polling, or accepts a wait
   snapshot, task completion state, commentary, or summary as ready/result evidence.
 - The `BATCH_RECEIVED` wait wrongly consumes the final-result wait budget, leaving a direct-pushed

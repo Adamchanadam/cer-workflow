@@ -61,7 +61,8 @@ numbering 規則生效前已開始且無法可靠回推原 cycle number。cycle 
 2. C 以 `🚀 C:01｜<極短任務名>` 標題或首行標籤識別主 task，完成 Controller preflight；完整任務直接通過，有來源的 `已確認` 和通過反事實測試的 `可安全推定` 不阻塞，關鍵終點／權限／驗收缺失時用黃色停點最多問三題。
 3. C 完成通訊 preflight，用官方 `create_thread` 建立同一 Codex project 側欄可見
    的全新 `E1:01｜...` 持久 task，讀回 title、thread id 與正式回傳路徑，取得含
-   session／thread 座標的 ready direct-push。若實際平台不會自動喚醒 idle C，
+   threadId 或平台等價座標的 ready direct-push；sessionId 只在當前工具 schema／receipt
+   明示需要／提供時附帶記錄，不可代替 threadId 或推導 hostId。若實際平台不會自動喚醒 idle C，
    C 可對該 E1 使用一次有界 event wait；wait snapshot 不算 ready 證據。
 4. C 映射目標專案既有真源與本任務知識底座，不建立固定 CER 文件。
 5. 每次成功接受 `CER-start`，C 的第一個使用者可見成功回執都是固定開眼
@@ -84,7 +85,7 @@ numbering 規則生效前已開始且無法可靠回推原 cycle number。cycle 
 
 ## Remote Controller 情景
 
-- 明確 Remote `/CER-start` 或同等 CER 啟動語意指定接收 task 時，接收者先 direct-push candidate `C_READY`，內容包含 threadId、hostId、target_root、return target／path。
+- 明確 Remote `/CER-start` 或同等 CER 啟動語意指定接收 task 時，接收者先 direct-push candidate `C_READY`，內容包含 threadId 或平台等價座標、target_root、return target／path，以及當前工具 schema／receipt 明示必需的回傳或路由座標；不得猜 hostId。
 - 發送方／本地啟動閘門以官方 task／thread 列表或平台等價工具完整枚舉本次參與 host，讀回候選 root／`🚀 C:` 身份／active 狀態，且明示自己沒有把同一 root 交給另一 C；完成後用同一路徑發 `C_ACCEPTED`，接收者收到後才成為 active `🚀 C:`。
 - 參與 host 枚舉不完整、候選 root／身份／狀態不可讀回、座標不完整或證據衝突時必須停止。
 - 已有 active C 時只可沿用，或在舊 C 明確 handoff／close 並讀回後轉移；若發送方原是 active C，必須先完成 handoff／close 才可發 `C_ACCEPTED`。
@@ -329,8 +330,13 @@ numbering 規則生效前已開始且無法可靠回推原 cycle number。cycle 
 - 只送出 candidate `C_READY`，但未由發送方實際收到、讀回並回送 `C_ACCEPTED`，就宣稱 Remote C 身份或通訊路徑成立。
 - 為唯一 C 新增 lock file、central registry、run ID、conflict engine、新角色或測試例外。
 - 跨 task prompt 依賴既有對話。
-- 正式 `sendable_packet` 仍保留 `<...>` 佔位符，或缺實際 `threadId`、`hostId`、
-  `returnTarget`、`messageId`、`batchId`、`batchSeq`、`payloadDigest` 仍自評 PASS。
+- 正式 `sendable_packet` 仍保留 `<...>` 佔位符，或缺實際 `threadId`／平台等價座標、
+  `returnTarget`、`messageId`、`batchId`、`batchSeq`、`payloadDigest` 或當前工具
+  schema／receipt 明示必需的路由座標，仍自評 PASS。
+- 當前工具 schema 只要求 `threadId` 時，Controller 仍硬性要求 `hostId`，或由
+  `local`、title、sessionId、threadId 形狀或錯誤訊息推導 hostId 後自評 PASS。
+- 正式派工以 sessionId 代替 threadId 作正式派工座標，或要求接收者由 sessionId
+  推導 threadId／hostId 後繼續。
 - 正式派工用 `同一 E1`／`上述 E1`／`下一個序號` 等相對說法代替可核實實值。
 - R 派工缺實際 `candidateIdentity`、`candidateManifest` 或候選 delivery evidence，
   仍要求 Reviewer 審閱。
@@ -346,8 +352,9 @@ numbering 規則生效前已開始且無法可靠回推原 cycle number。cycle 
 - 以 archive、title 或發出停止訊息代替 task 的 direct-push 停止確認。
 - 重複候選既無 direct-push 停止確認亦無官方不可工作終態，仍讓另一候選開始工作。
 - 重複 E1 可能已寫入時，沒有恢復唯一 writer 及讀回 workspace 狀態便繼續。
-- 正式批次沒有穩定 `batchId`，或未綁定選定 threadId、目前實際 hostId、cycle
-  、target root、單調遞增 `batchSeq` 與不可變 `payloadDigest`。
+- 正式批次沒有穩定 `batchId`，或未綁定選定 threadId／平台等價座標、當前工具
+  schema／receipt 明示必需的路由座標、cycle、target root、單調遞增 `batchSeq`
+  與不可變 `payloadDigest`。
 - 相同 `batchId` 搭配不同內容或 `payloadDigest`；內容改動後仍沿用舊 `batchId`。
 - `BATCH_RECEIVED` 後中斷便把批次當成完成；或不看批次生命週期，一律忽略或
   一律重跑相同 `batchId`。
@@ -371,7 +378,7 @@ numbering 規則生效前已開始且無法可靠回推原 cycle number。cycle 
   可變狀態的檢查混跑。
 - fork 帶入來源上下文卻被當成 fresh UAT。
 - assignee 沒有回傳 ready/result 仍宣稱閉環成立。
-- 新 task 沒有可見 `E1:`／`R1:` 標題或首行標籤，或 ready／結果回執缺 session／thread 座標。
+- 新 task 沒有可見 `E1:`／`R1:` 標題或首行標籤，或 ready／結果回執缺 threadId 或平台等價座標。
 - C 反覆 event wait、在逾時後再次等待、以輪詢發現成果，或把 wait snapshot、
   task 完成狀態、commentary／摘要當成 ready/result 證據。
 - `BATCH_RECEIVED` 的等待錯誤消耗最終結果的等待額度，令已 direct-push 結果

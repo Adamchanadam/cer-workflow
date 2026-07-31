@@ -9,14 +9,17 @@
 但 Controller 仍自評為可送出的缺口：
 
 - C 可在內部保留 `draft_packet`，但正式 `sendable_packet` 必須填入實際
-  `threadId`、`hostId`、`returnTarget`、`messageId`、`batchId`、`batchSeq`
-  及 `payloadDigest`
+  `threadId` 或平台等價座標、`returnTarget`、`messageId`、`batchId`、`batchSeq`
+  、`payloadDigest`，以及當前工具 schema／receipt 明示必需的路由座標
+- `hostId` 只在當前工具 schema 或 receipt 明示需要／提供時使用；不得把它寫成
+  跨平台硬性必填，不得由 `local`、title、sessionId、threadId 形狀或錯誤訊息推導
+- `sessionId` 不可代替 `threadId` 作正式派工座標，也不可用來推導 `hostId`
 - `同一 E1`、`上述 E1`、`下一個序號` 等相對說法只可作草稿；正式交給 E1
   或 R 前必須換成可核實實值
 - R 派工必須帶實際 `candidateIdentity`、`candidateManifest` 及候選 delivery
   evidence；缺任一項即停在 `dispatch_blocked` 或 `decision_blocked`
 - 中英文 UAT 反例及 Skill validator 已加入同類 failure class 的固定情景；
-  兩語套件各有 122 個 mutation cases，不以單次 prompt 字句 hard code 取代
+  兩語套件各有 131 個 mutation cases，不以單次 prompt 字句 hard code 取代
   同類事件檢查
 - AI 真實流程 UAT 已完成兩輪：第二輪使用全新 C／E1／R task，未重用第一輪
   C／E1／R；發布後使用者手動 UAT 仍獨立回報

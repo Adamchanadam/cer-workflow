@@ -11,14 +11,20 @@ recipient identity, or missing Reviewer candidate evidence in a packet while sti
 as ready to send:
 
 - C may keep a `draft_packet` internally, but a real `sendable_packet` must fill actual
-  `threadId`, `hostId`, `returnTarget`, `messageId`, `batchId`, `batchSeq`, and
-  `payloadDigest`
+  `threadId` or a platform-equivalent coordinate, `returnTarget`, `messageId`, `batchId`,
+  `batchSeq`, `payloadDigest`, and any routing coordinate explicitly required by the active tool
+  schema/receipt
+- `hostId` is used only when the active tool schema or receipt requires or provides it; it must not
+  become a cross-platform hard requirement, and must not be derived from `local`, title, sessionId,
+  threadId shape, or an error message
+- `sessionId` must not replace `threadId` as the formal dispatch coordinate or be used to derive
+  `hostId`
 - Relative wording such as `same E1`, `the E1 above`, or `next sequence` is draft-only; before
   sending to E1 or R, it must be replaced with verifiable concrete values
 - R dispatch must include actual `candidateIdentity`, `candidateManifest`, and candidate delivery
   evidence. Missing any one leaves the packet at `dispatch_blocked` or `decision_blocked`
 - The bilingual UAT counterexamples and Skill validators now cover this reusable failure class.
-  Each language package has 122 mutation cases, without replacing class-level QA with a
+  Each language package has 131 mutation cases, without replacing class-level QA with a
   one-prompt hard code
 - AI real workflow UAT completed two cycles: the second cycle used new C/E1/R tasks and did not
   reuse the first cycle's C/E1/R. Post-release user manual UAT remains reported separately

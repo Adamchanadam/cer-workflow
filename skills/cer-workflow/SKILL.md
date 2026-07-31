@@ -58,8 +58,8 @@ slash command 是文字別名。平台支援 slash、snippet 或 Snap 時，可�
   代替 E／R、直接與 E1／R 通訊或產生正式 ready/result；不適合平行時生產者
   數量為零，由 C 串行分析。
 - 每個跨 task 批次必須 self-contained；E1／R 不會自動繼承 C 的對話。
-- 新建或識別 task／thread 時，Controller 使用 `🚀 C:01｜...` 形式的可見標題或等價首行標籤；E1／R／E2 仍使用 `E1:01｜...`、`R1:01｜...`、`R2:01｜...` 或 `E2:01｜...`，不加 rocket；同輪共用同一短 cycle 編號，下一輪用新編號。`00` 只可標示 cycle numbering 規則生效前已開始且無法可靠回推原編號的 legacy/migration cycle；新 cycle 必須用 `01` 以上，不顯示問號 cycle label。cycle 編號只供側欄辨識，不是唯一性證據；完整 threadId 仍是權威。回傳目標必須包含可核實 session／thread id 或平台等價座標。
-- 建立 task 或開始驗證前，先以實際工具證明身份來源、必要參數、發送路徑、接收者、session／thread 座標與裁決點。任一環缺失即停止該委派架構；不得以文件審閱、事後 thread read 或猜測代替通訊驗證。
+- 新建或識別 task／thread 時，Controller 使用 `🚀 C:01｜...` 形式的可見標題或等價首行標籤；E1／R／E2 仍使用 `E1:01｜...`、`R1:01｜...`、`R2:01｜...` 或 `E2:01｜...`，不加 rocket；同輪共用同一短 cycle 編號，下一輪用新編號。`00` 只可標示 cycle numbering 規則生效前已開始且無法可靠回推原編號的 legacy/migration cycle；新 cycle 必須用 `01` 以上，不顯示問號 cycle label。cycle 編號只供側欄辨識，不是唯一性證據；完整 threadId 仍是權威。回傳目標必須包含可核實 threadId 或平台等價座標；sessionId 只在當前工具 schema／receipt 明示需要／提供時記錄，不可代替 threadId 或推導 hostId。
+- 建立 task 或開始驗證前，先以實際工具證明身份來源、必要參數、發送路徑、接收者、threadId 或平台等價座標與裁決點。任一環缺失即停止該委派架構；不得以文件審閱、事後 thread read 或猜測代替通訊驗證。
 - create／send 回報失敗、逾時或部分結果時，先標成 `outcome_unknown`，不得當成確定失敗而立即重試。C 只做一次有界權威對帳；重複角色在選定唯一 task 並證明其餘已零寫入停止前，不得接收正式工作。若任何重複 writer 可能已工作或寫入，先阻塞並恢復唯一 writer 狀態。
 - 每個正式批次使用穩定 `batchId`、單調 `batchSeq` 及不可變 `payloadDigest`；所有控制、回執與結果訊息使用穩定 `messageId`。接收者按已登記、執行中、結果已備妥、結果已接納或狀態不明去重與恢復；相同身份但不同內容一律阻塞，舊批次未取消、終結或恢復前不得開始新修訂。
 - 自適應批次加速是預設排程策略，不是 Turbo 模式或額外 slash command；它只在通訊、批次生命週期、唯一 writer、證據有效性及任務契約均可判定時運作，任一狀態不明即自行停用，不降低安全、獨立審閱或驗收要求。

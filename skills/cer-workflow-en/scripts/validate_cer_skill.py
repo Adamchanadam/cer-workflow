@@ -149,8 +149,11 @@ UNEXPECTED_FAILURE_FORBIDDEN = {
 SENDABLE_PACKET_REQUIREMENTS = {
     "draft_sendable_split": "`draft_packet`",
     "no_placeholders": "`sendable_packet` must not retain `<...>` placeholders",
-    "concrete_bindings": "A real dispatch must fill actual `threadId`, `hostId`, `returnTarget`, `messageId`, `batchId`, `batchSeq`, and `payloadDigest`",
-    "relative_identity_draft_only": "relative wording such as `same E1`, `the E1 above`, or `next sequence` is draft-only",
+    "concrete_bindings": "A real dispatch must fill actual `threadId` or platform-equivalent coordinate, `returnTarget`, `messageId`, `batchId`, `batchSeq`, `payloadDigest`, and any routing coordinate explicitly required by the active tool schema/receipt",
+    "sessionid_not_threadid": "sessionId is not a substitute for threadId as a formal dispatch coordinate",
+    "hostid_not_hard_required": "hostId is used only when the active tool schema or receipt requires or provides it",
+    "no_hostid_inference": "do not derive hostId from `local`, title, sessionId, threadId shape, or an error message",
+    "relative_identity_draft_only": "Relative wording such as `same E1`, `the E1 above`, or `next sequence` is draft-only",
     "review_manifest": "R dispatch must fill actual `candidateIdentity`, `candidateManifest`, and candidate delivery evidence",
     "missing_blocks": "Missing any one of these leaves the packet at `dispatch_blocked` or `decision_blocked`",
 }
@@ -158,12 +161,18 @@ SENDABLE_PACKET_REQUIREMENTS = {
 SENDABLE_PACKET_UAT_REQUIREMENTS = {
     "placeholder_self_pass": "A formal `sendable_packet` still contains `<...>` placeholders",
     "relative_identity": "A formal dispatch uses relative wording such as `same E1`, `the E1 above`, or `next sequence`",
+    "hostid_hard_required": "Controller still hard-requires `hostId`",
+    "hostid_inferred": "derives hostId from `local`, title, sessionId, threadId shape, or an error message",
+    "sessionid_replaces_threadid": "A formal dispatch uses sessionId instead of threadId as the formal dispatch coordinate",
     "review_manifest_missing": "R dispatch lacks actual `candidateIdentity`, `candidateManifest`, or candidate delivery evidence",
 }
 
 SENDABLE_PACKET_FORBIDDEN = {
     "placeholder_allowed": "A sendable dispatch may retain `<...>` placeholders",
     "relative_identity_allowed": "`same E1`, `the E1 above`, or `next sequence` may be used as formal dispatch identity",
+    "hostid_always_required": "Every real dispatch must include `hostId` even when the active tool schema requires only `threadId`",
+    "sessionid_infers_hostid": "hostId may be derived from sessionId, title, `local`, or an error message before continuing",
+    "sessionid_replaces_threadid": "sessionId may replace threadId as formal dispatch coordinate",
     "review_manifest_optional": "R dispatch may omit `candidateManifest`",
     "draft_pass": "`draft_packet` may self-rate as sendable",
 }

@@ -149,7 +149,10 @@ UNEXPECTED_FAILURE_FORBIDDEN = {
 SENDABLE_PACKET_REQUIREMENTS = {
     "draft_sendable_split": "`draft_packet`",
     "no_placeholders": "`sendable_packet` 不得保留 `<...>` 佔位符",
-    "concrete_bindings": "正式派工必須填入實際 `threadId`、`hostId`、`returnTarget`、`messageId`、`batchId`、`batchSeq` 及 `payloadDigest`",
+    "concrete_bindings": "正式派工必須填入實際 `threadId` 或平台等價座標、`returnTarget`、`messageId`、`batchId`、`batchSeq`、`payloadDigest`，以及當前工具 schema／receipt 明示必需的路由座標",
+    "sessionid_not_threadid": "sessionId 不可代替 threadId 作正式派工座標",
+    "hostid_not_hard_required": "hostId 只在當前工具 schema 或 receipt 明示需要／提供時使用",
+    "no_hostid_inference": "不得由 `local`、title、sessionId、threadId 形狀或錯誤訊息推導 hostId",
     "relative_identity_draft_only": "`同一 E1`／`上述 E1`／`下一個序號` 等相對說法只可作草稿",
     "review_manifest": "R 派工必須填入實際 `candidateIdentity`、`candidateManifest` 及候選 delivery evidence",
     "missing_blocks": "缺任一項即停在 `dispatch_blocked` 或 `decision_blocked`",
@@ -158,12 +161,18 @@ SENDABLE_PACKET_REQUIREMENTS = {
 SENDABLE_PACKET_UAT_REQUIREMENTS = {
     "placeholder_self_pass": "正式 `sendable_packet` 仍保留 `<...>` 佔位符",
     "relative_identity": "正式派工用 `同一 E1`／`上述 E1`／`下一個序號` 等相對說法",
+    "hostid_hard_required": "Controller 仍硬性要求 `hostId`",
+    "hostid_inferred": "由 `local`、title、sessionId、threadId 形狀或錯誤訊息推導 hostId",
+    "sessionid_replaces_threadid": "正式派工以 sessionId 代替 threadId 作正式派工座標",
     "review_manifest_missing": "R 派工缺實際 `candidateIdentity`、`candidateManifest` 或候選 delivery evidence",
 }
 
 SENDABLE_PACKET_FORBIDDEN = {
     "placeholder_allowed": "正式可送出的派工包可以保留 `<...>` 佔位符",
     "relative_identity_allowed": "`同一 E1`／`上述 E1`／`下一個序號` 可作為正式派工身份",
+    "hostid_always_required": "正式派工一律必須填入 `hostId`，即使當前工具 schema 只要求 `threadId`",
+    "sessionid_infers_hostid": "可由 sessionId、title、`local` 或錯誤訊息推導 hostId 後繼續",
+    "sessionid_replaces_threadid": "sessionId 可代替 threadId 作正式派工座標",
     "review_manifest_optional": "R 派工可以省略 `candidateManifest`",
     "draft_pass": "`draft_packet` 可自評為可送出",
 }
