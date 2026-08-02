@@ -46,7 +46,8 @@ slash command 是文字別名。平台支援 slash、snippet 或 Snap 時，可�
 - 本地 task 或明確 Remote 接收 task 必須通過 [core-runtime.md](references/core-runtime.md) 的完整唯一 C 啟動閘門。candidate `C_READY` 與發送方讀回仍不足夠；接收者實際收到 `C_ACCEPTED` 後才成為 active Controller（C）。
 - 每次成功接受 `CER-start` 都先顯示 [roadmap.md](references/roadmap.md) 的固定開眼
   啟動卡；簡單單批任務也不例外。每次顯示任何小熊卡前，先讀本 Skill 根目錄
-  `VERSION`；啟動受阻時顯示開眼紅色 blocker 卡，不得顯示閉眼成功卡。
+  `VERSION`；卡片必須按 roadmap 的獨立 fenced `text` code block 輸出。啟動
+  受阻時顯示開眼紅色 blocker 卡，不得顯示閉眼成功卡。
 - 正式 E／R 都必須是同一 Codex project 側欄可見、由官方 `create_thread`
   建立的獨立新 task/thread；不得用 inline sub-agent、fork 或 delegate 降級代替。
 - 每輪 `CER-start` 建立全新 E1；同一輪後續批次持續復用該同一 E1 作唯一
@@ -68,7 +69,7 @@ slash command 是文字別名。平台支援 slash、snippet 或 Snap 時，可�
 - 尊重目標專案已有真源、計劃與進度；CER 不建立固定項目文件，也不把自己的角色狀態冒充專案計劃。
 - 面對醫療、法律、金融、投資、政策、學術、商業、設計、營運等知識性複雜任務時，C 必須先界定任務所需的知識底座；E1 只在該範圍內執行，R 依同一範圍做獨立反證。
 - 重大方向、交付形狀或成本未裁決時必須在使用者主 task 停點；執行後在合理階段交付可觀察成果。
-- 角色、批次、Reviewer、停點與驗收按風險比例化；不得以更多代理、文件、審閱或治理儀式代替清晰目標及可驗收條件。
+- 角色、批次、Reviewer、停點與驗收按風險比例化；不得以更多代理、文件、審閱或治理儀式代替清晰目標及可驗收條件。E／R 或任務支線的新增必要性與收斂判斷只由 [core-runtime.md](references/core-runtime.md) 的「YAGNI 與停止」定義。
 - 模型與力度是能力、成本和使用者限制的選擇，不是 CER 固定版本 blocker。
 - 同一 workspace 的一輪 `/CER-close` 完成後，該輪 C／E／R task 只可保留作
   歷史，整組不可接收下一輪工作。下一輪必須由新 task 通過唯一 C 閘門，建立

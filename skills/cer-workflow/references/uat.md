@@ -23,9 +23,16 @@ fork 或 delegate 出來的 task 帶有來源上下文，不算 fresh。
 
 只有標題、fork、delegate、單向送訊或工具參數成功，不等於閉環通過。必須有 E1 direct-push ready/result。
 
+AI 真實流程 UAT 的 PASS 資格是上述閉環證據，不是等待義務。完成本檔允許的一次
+有界等待、對帳或受控重送後，若 assignee 仍未 direct-push 零寫入 ready 或
+result，C 必須按證據裁決該 UAT attempt 為 FAIL 或 `delivery_unavailable`，並停止該
+嘗試；不得反覆建立同型 task、輪詢、背景等待，或用 sub-agent、fork、文字模擬
+補成 PASS。只有證明必需 task／delivery 工具鏈或乾淨 workspace 對本輪不可用時，
+才可使用下述 static-only downgrade；普通未完成或無證據不是 downgrade。
+
 在本 Codex 專案的 Full Audit／全面檢中，若官方 `create_thread` task 工具與乾淨
 UAT workspace 可用，AI 真實流程 UAT 是必要組成，不能用 sub-agent、fork 或文字
-模擬。若工具或乾淨 workspace 經實證不可用，才可精確降級為
+模擬。若必需 task／delivery 工具鏈或乾淨 workspace 經實證不可用，才可精確降級為
 `Full Audit 通過（只限全文靜態審核；AI 真實流程 UAT 不可用）`，不得說 AI UAT
 通過。發布後使用者手動 UAT 是公開安裝與使用者體驗的另一層，結果另報
 `未執行／通過／失敗`；AI UAT 不可冒充人工 UAT。
@@ -60,15 +67,17 @@ numbering 規則生效前已開始且無法可靠回推原 cycle number。cycle 
 1. 使用者輸入已有清晰目標／計劃的多批總任務，可用 `CER 工作法啟動：...` 或 `/CER-start ...`。
 2. C 以 `🚀 C:01｜<極短任務名>` 標題或首行標籤識別主 task，完成 Controller preflight；完整任務直接通過，有來源的 `已確認` 和通過反事實測試的 `可安全推定` 不阻塞，關鍵終點／權限／驗收缺失時用黃色停點最多問三題。
 3. C 完成通訊 preflight，用官方 `create_thread` 建立同一 Codex project 側欄可見
-   的全新 `E1:01｜...` 持久 task，讀回 title、thread id 與正式回傳路徑，取得含
+   的全新 `E1:01｜...` 持久 task；`create_thread` receipt 後立即用官方 title
+   工具（Codex 目前為 `set_thread_title`）設定／改名並讀回 title，不以初始
+   prompt、模型自動 title 或首行 label 代替；再讀回 thread id 與正式回傳路徑，取得含
    threadId 或平台等價座標的 ready direct-push；sessionId 只在當前工具 schema／receipt
    明示需要／提供時附帶記錄，不可代替 threadId 或推導 hostId。若實際平台不會自動喚醒 idle C，
    C 可對該 E1 使用一次有界 event wait；wait snapshot 不算 ready 證據。
 4. C 映射目標專案既有真源與本任務知識底座，不建立固定 CER 文件。
 5. 每次成功接受 `CER-start`，C 的第一個使用者可見成功回執都是固定開眼
    `CER 工作法 v{package_version}`／`🔵 CER 已啟動` 卡；實際輸出前先以
-   `VERSION` 替換佔位，保留完整三行小熊，版本與狀態接在第三行
-   小熊腳後，以固定 `·` 分隔而不另起一行；單批也必須顯示。
+   `VERSION` 替換佔位，保留完整三行 ASCII 小熊，版本在第一行、狀態在第二行、
+   第三行只保留小熊底線，並作為獨立 fenced `text` code block 輸出；單批也必須顯示。
    多階段／多批或需要首次公開對齊的任務再用真正 inline visualization 顯示初始路線圖，並確認不是
    只用 Mermaid。
 6. C 只在啟動、重大裁決、重大阻礙、階段交付、成功停用和成功收尾時使用相應
@@ -79,7 +88,7 @@ numbering 規則生效前已開始且無法可靠回推原 cycle number。cycle 
 8. 一個高風險核心承諾由官方 `create_thread` 建立的側欄可見 `R1:01｜...` fresh
    新 task 依同一知識底座和凍結任務契約唯讀反證，且只重審受影響邊界。
 9. C 在重大方向或交付形狀改變時停點，分階段交付可觀察成果，區分技術驗收與用途校正，最後取得適用的使用者驗收。
-10. 使用者明示 `CER 收工`、`CER 關閉`、`關閉 CER` 或 `/CER-close`；同一 E1 更新既有必要真源並標 writer closed。C 完成必要讀回後，用官方 title 工具把本輪可核實 C／E／R title 改成 `🚀 C:01✓｜...`、`E1:01✓｜...`、`R1:01✓｜...` 並讀回；失敗則如實報 `title sync warning` 與失敗座標。最後才顯示固定閉眼 `🟢 CER 已收尾`／`writer closed` 卡；沒有持久真源時不假稱可跨 session 完整恢復。
+10. 使用者明示 `CER 收工`、`CER 關閉`、`關閉 CER` 或 `/CER-close`；同一 E1 更新既有必要真源並標 writer closed。C 完成必要讀回後，用官方 title 工具把本輪可核實 C／E／R title 改成 `🚀 C:01✓｜...`、`E1:01✓｜...`、`R1:01✓｜...` 並讀回；失敗則如實報 `title sync warning` 與失敗座標。若本輪有已完成、已讀回、已裁決的 R，C 可封存這些 R 並保留 C／E1 可見；收尾摘要明講封存不是刪除，仍可在已封存任務中找回。最後才顯示固定閉眼 `🟢 CER 已收尾`／`writer closed` 卡；沒有持久真源時不假稱可跨 session 完整恢復。
 11. 另做組合情景：與 `$project-context-workflow` 同用時不重建文件、不搶共識關卡，也不由後者建立 C／E1／R。
 12. 另做停用情景：使用者輸入 `/CER-stop`；C 不再派新 E1/R，若 E1 正在寫入先收斂到 writer closed 或重大阻礙。只有證明沒有 active writer 並完成必要讀回，才顯示固定閉眼 `⚪ CER 已停用`／`CER inactive` 卡並回到單 thread。
 
@@ -115,7 +124,8 @@ numbering 規則生效前已開始且無法可靠回推原 cycle number。cycle 
 - C 可依 [parallel-producers.md](parallel-producers.md) 使用 inline 平行候選
   生產者；它不是正式角色，不加入角色 title／cycle／lifecycle 卡，也不能代替
   E 或 R。
-- 缺少 `create_thread`、側欄可見 title、可核實 thread id 或正式回傳路徑時，
+- 缺少 `create_thread`、`create_thread` 後官方 title 工具設定／讀回證據、
+  側欄可見 title、可核實 thread id 或正式回傳路徑時，
   E／R 委派受阻；不得降級使用 inline sub-agent、fork、delegate 或既有 task。
 
 ## 工具結果不明與批次去重情景
@@ -208,6 +218,7 @@ numbering 規則生效前已開始且無法可靠回推原 cycle number。cycle 
 ## 審閱收斂情景
 
 - R 首次指出缺陷後，同類發現按共同根因和使用者後果合併；C 只做一次有界影響檢查，找齊本輪 current owners、affected surfaces 與檢查位置。
+- 同一凍結目標已有實質 E／R 結果後，C 若為同根因另建 E／R 或任務支線，卻不能指出新的可推翻問題，以及它對原始目標或已核實阻礙的最小必要性，則該派發不成立；C 應合併、停止或自行裁決。
 - 同一組發現包含兩項只有換字或詞序不同、但根因和使用者後果相同的問題，以及一項具不同根因、不同使用者後果或由最新修補造成的新回歸時，C 把前兩項合併成一個收斂範圍及批次，並把第三項保留為有效擴大。
 - C 凍結 acceptance 與 counterexample family，由同一 E1 一批修完整個 affected boundary；R 修後只重驗凍結範圍。
 - 同義改寫不展開新一輪逐句修補；frozen counterexample family 通過且沒有實質新缺陷後，C 接納並停止。
@@ -265,9 +276,13 @@ numbering 規則生效前已開始且無法可靠回推原 cycle number。cycle 
 - 本輪改動治理、schema 或核心流程，出現可信矛盾／假綠、source 與交付物不一致，
   或專案明定完整檢查時，執行相應完整 validator／doctor；否則不因 close 名稱
   自動執行。
-- 每張 CER 小熊卡使用 `╰ ^ ╯` 作腳部；不得使用會在 Markdown 行首形成引用的
-  `>` 符號。
-- 每張小熊卡保留完整三行；版本與狀態只可接在第三行小熊腳後，以固定 `·` 分隔，不另起一行。
+- 成功收尾後，已完成、已讀回、已由 C 裁決的 R 可封存，以減少側欄雜亂；
+  C／E1 預設保留可見。仍在工作、受阻、未回傳或未裁決的 R 不封存。封存不是刪除，
+  不可當作停止、審閱或收尾證據；有封存時，收尾摘要用同一輸出語言說明可在
+  已封存任務中找回。
+- 每張 CER 小熊卡使用 Handoff Kit 排板風格 ASCII 三行卡；卡片必須作為獨立
+  fenced `text` code block 輸出，不得被 Markdown 容器改變排版。
+- 每張小熊卡保留完整三行；版本只在第一行，狀態只在第二行，第三行只保留小熊底線。
 
 ## Kit 權威轉交情景
 
@@ -292,7 +307,7 @@ numbering 規則生效前已開始且無法可靠回推原 cycle number。cycle 
 - inline sub-agent、fork、delegate 或既有 task 被當作正式 E1、E2 或 R。
 - 平行候選生產者寫 target project、產生正式 ready/result、代替 E／R，或被列為
   CER Reviewer 通過證據。
-- E1／R 缺少官方 `create_thread` 建立證據、側欄可見 title、可核實 thread id 或正式回傳路徑，仍開始工作。
+- E1／R 缺少官方 `create_thread` 建立證據、`create_thread` 後官方 title 工具設定／讀回證據、側欄可見 title、可核實 thread id 或正式回傳路徑，仍開始工作。
 - Controller 使用單獨 `C:` 而不是 `🚀 C:01｜...` 作可見標題或首行標籤。
 - E1／R／E2 標題或首行標籤錯誤加上 `🚀`。
 - E1 第二輪被命名為 `E2:`，或把角色序號與 cycle 編號混在一起；同輪 C／E／R cycle 編號不一致；跨輪沿用同一 cycle 編號。
@@ -349,7 +364,7 @@ numbering 規則生效前已開始且無法可靠回推原 cycle number。cycle 
 - 官方 metadata 與 task 自報 `local` 不一致時，仍以自報別名作權威路由。
 - 發現重複角色後，在未證明全部零寫入及未收到正式工作、未收到其餘候選停止
   確認前，已向選定 task 派正式工作。
-- 以 archive、title 或發出停止訊息代替 task 的 direct-push 停止確認。
+- 以封存狀態、標題或發出停止訊息代替 task 的 direct-push 停止確認。
 - 重複候選既無 direct-push 停止確認亦無官方不可工作終態，仍讓另一候選開始工作。
 - 重複 E1 可能已寫入時，沒有恢復唯一 writer 及讀回 workspace 狀態便繼續。
 - 正式批次沒有穩定 `batchId`，或未綁定選定 threadId／平台等價座標、當前工具
@@ -391,13 +406,15 @@ numbering 規則生效前已開始且無法可靠回推原 cycle number。cycle 
 - 小熊卡沒有先讀本 Skill 的 `VERSION`，把 `v1` 當 package 版本，或從網路、
   Git tag、GitHub Release／lock metadata 猜版本。
 - `VERSION` 缺失、不可讀或格式錯誤時沒有顯示 `version unverified`。
-- 啟動卡把版本或狀態另起一行，或不保留完整三行小熊／不用第三行小熊腳後的固定 `·` 分隔。
-- 任何 CER 小熊卡仍使用 `>` 作腳部，因而被 Markdown 呈現為引用。
+- 啟動卡不保留完整三行 ASCII 小熊、沒有把版本放第一行、沒有把狀態放第二行，或第三行不是只保留小熊底線。
+- 任何 CER 小熊卡不是獨立 fenced `text` code block，或因 Markdown 容器而走位。
 - release／upgrade 沒有先更新 `VERSION`。
 - 單批 `CER-start` 沒有固定啟動卡，或啟動卡錯用閉眼小熊。
 - stop／close 尚未證明 writer 停止或必要讀回完成，卻顯示閉眼成功卡；close 在
   title sync 或 `title sync warning` 讀回前顯示閉眼卡；title rename 失敗卻宣稱已
   改名；受阻時沒有使用開眼紅色 blocker 卡。
+- C 把仍在工作、受阻、未回傳或未裁決的 R 封存，或預設封存 C／E1。
+- C 封存 R 後沒有明講封存不是刪除，或把封存狀態當成停止、審閱或收尾證據。
 - close 後新一輪 C 復用上一輪的 E1 或 R task／座標。
 - close 後舊輪 title 前段沒有 `✓`，也沒有真實 `title sync warning`，卻聲稱 close
   title 同步完成；只改 title 或只檢文字就算 lifecycle close。
