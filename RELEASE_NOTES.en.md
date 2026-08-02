@@ -4,6 +4,27 @@ Scope note: each version section records release history for that version; unrel
 explicitly marked as a candidate. Runtime authority remains the Skill references bundled with the
 version the user has installed.
 
+## v0.3.4
+
+This release consolidates four reusable runtime corrections confirmed in real CER use. It adds no
+commands, roles, or single-project rules:
+
+- After a `create_thread` receipt, when the current Codex title tool is available, C must set or
+  rename the title with the official tool and read it back before accepting ready or sending a
+  formal batch. When title tooling is unavailable, the honest `title sync warning` remains
+- Lifecycle and checkpoint bear cards now use a fixed three-line layout in a standalone fenced
+  `text` code block: version only on line one and status only on line two, preventing display drift
+- After a frozen objective already has a material E/R result, C may add E/R work or a task branch
+  only when it identifies a new falsifying question and proves that the branch is the smallest
+  necessary way to complete the original goal or address a verified blocker; otherwise C
+  consolidates, stops, or adjudicates directly
+- After a successful `CER-close`, completed and adjudicated Reviewer tasks may be archived to
+  reduce sidebar clutter. C/E1 stay visible, and the summary states that archive is not deletion
+  and the tasks remain available from archived tasks
+- Bilingual UAT and project governance validation now include fixed counterexamples for missing
+  title set/readback, card layout, unnecessary same-root task branches, and treating archive as
+  deletion or closeout evidence. Post-release user manual UAT remains reported separately
+
 ## v0.3.3
 
 This release fixes the validation weakness confirmed after v0.3.2: the docs correctly said that

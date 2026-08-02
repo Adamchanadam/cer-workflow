@@ -17,7 +17,7 @@
   multi-stage, multi-batch, or first-public-alignment CER work without requiring user action. Layout, stage count, and
   extra fields adapt to the project. Do not use a fixed four-box or fixed-table template as a
   substitute for real task information. Minimum content is defined under "Display Priority".
-- The **four-color bear card** is a checkpoint signal. It answers whether the user must preview,
+- The **four-color ASCII bear card** is a checkpoint signal. It answers whether the user must preview,
   decide, handle a blocker, or accept a result. It is not the roadmap or a continuous tracker.
 
 Both may appear in one message, but they do not repeat content: the roadmap shows global
@@ -45,31 +45,33 @@ Before showing any lifecycle or checkpoint bear card, read `VERSION` again from 
 Stable semver `X.Y.Z` renders as `vX.Y.Z`; a missing, unreadable, or malformed value renders as
 `version unverified`. `{package_version}` in the cards below is a template placeholder. Replace
 it completely with the current `VERSION` before output and never display the placeholder itself.
+Every card must be output as a standalone fenced `text` code block. Do not put it in a bullet,
+block quote, ordinary paragraph, or the same Markdown block as other text.
 
 ```text
- ()_()
- ( ◕ᴥ◕ )
-   ╰ ^ ╯ · CER Workflow v{package_version} · 🔵 CER started
+   ()_()   CER Workflow v{package_version}
+  ( o.o )  🔵 CER started
+   ( ^ )
 ```
 
 Every successfully accepted `CER-start`, including simple single-batch work, uses this fixed
-open-eye start card. Keep the complete three-line bear; render version and status after the foot
-on the third line, separated by fixed `·` markers rather than a separate line.
+open-eye start card. Keep the complete three-line ASCII bear: version on the first line, status on
+the second line, and only the bear base line on the third line.
 
 A successful `/CER-stop` uses this fixed closed-eye stop card:
 
 ```text
- ()_()
- ( ᴗᴥᴗ )
-   ╰ ^ ╯ · CER Workflow v{package_version} · ⚪ CER stopped · CER inactive
+   ()_()   CER Workflow v{package_version}
+  ( -.- )  ⚪ CER stopped · CER inactive
+   ( ^ )
 ```
 
 A successful `/CER-close` uses this fixed closed-eye close card:
 
 ```text
- ()_()
- ( ᴗᴥᴗ )
-   ╰ ^ ╯ · CER Workflow v{package_version} · 🟢 CER closed · writer closed
+   ()_()   CER Workflow v{package_version}
+  ( -.- )  🟢 CER closed · writer closed
+   ( ^ )
 ```
 
 A closed-eye card is proof of a verified terminal state, not an intent receipt. Show the stop
@@ -80,16 +82,16 @@ back either a `✓` appended to this cycle's cycle number in every verifiable C/
 all-green title sync. When any evidence is missing, use the open-eye red blocker card:
 
 ```text
- ()_()
- ( ◕ᴥ◕ )
-   ╰ ^ ╯ · CER Workflow v{package_version} · 🔴 Major blocker · checkpoint blocked
+   ()_()   CER Workflow v{package_version}
+  ( o.o )  🔴 Major blocker · checkpoint blocked
+   ( ^ )
 ```
 
 ## Other Fixed Checkpoint Cards
 
-Non-lifecycle checkpoints keep the open-eye bear and add version and status after its foot on the
-third line with fixed `·` markers. If the version is invalid, they also show `version unverified`. Replace the status for the
-situation:
+Non-lifecycle checkpoints keep the open-eye ASCII bear and also use a standalone fenced `text`
+code block. Version stays on the first line, and the status is replaced on the second line. If the
+version is invalid, they also show `version unverified`.
 
 - `🟡 Direction decision`
 - `🔴 Major blocker`

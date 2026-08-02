@@ -50,6 +50,10 @@ to `SKILL.md`. Accept only complete content matching stable semver `X.Y.Z`; when
 in the card header as `vX.Y.Z`. If `VERSION` is missing, unreadable, or malformed, show
 `version unverified` in the card header.
 
+The card shape must use only the Handoff Kit layout-style ASCII bear templates in
+[roadmap.md](roadmap.md), output as a standalone fenced `text` code block. Do not put a card in a
+bullet, block quote, or ordinary paragraph.
+
 Do not fall back to `v1`, and do not guess from the network, a Git tag, GitHub Release,
 `skills` CLI lock metadata, or other external state. `CER Core v1` names only the workflow
 generation. Every release or upgrade must update `VERSION` first. After the whole Skill is
@@ -206,7 +210,12 @@ result, or non-authoritative alias must not be treated as proof that the operati
    proof, or thread identity; the full threadId remains authoritative. If a new cycle cannot
    reliably enumerate or set the title, keep the shortest role title and report a real
    `title sync warning`; do not show a question-mark cycle label, guess a number, or turn display
-   label failure into a fake lifecycle or identity failure. C names or identifies its visible
+   label failure into a fake lifecycle or identity failure. When the Codex title tool is available,
+   the initial prompt, model-generated title, or first-line label must not substitute for sidebar
+   rename. After a `create_thread` receipt, C immediately calls the official title tool, currently
+   `set_thread_title` in the Codex schema, and reads the title back with `list_threads`,
+   `read_thread`, or platform-equivalent readback. Before that readback, C must not accept that
+   role's `ready` as qualifying or send a formal batch. C names or identifies its visible
    task/thread as `🚀 C:01｜<very short task name>`. If the platform cannot change the title, use an
    equivalent role label in the first visible message or checkpoint card. Plain `C:` is not an acceptable Controller title/label.
 8. C completes Controller preflight and freezes this task contract. If anything is `critical missing`, C may only perform necessary read-only investigation or stop for questions; C must not create/reuse E1 or dispatch real work.
@@ -231,7 +240,7 @@ result, or non-authoritative alias must not be treated as proof that the operati
     a brand-new E1 and only fresh Reviewers; it must not reuse any E/R task or coordinate from the
     previous closed C.
 13. If any communication preflight link is missing, or the assignee does not actually direct-push a qualifying zero-write `ready`, C shows only the open-eye `🔴 Major blocker` card and stops. C must not show the successful start card. A wait snapshot, completion state, commentary, polling, after-the-fact reads, document review, successful forking, and successful one-way sends do not prove communication. When the platform requires an event wait to wake an idle C, Delivery permits one bounded event wait; qualifying `ready` must still arrive by direct-push.
-14. Only now is `CER-start` successfully accepted. C's first user-visible success receipt must be the fixed open-eye `🔵 CER started` card from [roadmap.md](roadmap.md). Keep the complete three-line bear; render version and status after the foot on its third line with fixed `·` markers rather than a separate line. Single-batch and multi-batch starts use the same card. Do not use a closed-eye card or guess a version.
+14. Only now is `CER-start` successfully accepted. C's first user-visible success receipt must be the fixed open-eye `🔵 CER started` card from [roadmap.md](roadmap.md). Keep the complete three-line ASCII bear: version on the first line, status on the second line, and only the bear base line on the third line; output it as a standalone fenced `text` code block. Single-batch and multi-batch starts use the same card. Do not use a closed-eye card or guess a version.
 15. Later batches in the same cycle do not repeat the handshake while C, E1, the return target, and verifiable coordinates remain the same. Repeat `ready` whenever the coordinates or return target changes.
 16. For long-running, multi-stage, multi-batch, or first-public-alignment work, show the initial progress surface under [roadmap.md](roadmap.md) after the fixed start card and before the first batch. A simple single-batch task with one clear endpoint needs only a short summary.
 17. C may send the first real batch only after the fixed start card is shown and the required initial roadmap or short summary has been added.
@@ -400,7 +409,7 @@ gates, independent review, or acceptance standards:
 
 ## YAGNI And Stop
 
-- Add roles, batches, Reviewers, checkpoints, tests, and synchronization only when the current risk and deliverable require them.
+- Add roles, batches, Reviewers, checkpoints, tests, and synchronization only when the current risk and deliverable require them. Under one objective, C dispatches added E/R work or a task branch only when it is the smallest necessary means to complete the original goal or address a verified blocker; otherwise C consolidates, stops, or adjudicates directly.
 - Do not create R when C can reliably accept the work through readback and proportionate tests. Do not re-review accepted areas when a narrow fix is enough.
 - Stop when the requirements are met, core counterexamples pass, and required risk is cleared. List adjacent improvements separately without expanding automatically.
 - Reduce the collaboration structure when agent and governance overhead exceeds task value. Do not add process to compensate for unclear acceptance.
@@ -425,6 +434,11 @@ CER-close has fixed completion conditions, while its evidence path adapts to the
 - Do not create a Reviewer merely because the command is close. Create a fresh R only when the
   close conclusion itself has high-consequence risk that needs independent challenge. Review
   breadth follows causal coverage; depth follows failure consequence and evidence uncertainty.
+- Archiving this cycle's R tasks is UI cleanup only after a successful close. Only R tasks that
+  are complete, read back, and adjudicated by C may be archived with the official archive tool; C
+  and E1 stay visible by default. Active, blocked, not-returned, or unadjudicated R tasks must not
+  be archived. Archive is not deletion, changes no threadId, content, or history, and is not stop,
+  review, or closeout evidence.
 
 When the user explicitly says `Close CER.` or `/CER-close` to C:
 
@@ -435,17 +449,24 @@ When the user explicitly says `Close CER.` or `/CER-close` to C:
    title tool to automatically append `✓` after this cycle's cycle number in every verifiable
    C/E/R title, such as `🚀 C:01✓｜...`, `E1:01✓｜...`, and `R1:01✓｜...`; legacy/migration `00`
    may likewise become `00✓`. C then reads back the titles. This is a built-in display-only
-   CER-close rename and does not ask the user again. It
-   changes no threadId, content, or history. Partial or total rename failure does not overturn the
-   proven writer close, but C must report `title sync warning` with failed coordinates and must not
-   claim the title was renamed.
-5. Only after writer close, required readback, and completed title sync or warning, show the fixed
-   closed-eye `🟢 CER closed` card from [roadmap.md](roadmap.md). Its header uses the package
-   version read for this card and retains `writer closed`; then report the result, any title sync
-   warning, and continuity limits. The closed-eye card proves only writer close and required
-   readback, not all-green title sync. If `writer closed` or required readback is missing, show only
-   the open-eye `🔴 Major blocker` card and do not show the closed-eye close card.
-6. After successful close, that cycle's C/E/R task set becomes history-only and must not receive work for another cycle in the same workspace. A later cycle uses a new task through the unique-C gate, creates a brand-new E1, and uses only fresh Reviewers.
+   CER-close rename and does not ask the user again. It changes no threadId, content, or history.
+   Partial or total rename failure does not overturn the proven writer close, but C must report
+   `title sync warning` with failed coordinates and must not claim the title was renamed.
+5. After writer close, required readback, and completed title sync or warning, if the official
+   archive tool is available, C archives this cycle's complete, read-back, adjudicated R tasks.
+   C must not archive C, E1, active R, blocked R, not-returned R, or unadjudicated R tasks. Archive
+   failure does not overturn writer close, but C must report an archive notice with failed
+   coordinates.
+6. Only after any available R archiving is completed or reported, show the fixed closed-eye
+   `🟢 CER closed` card from [roadmap.md](roadmap.md). It uses the package version read for this
+   card and retains `writer closed`; then report the result, any title sync warning, R archive
+   outcome, and continuity limits. If any R tasks were archived, the summary must say in the current
+   output language: "Archived <count> Reviewer tasks for this cycle; archive is not deletion, and
+   they remain available from archived tasks." The closed-eye card proves only writer close and
+   required readback, not all-green title sync or R archiving. If `writer closed` or required
+   readback is missing, show only the open-eye `🔴 Major blocker` card, do not show the closed-eye
+   close card, and do not archive R tasks to create a clean-looking state.
+7. After successful close, that cycle's C/E/R task set becomes history-only and must not receive work for another cycle in the same workspace. A later cycle uses a new task through the unique-C gate, creates a brand-new E1, and uses only fresh Reviewers.
 
 A new session may recover only from target-project sources that actually exist. If evidence is insufficient, label continuity as limited. If E1 coordinates cannot be verified, first prove that the original writer stopped before creating E2.
 
@@ -456,7 +477,7 @@ When the user explicitly says `Stop CER and continue in a single thread.` or `/C
 1. C stops sending new E1/R batches.
 2. If there is no active writer, C continues in a normal single thread.
 3. If E1 has started writing, C first asks E1 to stop, return the current result or blocker, and state whether the writer is closed.
-4. Only after C reads back a verifiable state with no active writer or a stopped writer, show the fixed closed-eye `⚪ CER stopped` card from [roadmap.md](roadmap.md). Its header uses the package version read for this card and retains `CER inactive`; then return to single-thread work.
+4. Only after C reads back a verifiable state with no active writer or a stopped writer, show the fixed closed-eye `⚪ CER stopped` card from [roadmap.md](roadmap.md). It uses the package version read for this card and retains `CER inactive`; then return to single-thread work.
 5. If the writer cannot be proven stopped or required readback is incomplete, show only the open-eye `🔴 Major blocker` card. Do not show the closed-eye stop card or assume the workspace is safe.
 
 `/CER-stop` is not `/CER-close`. The first turns off the CER collaboration topology. The second performs CER closeout and required persistence. Plain close/finish messages belong to the target workspace's existing governance and do not map to CER stop or close.

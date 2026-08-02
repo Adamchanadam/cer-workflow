@@ -53,6 +53,9 @@ E1 的派工包只包含本批所需的知識底座摘要、來源座標與禁�
 `X.Y.Z`；有效時在卡頭渲染為 `vX.Y.Z`。`VERSION` 缺失、不可讀或格式錯誤時，
 卡頭顯示 `version unverified`。
 
+卡片形狀只使用 [roadmap.md](roadmap.md) 的 Handoff Kit 排板風格 ASCII 小熊模板，並
+作為獨立 fenced `text` code block 輸出；不得把卡片放入 bullet、引用或普通段落。
+
 不得回退為 `v1`，也不得用網路、Git tag、GitHub Release、`skills` CLI lock
 metadata 或其他外部狀態猜版本。`CER Core v1` 只表示工作流世代。每次 release
 或 upgrade 必須先更新 `VERSION`；更新整個 Skill 後，下一張卡自然讀到新版本。
@@ -127,7 +130,7 @@ source／package mismatch 或發布／安裝產物不一致，或可信理由顯
   及回傳目標；與官方 metadata 不一致時先對帳，不派正式工作。
 - 發現重複角色時，所有候選保持零寫入。只有全部候選都證明未收到正式工作且
   零寫入，C 才可選定一個；其餘候選收到 `STOP_ZERO_WRITE` 後，須以 direct-push
-  停止確認或官方可讀的不可工作終態證明停止。archive、title 或發出停止訊息
+  停止確認或官方可讀的不可工作終態證明停止。封存狀態、標題或發出停止訊息
   本身都不是停止證據；無法取得任一停止證據即 `blocked`，不得以可用性理由放寬。
 - 任一重複 E1／E2 可能已收到正式工作或寫入時，C 停止所有新派工，讀回 writer
   與 workspace 狀態。先以穩定 `messageId` 向全部可能 writer 發停止指令，再以
@@ -180,14 +183,14 @@ source／package mismatch 或發布／安裝產物不一致，或可信理由顯
 4. 同一輪已知 active C 只可沿用；轉移須有舊 C 明確 handoff／close 的實際訊息或狀態讀回。完成 `/CER-close` 的舊 C 及其 E／R task 整組只可保留作歷史，不可接收同一 workspace 新一輪工作。新一輪只能由新 task 成為 C；閘門必須讀回舊 C 已 `closed`／`handed-off`、沒有 active C，且所有參與 host 可核實。任一參與 host 不可枚舉、舊 C 狀態或候選 root／身份／狀態不可讀回、座標不完整或證據衝突，即為 unknown 並停止，不建立第二 C。
 5. Remote 接收 task 收到明確 Remote CER 啟動語意後，先 direct-push candidate `C_READY`，必含自身 threadId 或平台等價座標、target_root、return target／path，以及當前工具 schema／receipt 明示必需的回傳或路由座標；不得猜 hostId。發送方完成唯一性核實並實際讀回 `C_READY` 後，必須以同一可用回傳路徑向接收者發 `C_ACCEPTED`；接收者收到 `C_ACCEPTED` 後才成為 active C 並做 Controller preflight。只發送 `C_READY`、未讀回 `C_READY` 或未收到 `C_ACCEPTED`，Remote C 身份及通訊路徑都不成立。若發送方原本是 active C，須先完成 handoff／close 才可發 `C_ACCEPTED`。
 6. 不得為唯一 C 新增 lock file、central registry、run ID、conflict engine、新角色或測試例外；唯一性只靠已存在真源、官方枚舉、明示座標與本輪實際回傳／讀回證據判定。
-7. C 為每輪 CER-start 分配 project 內側欄辨識用短 cycle 編號。規則生效後的新 cycle 不得使用 `00`，必須用官方 project task/title 枚舉讀回既有數字 cycle 標籤，選下一個未使用正整數，至少兩位顯示為 `01`、`02`；超過 99 可自然擴展。不得新增 central registry、lock 或 run ID。`00` 只表示 cycle numbering 規則生效前已開始、無法可靠回推原 cycle number 的 legacy/migration cycle；它和其他 cycle 編號一樣只供顯示，不是 lock、run ID、唯一 C 證據或 thread 身份，完整 threadId 仍是權威。若新 cycle 無法可靠枚舉或設定 title，保留最短 role title 並報真實 `title sync warning`；不得顯示問號 cycle 標籤、不得猜測數字，也不得因顯示標籤失敗冒充 lifecycle 或 identity failure。C 命名或識別自身可見 task／thread 為 `🚀 C:01｜<極短任務名>`；平台不能改 title 時，在首則可見訊息或停點卡首行標示同等角色標籤。單獨 `C:` 不是合格 Controller title／label。
+7. C 為每輪 CER-start 分配 project 內側欄辨識用短 cycle 編號。規則生效後的新 cycle 不得使用 `00`，必須用官方 project task/title 枚舉讀回既有數字 cycle 標籤，選下一個未使用正整數，至少兩位顯示為 `01`、`02`；超過 99 可自然擴展。不得新增 central registry、lock 或 run ID。`00` 只表示 cycle numbering 規則生效前已開始、無法可靠回推原 cycle number 的 legacy/migration cycle；它和其他 cycle 編號一樣只供顯示，不是 lock、run ID、唯一 C 證據或 thread 身份，完整 threadId 仍是權威。Codex title 工具可用時，不得用初始 prompt、模型自動生成 title 或首行 label 代替側欄 rename；`create_thread` receipt 後立即呼叫官方 title 工具（目前 Codex schema 為 `set_thread_title`）設定／改名，並用 `list_threads`、`read_thread` 或平台等價讀回確認。讀回前，C 不得把該角色的 `ready` 判為合格，也不得送正式批次。若新 cycle 無法可靠枚舉或設定 title，保留最短 role title 並報真實 `title sync warning`；不得顯示問號 cycle 標籤、不得猜測數字，也不得因顯示標籤失敗冒充 lifecycle 或 identity failure。C 命名或識別自身可見 task／thread 為 `🚀 C:01｜<極短任務名>`；平台不能改 title 時，在首則可見訊息或停點卡首行標示同等角色標籤。單獨 `C:` 不是合格 Controller title／label。
 8. C 完成 Controller preflight，凍結本次任務契約；若有 `關鍵缺失`，只做必要唯讀調查或停問，不建立／復用 E1，也不派實際批次。
 9. Controller preflight 通過後，C 完成通訊 preflight：以可用工具證明本次實際採用的路徑可用，包括身份來源、目標 root、必要參數、發送路徑、接收者、可見標題或角色標籤、assignee 可取得的回傳來源、可核實 threadId 或平台等價座標，以及 C 的裁決點。sessionId 只在當前工具 schema／receipt 明示需要／提供時附帶記錄，不可代替 threadId 或推導 hostId。
 10. 若官方 `create_thread` 新建 task 工具不可用，或無法讀回側欄可見 title、可核實 thread id 與正式回傳路徑，E／R 委派即阻塞；不得降級用 inline sub-agent、fork、delegate 或既有 task 冒充正式 E／R。
 11. 新建 E1／R／E2 時，標題或首行標籤必須分別以 `E1:01｜<極短任務名>`、`R1:01｜<極短審閱名>`／`R2:01｜...`、`E2:01｜...` 格式開首，不加 `🚀`；角色序號在冒號前，cycle 編號在冒號後，避免把第二輪 E1 誤作 E2。同輪所有 C／E／R 使用相同 cycle 編號，下一輪使用新 cycle 編號；legacy/migration cycle 可用 `00`。每個派工包和 ready／結果回執都要包含發送者角色、接收者、回傳目標、threadId 或平台等價座標。
 12. C 透過官方 `create_thread` 建立本輪全新持久 E1。E1 先零寫入 direct-push `ready`；C 必須實際收到含正確角色、cycle 編號、側欄可見標題／標籤、thread 座標和回傳目標的合格零寫入 `ready`。同一輪後續批次持續復用該同一 E1 且 E1 threadId 保持相同；完成上一輪 `/CER-close` 後的新一輪必須建立全新 E1、使用新 cycle 編號，所有 R 也必須 fresh；不得復用上一輪 closed C 的任何 E／R task 或座標。
 13. 任一通訊 preflight 環節缺失，或 assignee 沒有實際 direct-push 合格零寫入 `ready`，C 只顯示開眼 `🔴 重大阻礙` 卡並停止；不得顯示成功啟動卡，也不得用 wait snapshot、完成狀態、commentary、輪詢、事後 read、文件審閱、fork 建立成功或單向 send 成功冒充通訊驗證。平台需要事件等待才會喚醒 idle C 時，只可依「送達」使用一次有界 event wait，真正 `ready` 仍須以 direct-push 到達。
-14. 到此才算成功接受 `CER-start`。C 的第一個使用者可見成功回執必須是 [roadmap.md](roadmap.md) 的固定開眼 `🔵 CER 已啟動` 卡；保留完整三行小熊，版本與狀態在第三行小熊腳後以固定 `·` 分隔，不另起一行。單批與多批都相同；不得用閉眼卡或猜測版本。
+14. 到此才算成功接受 `CER-start`。C 的第一個使用者可見成功回執必須是 [roadmap.md](roadmap.md) 的固定開眼 `🔵 CER 已啟動` 卡；保留完整三行 ASCII 小熊，版本在第一行，狀態在第二行，第三行只保留小熊底線，並作為獨立 fenced `text` code block 輸出。單批與多批都相同；不得用閉眼卡或猜測版本。
 15. 同一輪、同一 C、同一 E1、同一回傳目標、同一可核實座標的後續批次不重做握手；座標或回傳目標改變即重做 ready。
 16. C 判定為長期、多階段、多批次，或需要首次公開對齊的任務時，在固定啟動卡後、第一批前依 [roadmap.md](roadmap.md) 顯示初始進度面。簡單單批且終點唯一的任務只顯示短摘要，不強制建立路線圖。
 17. 只有固定啟動卡已顯示，且所需的初始路線圖或短摘要已補上後，C 才可派第一個實際批次。
@@ -321,7 +324,7 @@ Governance bridge 完成後只作一般成果讀回與裁決，CER 保持啟動�
 
 ## YAGNI 與停止
 
-- 角色、批次、R、停點、測試及同步動作只按本次風險和交付需要增加。
+- 角色、批次、R、停點、測試及同步動作只按本次風險和交付需要增加。同一目標下，C 只在新增 E／R 或任務支線是完成原始目標或處理已核實阻礙的最小必要手段時才派發；否則合併、停止或自行裁決。
 - 能由 C 讀回和相稱測試可靠驗收的，不建立 R；能窄修的，不重審所有已接納部分。
 - 已達需求、核心反例通過、必要風險清零後停止；相鄰改善另列，不自動擴張。
 - 若代理與治理成本壓過任務價值，縮減協作結構，不以更多程序補償不清晰驗收。
@@ -345,6 +348,10 @@ CER-close 的完成條件固定，取證方式按實際情況調節：
 - 不因指令名稱是 close 而建立 Reviewer。只有收尾結論本身涉及需要獨立反證的
   高後果風險時才建立 fresh R；檢查廣度按因果覆蓋，深度按失敗後果與證據
   不確定性調節。
+- 本輪 R 的封存只屬成功收尾後的介面收納。只有已完成、已讀回、已由 C 裁決的
+  R 任務可用官方封存工具收起；C 與 E1 預設保留可見。仍在工作、受阻、未回傳
+  或未裁決的 R 不可封存。封存不是刪除，不改 threadId、內容或歷史，也不是停止、
+  審閱或收尾證據。
 
 使用者向 C 明示 `CER 收工`、`CER 關閉`、`關閉 CER` 或 `/CER-close` 時：
 
@@ -352,8 +359,9 @@ CER-close 的完成條件固定，取證方式按實際情況調節：
 2. C 給同一 E1 一個自足收工批次。
 3. E1 只按目標專案既有規則回寫必要進度／決策真源，標示 E1 已停止寫入，讀回後 direct-push；若沒有持久真源，只回報實際交付與 writer closed。
 4. C 讀回實際交付、必要真源及 `writer closed` 後，先用官方 title 工具自動把本輪所有可核實 C／E／R title 的 cycle 編號後加 `✓`，例如 `🚀 C:01✓｜...`、`E1:01✓｜...`、`R1:01✓｜...`；legacy/migration `00` 同樣可改為 `00✓`。C 必須讀回 title。這是 CER-close 內建 display-only rename，不另問使用者；不改 threadId、內容或歷史。rename 部分或全部失敗不推翻已證明的 writer close，但必須如實報 `title sync warning` 與失敗座標，不得宣稱已改名。
-5. 完成 writer close、必要讀回及可完成的 title sync／warning 後，才顯示 [roadmap.md](roadmap.md) 的固定閉眼 `🟢 CER 已收尾` 卡，卡頭使用本次讀到的 package 版本並保留 `writer closed`，再告知使用者結果、title sync warning 如有，以及延續限制。閉眼卡只代表 writer close／必要讀回完成，不代表 title sync 全綠。沒有 writer closed 或必要讀回未完成時，只顯示開眼 `🔴 重大阻礙` 卡，不得顯示閉眼收尾卡。
-6. 成功收尾後，該輪 C／E／R task 整組轉為只讀歷史座標，不可接收同一 workspace 下一輪工作。下一輪須由新 task 重走唯一 C 閘門、建立全新 E1，且所有 R 都 fresh。
+5. 完成 writer close、必要讀回及可完成的 title sync／warning 後，若官方封存工具可用，C 封存本輪已完成、已讀回、已裁決的 R 任務；不得封存 C、E1、仍在工作、受阻、未回傳或未裁決的 R。封存失敗不推翻 writer close，但必須如實報封存提示與失敗座標。
+6. 完成可做的 R 封存或封存提示後，才顯示 [roadmap.md](roadmap.md) 的固定閉眼 `🟢 CER 已收尾` 卡，使用本次讀到的 package 版本並保留 `writer closed`，再告知使用者結果、title sync warning 如有、R 封存結果，以及延續限制。若有 R 被封存，摘要必須用當前輸出語言明講「已封存本輪 <數量> 個審閱任務；這只是封存，不是刪除，仍可在已封存任務中找回。」閉眼卡只代表 writer close／必要讀回完成，不代表 title sync 或 R 封存全綠。沒有 writer closed 或必要讀回未完成時，只顯示開眼 `🔴 重大阻礙` 卡，不得顯示閉眼收尾卡，也不得封存 R 來製造乾淨狀態。
+7. 成功收尾後，該輪 C／E／R task 整組轉為只讀歷史座標，不可接收同一 workspace 下一輪工作。下一輪須由新 task 重走唯一 C 閘門、建立全新 E1，且所有 R 都 fresh。
 
 新 session 只可從實際存在的目標專案真源恢復；證據不足便標示 continuity limited。若無可核實 E1 座標，先證明原 writer 停止，再建立 E2。
 
@@ -364,7 +372,7 @@ CER-close 的完成條件固定，取證方式按實際情況調節：
 1. C 停止派發新 E1／R 批次。
 2. 若沒有 active writer，C 以普通單 thread 繼續。
 3. 若 E1 已開始寫入，C 先要求 E1 停止、回傳目前成果或 blocker，並標示是否 writer closed。
-4. C 讀回沒有 active writer 或 writer 已停止的可判定狀態後，顯示 [roadmap.md](roadmap.md) 的固定閉眼 `⚪ CER 已停用` 卡，卡頭使用本次讀到的 package 版本並保留 `CER inactive`，才回到單 thread。
+4. C 讀回沒有 active writer 或 writer 已停止的可判定狀態後，顯示 [roadmap.md](roadmap.md) 的固定閉眼 `⚪ CER 已停用` 卡，使用本次讀到的 package 版本並保留 `CER inactive`，才回到單 thread。
 5. 不能證明 writer 停止或必要讀回未完成時，只顯示開眼 `🔴 重大阻礙` 卡，不得顯示閉眼停用卡，也不假設工作區安全。
 
 `/CER-stop` 不等同 `/CER-close`。前者是停用 CER 協作拓撲；後者是完成 CER 收尾與必要持久化。單獨 `收工` 屬於目標 workspace 既有治理，不映射為 CER stop 或 close。

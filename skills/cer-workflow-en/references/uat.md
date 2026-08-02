@@ -24,9 +24,18 @@ fresh.
 
 A successful title change, fork, delegation, one-way message, or tool parameter does not prove a closed loop. E1 must direct-push both `ready` and `result`.
 
+AI real workflow UAT PASS is the closed-loop evidence above, not an obligation to wait. After
+the bounded wait, reconciliation, or controlled resend permitted by this file is exhausted, if
+the assignee still has not direct-pushed a zero-write `ready` or `result`, C must adjudicate
+that UAT attempt as FAIL or `delivery_unavailable` according to the evidence and stop that
+attempt. Do not create repeated same-shape tasks, poll, keep background waiting, or fill the
+gap with a sub-agent, fork, or text simulation as PASS. Use the static-only downgrade below
+only when the required task/delivery toolchain or clean workspace is proven unavailable for
+that run; ordinary non-completion or missing evidence is not a downgrade.
+
 For this Codex project's Full Audit, when official `create_thread` task tools and a clean UAT
 workspace are available, AI real workflow UAT is required and cannot be replaced by a sub-agent,
-fork, or text simulation. If the tools or clean workspace are proven unavailable, the only allowed
+fork, or text simulation. If the required task/delivery toolchain or clean workspace is proven unavailable, the only allowed
 downgrade claim is `Full Audit passed (static corpus only; AI real workflow UAT unavailable)`, and
 it must not claim AI UAT passed. Post-release user manual UAT is a separate layer for public
 installation and user experience, reported separately as `not run`, `passed`, or `failed`; AI UAT
@@ -65,17 +74,20 @@ cycle label or guess a number.
 1. The user submits a clear multi-batch task or existing plan using `Start CER: ...` or `/CER-start ...`.
 2. C identifies the main task with a `🚀 C:01｜<very short task name>` title or first-line label and completes Controller preflight. A complete task passes directly; sourced `confirmed` items and `safe inference` items that pass the counterfactual test do not block; missing critical endpoint/permission/acceptance information produces a yellow checkpoint with at most three questions.
 3. C completes communication preflight, uses official `create_thread` to create a brand-new
-   sidebar-visible persistent `E1:01｜...` task in the same Codex project, reads back its title, thread
-   ID, and formal return path, and receives a `ready` direct-push containing threadId or
+   sidebar-visible persistent `E1:01｜...` task in the same Codex project. After the
+   `create_thread` receipt, C immediately uses the official title tool, currently
+   `set_thread_title` in Codex, to set or rename the title and read it back; the initial prompt,
+   model-generated title, or first-line label does not substitute for this when the title tool is
+   available. C then reads back the thread ID and formal return path, and receives a `ready` direct-push containing threadId or
    platform-equivalent coordinates. sessionId is recorded only when the active tool schema/receipt
    explicitly requires or provides it, and never substitutes for threadId or derives hostId. If the actual platform does not automatically wake an idle C, C may use one
    bounded event wait on that E1; the wait snapshot is not ready evidence.
 4. C maps existing target-project sources of truth and the task knowledge foundation without creating fixed CER documents.
 5. For every successfully accepted `CER-start`, C's first user-visible success receipt is the
-   fixed open-eye `CER Workflow v{package_version}` / `🔵 CER started` card using the `╰ ^ ╯`
-   foot. Before output, replace the placeholder from `VERSION`; keep the complete three-line bear
-   with version and status after its foot on the third line, separated by fixed `·` markers rather
-   than a separate line, including single-batch work. Multi-stage,
+   fixed open-eye `CER Workflow v{package_version}` / `🔵 CER started` card. Before output,
+   replace the placeholder from `VERSION`; keep the complete three-line ASCII bear with version on
+   the first line, status on the second line, and only the bear base line on the third line; output it as
+   a standalone fenced `text` code block, including single-batch work. Multi-stage,
    multi-batch, or first-public-alignment work then shows the initial roadmap with a real inline
    visualization and explicitly confirms that it is not Mermaid-only.
 6. C uses the matching bear card only for startup, material decisions, major blockers, staged
@@ -91,9 +103,12 @@ cycle label or guess a number.
 10. The user says `Close CER.` or `/CER-close`. The same E1 updates required existing sources
     of truth and marks `writer closed`. After required readback, C uses the official title tool to
     rename verifiable titles to `🚀 C:01✓｜...`, `E1:01✓｜...`, and `R1:01✓｜...`, then reads them
-    back; on failure, it reports `title sync warning` with failed coordinates. Only after that does
-    C show the fixed closed-eye `🟢 CER closed` / `writer closed` card. If no durable source exists,
-    CER does not claim full cross-session recovery.
+    back; on failure, it reports `title sync warning` with failed coordinates. If the cycle has
+    complete, read-back, adjudicated R tasks, C may archive those R tasks while keeping C and E1
+    visible; the close summary states that archive is not deletion and the tasks remain available
+    from archived tasks. Only after that does C show the fixed closed-eye `🟢 CER closed` /
+    `writer closed` card. If no durable source exists, CER does not claim full cross-session
+    recovery.
 11. Run a separate composition scenario with `$project-context-workflow`: CER does not rebuild documents or take over consensus gates, and the context workflow does not create C/E1/R.
 12. Run a separate stop scenario with `/CER-stop`: C sends no new E1/R work and, if E1 is
     writing, reaches `writer closed` or a major blocker. Only after proving no active writer and
@@ -135,7 +150,8 @@ cycle label or guess a number.
 - C may use inline parallel candidate producers under
   [parallel-producers.md](parallel-producers.md). They are not formal roles, do not enter role
   titles, cycles, or lifecycle cards, and cannot replace E or R.
-- If `create_thread`, sidebar-visible title, verifiable thread ID, or formal return path is
+- If `create_thread`, official title-tool set/readback evidence after `create_thread`,
+  sidebar-visible title, verifiable thread ID, or formal return path is
   missing, E/R delegation is blocked. Do not downgrade to an inline sub-agent, fork, delegate, or
   existing task.
 
@@ -253,6 +269,7 @@ cycle label or guess a number.
 ## Review Convergence Scenarios
 
 - After R first reports a defect, related findings are grouped by common root cause and user consequence. C performs one bounded impact check to find this round's current owners, affected surfaces, and check locations.
+- After a frozen objective already has a material E/R result, C must not create another E/R task or task branch for the same root cause unless it can identify a new falsifying question and show that the branch is the smallest necessary way to advance the original goal or handle a verified blocker; otherwise C consolidates, stops, or adjudicates directly.
 - When one set of findings contains two issues that differ only in wording or sentence order but share the same root cause and user consequence, plus one issue with a different root cause, different user consequence, or a new regression caused by the latest repair, C merges the first two into one convergence scope and batch while keeping the third as a valid expansion.
 - C freezes acceptance and the counterexample family, and the same E1 repairs the whole affected boundary in one batch. After the repair, R re-tests only the frozen scope.
 - Synonymous wording does not open another sentence-by-sentence repair cycle. C accepts and stops after the frozen counterexample family passes with no material new defect.
@@ -320,9 +337,16 @@ These scenarios only test the unexpected-failure gate in
   flow; credible contradiction or false-green evidence exists; source and delivery artifact
   differ; or project rules require it. Do not run it automatically merely because the command is
   close.
-- Every CER bear card uses `╰ ^ ╯` for the foot. It must not use a leading `>` that Markdown can
-  render as a block quote. Keep the complete three-line bear; version and status follow the foot
-  on its third line with fixed `·` markers, not a separate line.
+- After successful close, complete, read-back, C-adjudicated R tasks may be archived to reduce
+  sidebar clutter; C and E1 remain visible by default. Active, blocked, not-returned, or
+  unadjudicated R tasks are not archived. Archive is not deletion and must not count as stop,
+  review, or closeout evidence; when archiving happens, the close summary states in the same output
+  language that the tasks remain available from archived tasks.
+- Every CER bear card uses the Handoff Kit layout-style three-line ASCII card. The card must be
+  output as a standalone fenced `text` code block so the Markdown container cannot change its
+  alignment.
+- Keep the complete three-line bear: version only on the first line, status only on the second
+  line, and only the bear base line on the third line.
 
 ## Kit Authority Pass-Through Scenarios
 
@@ -350,8 +374,9 @@ These scenarios only test the unexpected-failure gate in
 - An inline sub-agent, fork, delegate, or existing task is treated as formal E1, E2, or R.
 - A parallel candidate producer writes the target project, produces formal ready/result, replaces
   E/R, or is counted as CER Reviewer acceptance evidence.
-- E1/R lacks official `create_thread` creation evidence, sidebar-visible title, verifiable
-  thread ID, or formal return path, but work still starts.
+- E1/R lacks official `create_thread` creation evidence, official title-tool set/readback
+  evidence after `create_thread`, sidebar-visible title, verifiable thread ID, or formal return
+  path, but work still starts.
 - Controller uses plain `C:` instead of `🚀 C:01｜...` as the visible title or first-line label.
 - E1/R/E2 titles or first-line labels are wrongly prefixed with `🚀`.
 - Second-cycle E1 is named `E2:`, role ordinal and cycle number are mixed, same-cycle C/E/R labels
@@ -473,15 +498,19 @@ These scenarios only test the unexpected-failure gate in
 - A bear card does not first read this Skill's `VERSION`, treats `v1` as the package version, or
   guesses from the network, a Git tag, GitHub Release, or lock metadata.
 - A missing, unreadable, or malformed `VERSION` does not render `version unverified`.
-- A start card puts version or status on a separate line, or does not preserve the complete three-line
-  bear and fixed `·` markers after its foot on the third line.
-- Any CER bear card still uses `>` for the foot and is rendered as a Markdown block quote.
+- A start card does not preserve the complete three-line ASCII bear, does not put version on the
+  first line, does not put status on the second line, or its third line is not only the bear base line.
+- Any CER bear card is not a standalone fenced `text` code block, or its Markdown container causes
+  visible misalignment.
 - A release or upgrade does not update `VERSION` first.
 - A single-batch `CER-start` has no fixed start card, or its start card wrongly uses closed eyes.
 - Stop/close shows a closed-eye success card before proving the writer stopped and completing
   required readback; close shows the closed-eye card before reading back title sync or
   `title sync warning`; a failed title rename is claimed as renamed; or a blocked state omits the
   open-eye red blocker card.
+- C archives active, blocked, not-returned, or unadjudicated R tasks, or archives C/E1 by default.
+- C archives R tasks without saying archive is not deletion, or treats archive state as stop,
+  review, or closeout evidence.
 - A new C after close reuses the previous cycle's E1 or R task/coordinate.
 - The old-cycle title prefix has no `✓` and no real `title sync warning`, but close title sync is
   claimed complete; lifecycle close is accepted from title-only or text-only evidence.

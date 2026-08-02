@@ -49,8 +49,9 @@ Slash commands are stable text aliases. Register them in a slash-command, snippe
 - A local task or explicit remote receiver task must pass the complete unique-C startup gate in [core-runtime.md](references/core-runtime.md). Candidate `C_READY` plus sender readback is still insufficient; the receiver becomes the active Controller (C) only after actually receiving `C_ACCEPTED`.
 - Every successfully accepted `CER-start` first shows the fixed open-eye start card from
   [roadmap.md](references/roadmap.md), including simple single-batch work. Before showing any
-  bear card, read `VERSION` from this Skill root. A blocked start shows the open-eye red blocker
-  card and never a closed-eye success card.
+  bear card, read `VERSION` from this Skill root. The card must be output as the standalone
+  fenced `text` code block in the roadmap. A blocked start shows the open-eye red blocker card and
+  never a closed-eye success card.
 - Formal E/R roles must be independent new tasks/threads in the same Codex project sidebar,
   created through the official `create_thread` tool. Do not downgrade to an inline sub-agent,
   fork, or delegate.
@@ -75,7 +76,7 @@ Slash commands are stable text aliases. Register them in a slash-command, snippe
 - Respect the target project's existing sources of truth, plans, and progress. CER does not create a fixed document set or present its role state as the project plan.
 - For complex medical, legal, financial, investment, policy, academic, commercial, design, operational, or other knowledge-heavy work, C first defines the required knowledge foundation. E1 works only within that scope, and R independently tests claims against the same scope.
 - Stop in the user's main task when a material direction, deliverable shape, or cost is undecided. After execution, deliver observable results at sensible stages.
-- Scale roles, batches, Reviewers, checkpoints, and acceptance to risk. Do not substitute more agents, documents, reviews, or ceremony for a clear target and testable acceptance.
+- Scale roles, batches, Reviewers, checkpoints, and acceptance to risk. Do not substitute more agents, documents, reviews, or ceremony for a clear target and testable acceptance. Only [core-runtime.md](references/core-runtime.md)'s "YAGNI And Stop" section owns the necessity and consolidation decision for added E/R work or task branches.
 - Choose model and effort from capability, cost, and user limits. They are not fixed CER version blockers.
 - After one `/CER-close` completes in a workspace, that cycle's C/E/R tasks remain history
   only and the whole set must not receive work for a later cycle. A later cycle must use a

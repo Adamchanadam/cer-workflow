@@ -17,7 +17,7 @@
   任務的標準進度面，
   不要求使用者每次介入。版面、階段數和附加欄位按項目需要動態決定，不使用
   固定四格或固定表格代替實際任務資訊；最低內容依「顯示優先序」。
-- **小熊四色卡**是 checkpoint 訊號，只回答「現在是否需要使用者預覽、決定、
+- **ASCII 小熊四色卡**是 checkpoint 訊號，只回答「現在是否需要使用者預覽、決定、
   處理阻礙或驗收」。它不代替路線圖，也不作持續進度表。
 
 同一訊息可同時有兩者，但內容不重複：路線圖顯示全局位置，卡片只說明本次停點。
@@ -40,30 +40,32 @@
 `VERSION`。穩定 semver `X.Y.Z` 顯示為 `vX.Y.Z`；缺失、不可讀或格式錯誤時
 顯示 `version unverified`。以下卡片中的 `{package_version}` 是模板佔位；
 輸出前必須以當次讀到的 `VERSION` 完整替換，絕不可把佔位文字原樣顯示。
+每張卡必須作為獨立 fenced `text` code block 輸出；不得放入 bullet、引用、
+普通段落或與其他文字同一個 Markdown 區塊。
 
 ```text
- ()_()
- ( ◕ᴥ◕ )
-   ╰ ^ ╯ · CER 工作法 v{package_version} · 🔵 CER 已啟動
+   ()_()   CER 工作法 v{package_version}
+  ( o.o )  🔵 CER 已啟動
+   ( ^ )
 ```
 
 每次成功接受 `CER-start` 都使用以上固定開眼啟動卡，包括簡單單批任務。啟動
-卡保留完整三行小熊；版本與狀態在第三行的小熊腳後以固定 `·` 分隔，不另起一行。
+卡保留完整三行 ASCII 小熊；版本在第一行，狀態在第二行，第三行只保留小熊底線。
 
 成功 `/CER-stop` 使用固定閉眼停用卡：
 
 ```text
- ()_()
- ( ᴗᴥᴗ )
-   ╰ ^ ╯ · CER 工作法 v{package_version} · ⚪ CER 已停用 · CER inactive
+   ()_()   CER 工作法 v{package_version}
+  ( -.- )  ⚪ CER 已停用 · CER inactive
+   ( ^ )
 ```
 
 成功 `/CER-close` 使用固定閉眼收尾卡：
 
 ```text
- ()_()
- ( ᴗᴥᴗ )
-   ╰ ^ ╯ · CER 工作法 v{package_version} · 🟢 CER 已收尾 · writer closed
+   ()_()   CER 工作法 v{package_version}
+  ( -.- )  🟢 CER 已收尾 · writer closed
+   ( ^ )
 ```
 
 閉眼卡是已驗證終態，不是意圖回執。停用卡只可在沒有 active writer 或 writer
@@ -72,15 +74,16 @@
 閉眼收尾卡只代表 writer close／必要讀回完成，不代表 title sync 全綠。任一證據不足時使用開眼紅色 blocker 卡：
 
 ```text
- ()_()
- ( ◕ᴥ◕ )
-   ╰ ^ ╯ · CER 工作法 v{package_version} · 🔴 重大阻礙 · checkpoint blocked
+   ()_()   CER 工作法 v{package_version}
+  ( o.o )  🔴 重大阻礙 · checkpoint blocked
+   ( ^ )
 ```
 
 ## 其他固定停點卡
 
-生命週期卡以外的停點沿用開眼小熊，在第三行的小熊腳後以固定 `·` 接上版本與狀態；若版本無效，
-同樣顯示 `version unverified`。狀態按場景替換：
+生命週期卡以外的停點沿用開眼 ASCII 小熊，同樣使用獨立 fenced `text` code
+block；版本在第一行，狀態按場景替換在第二行。若版本無效，同樣顯示
+`version unverified`。
 
 - `🟡 方向抉擇`
 - `🔴 重大阻礙`
