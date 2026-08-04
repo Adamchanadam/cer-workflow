@@ -4,7 +4,7 @@
 
 CER = Controller, Executor, Reviewer.
 
-CER is a workflow skill for Codex. It does not replace Goal. Use Goal for ordinary work. Use CER when the task is not fully settled, or when you need mid-work decisions, role boundaries, or independent review.
+CER is a workflow skill for Codex. It does not replace ordinary chat, and it does not replace Goal. Use an ordinary chat for small tasks. Use Goal when Codex needs to keep working across multiple steps and the endpoint is clear. Use CER when the task is not fully settled, or when you need mid-work decisions, role boundaries, or independent review.
 
 In plain language: when you discover halfway through that the direction, constraints, or risk has changed, CER brings that change back to you before assigning the next batch of work. It is for tasks where the human and the AI need to make decisions together. It is not worth using for every small task.
 
@@ -12,9 +12,15 @@ In plain language: when you discover halfway through that the direction, constra
 
 ## Choose First
 
+Use an ordinary chat when:
+
+- You need a one-off summary, translation, formatting pass, or small edit.
+- You only need a short result, not long-running Codex work.
+
 Use Goal when:
 
-- You are summarizing, organizing documents, making a clear edit, or working toward clear acceptance criteria.
+- The task has several steps, but the endpoint and completion criteria are clear.
+- For example, a clearly scoped refactor, upgrade, or test repair.
 - You know the endpoint, even if implementation details may change.
 - You want Codex to keep moving with less management from you.
 
@@ -26,8 +32,9 @@ Use CER when:
 
 Examples:
 
-- "Turn these meeting notes into a one-page summary": use Goal.
-- "Fix the login bug and make the tests pass": use Goal.
+- "Turn these meeting notes into a one-page summary": use an ordinary chat; no Goal or CER needed.
+- "Rewrite one paragraph, or fix a small issue that is already located": use an ordinary chat.
+- "Complete a clearly scoped upgrade, preserve existing behavior, and make the tests pass": use Goal.
 - "Redesign the onboarding flow, and show me checkpoints before the direction is locked": use CER.
 - "Rewrite the README so non-CER users understand when to use CER instead of Goal": use CER.
 
@@ -48,7 +55,7 @@ The difference is the working style:
 
 | # | Point of comparison | Goal | CER | How most users should read it |
 |---:|---|---|---|---|
-| 1 | First prompt | The `/goal` text becomes both the first prompt and the completion criteria. If the direction is still unclear, you can use `/plan` first. | The Controller separates confirmed facts, safe assumptions, and critical gaps. It asks before delegating when a gap would materially change the result. | Goal is more direct for everyday work. |
+| 1 | First prompt | The `/goal` text becomes both the first prompt and the completion criteria. If the direction is still unclear, you can use `/plan` first. | The Controller separates confirmed facts, safe assumptions, and critical gaps. It asks before delegating when a gap would materially change the result. | Use ordinary chat for small tasks; use Goal only when the clear endpoint needs multiple steps. |
 | 2 | Working rhythm | Codex keeps moving toward the same Goal, which suits long tasks that need less intervention. | The Controller divides the work into reviewable batches and decides the next batch after reading back the current one. | Use Goal for a clear target; use CER when batches need checkpoints. |
 | 3 | Feedback during the work | In the same chat, `Steer` can change the current run and `Queue` can hold a message for the next run. You can also pause or edit the Goal. | You give feedback to the Controller. It identifies the affected scope, updates the roadmap, and sends a new batch to the same Executor. | Goal handles normal added context; CER is clearer when feedback changes direction. |
 | 4 | Progress display | The desktop app shows a Goal progress row, and you can ask Codex for a progress recap. | Long or multi-stage work uses a CER roadmap showing the current stage, accepted results, blockers, and the next user checkpoint. | CER is clearer when checkpoints matter. |
@@ -57,7 +64,7 @@ The difference is the working style:
 | 7 | Task and agent structure | The main chat can work alone or use native, sidebar-visible subagents. Roles and handoffs depend on the task. | Each cycle has a fixed C for coordination and the same E1 for file changes. A fresh, read-only R is created only when risk warrants it. | Use CER when role boundaries and handoff clarity matter. |
 | 8 | File ownership | The main agent or a subagent used for the task may make changes. Parallel work must avoid writing to the same source. | Only E1 writes files during a cycle. C and R stay read-only, avoiding concurrent changes from different roles. | Use CER when you want to avoid multiple roles writing at once. |
 | 9 | Independent review | You can request a review, such as `/review`, or ask a subagent to check the work, but it is not a fixed part of every Goal. | A fresh R is used only for important, high-risk work or when independent evidence is needed. C groups the findings and returns them to the same E1. | Use CER for risky or public deliverables. |
-| 10 | Best fit | The endpoint is stable, the completion criteria can be stated clearly, and you want Codex to carry the work through continuously. | The task is not fully settled, or it needs mid-work decisions, role boundaries, or independent review. | Neither replaces the other; choose by task. |
+| 10 | Best fit | The endpoint is stable, the completion criteria can be stated clearly, and Codex needs to keep working across multiple steps. | The task is not fully settled, or it needs mid-work decisions, role boundaries, or independent review. | Neither replaces the other; choose by task. |
 
 The Goal details above follow OpenAI's [Long-running work](https://learn.chatgpt.com/docs/long-running-work), [Prompting](https://learn.chatgpt.com/docs/prompting), and [Subagents](https://learn.chatgpt.com/docs/agent-configuration/subagents) documentation. The CER details follow this repo's [Controller Preflight](skills/cer-workflow-en/references/core-runtime.md#controller-preflight), [Execution Loop](skills/cer-workflow-en/references/core-runtime.md#execution-loop), and [inline roadmap](skills/cer-workflow-en/references/roadmap.md#two-different-surfaces).
 

@@ -4,7 +4,7 @@
 
 CER = Controller、Executor、Reviewer。
 
-CER 是給 Codex 用的工作法 Skill。它不取代 Goal。一般工作先用 Goal；當任務未完全定型、需要中途裁決、角色邊界或獨立驗收，便用 CER 工作法。
+CER 是給 Codex 用的工作法 Skill。它不取代普通對話，也不取代 Goal。小任務用普通對話；需要 Codex 持續跑多步、而終點清楚時，用 Goal；當任務未完全定型、需要中途裁決、角色邊界或獨立驗收，便用 CER 工作法。
 
 簡單說：如果做到一半才發現方向、限制或風險變了，CER 會先把這件事放到你面前決定，再安排下一批工作。它適合人和 AI 一起做判斷的任務，不適合每件小事都開一套流程。
 
@@ -12,9 +12,15 @@ CER 是給 Codex 用的工作法 Skill。它不取代 Goal。一般工作先用 
 
 ## 先怎樣選
 
+普通對話即可：
+
+- 一次性摘要、翻譯、格式整理、小修小改。
+- 你只需要一個短結果，不需要 Codex 長時間持續工作。
+
 用 Goal：
 
-- 文件整理、摘要、明確修改、清楚驗收。
+- 任務要跑多步，但終點和完成條件清楚。
+- 例如清楚範圍的重構、升級、測試修復。
 - 你知道終點，只是實作細節可能會變。
 - 你想讓 Codex 少打擾你，自己持續完成。
 
@@ -26,8 +32,9 @@ CER 是給 Codex 用的工作法 Skill。它不取代 Goal。一般工作先用 
 
 例子：
 
-- 「把這份會議紀錄整理成一頁摘要」：用 Goal。
-- 「修好登入 bug，測試通過」：用 Goal。
+- 「把這份會議紀錄整理成一頁摘要」：普通對話即可，不需要 Goal 或 CER。
+- 「改一段文案，或修一個已定位的小問題」：普通對話即可。
+- 「完成一個清楚範圍的升級，保持現有行為，並讓測試通過」：用 Goal。
 - 「重整 onboarding flow，做到中途要看方向是否對」：用 CER。
 - 「改 README，讓非 CER 用戶理解 CER 和 Goal 分別」：用 CER。
 
@@ -48,7 +55,7 @@ CER 的做法是把途中發現拿出來判斷。Controller 會分清哪些已�
 
 | # | 比較點 | Goal | CER | 一般用戶怎樣看 |
 |---:|---|---|---|---|
-| 1 | 最初的要求 | `/goal` 的文字同時是首個要求和完成條件；方向仍模糊時，可先用 `/plan` 釐清。 | Controller 先分清已確認內容、安全假設和關鍵缺口；缺口會明顯改變成品時，先問清楚再派工。 | 日常任務 Goal 較直接。 |
+| 1 | 最初的要求 | `/goal` 的文字同時是首個要求和完成條件；方向仍模糊時，可先用 `/plan` 釐清。 | Controller 先分清已確認內容、安全假設和關鍵缺口；缺口會明顯改變成品時，先問清楚再派工。 | 小任務普通對話即可；多步而終點清楚才用 Goal。 |
 | 2 | 推進方式 | Codex 持續朝同一 Goal 推進，適合較少介入的長任務。 | Controller 把工作拆成可驗收批次，讀回一批後再決定下一批。 | 目標清楚用 Goal；批次要停點用 CER。 |
 | 3 | 中途回饋 | 可在同一對話用 `Steer` 改變當前工作、用 `Queue` 留待下一輪，亦可暫停或修改 Goal。 | 你把回饋留給 Controller；Controller 判斷受影響範圍、更新路線圖，再把新批次交回同一 Executor。 | 補資料用 Goal 已足夠；改方向用 CER 較清楚。 |
 | 4 | 進度顯示 | ChatGPT 桌面版會顯示 Goal 進度列；你也可要求 Codex 整理目前進度。 | 長期或多階段任務使用 CER 路線圖，顯示目前階段、已接納成果、阻礙和下一個使用者停點。 | 需要固定停點時 CER 較清楚。 |
@@ -57,7 +64,7 @@ CER 的做法是把途中發現拿出來判斷。Controller 會分清哪些已�
 | 7 | 對話與角色 | 主對話可自行工作，也可使用側欄可見的原生子代理；角色和交接方式按任務而定。 | 每輪固定由 C 統籌、同一 E1 寫檔；風險需要時才建立全新 Reviewer 做只讀驗收。 | 要固定分工和交接，用 CER。 |
 | 8 | 寫檔權責 | 主代理或為任務使用的子代理都可能修改；平行工作須避免寫入同一來源。 | 同一輪只有 E1 寫檔，C 和 R 不寫，避免不同角色同時修改。 | 要避免多角色同時寫檔，用 CER。 |
 | 9 | 獨立驗收 | 可另行要求 review（例如 `/review`）或安排子代理檢查，但不是每個 Goal 的固定流程。 | 只有重要、高風險或需要獨立證據時才啟用全新 Reviewer；問題由 C 合併後交同一 E1 修正。 | 高風險或公開交付，用 CER 較穩。 |
-| 10 | 最合適的任務 | 終點穩定、完成條件可寫清楚，而且希望 Codex 連續完成。 | 任務未完全定型、需要中途裁決、角色邊界或獨立驗收。 | 不是誰取代誰；按任務選。 |
+| 10 | 最合適的任務 | 終點穩定、完成條件可寫清楚，而且需要 Codex 連續跑多步。 | 任務未完全定型、需要中途裁決、角色邊界或獨立驗收。 | 不是誰取代誰；按任務選。 |
 
 Goal 部分依 OpenAI 官方的 [Long-running work](https://learn.chatgpt.com/docs/long-running-work)、[Prompting](https://learn.chatgpt.com/docs/prompting) 和 [Subagents](https://learn.chatgpt.com/docs/agent-configuration/subagents) 整理。CER 部分以本儲存庫的 [Controller 前置檢查](skills/cer-workflow/references/core-runtime.md#controller-preflight)、[執行閉環](skills/cer-workflow/references/core-runtime.md#執行閉環) 和 [頁內路線圖](skills/cer-workflow/references/roadmap.md#兩種介面) 為準。
 
