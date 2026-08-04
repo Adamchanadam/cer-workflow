@@ -10,6 +10,27 @@ CER 把統籌、寫檔、驗收分到獨立 Codex task，再由 Controller 串�
 
 ![CER 工作法示意圖：Controller、Executor 和 Reviewer 分別負責統籌、寫檔及驗收](assets/cer-workflow-infographic.png)
 
+## Goal 與 CER：10 個實際分別
+
+Goal 和 CER 都可以從簡短要求開始，也都容許你在途中補資料、改限制和查看進度。終點已清楚，希望 Codex 自主推進至完成，通常先用 Goal。若成品要看過中間版本才逐步收斂，或你想由 Controller 管理執行、停點和驗收，CER 會較合適。
+
+CER 的工作方式較接近「人機共同開發」：Codex 負責做事，你在會改變成品的決定點參與。最初的要求不必寫成完整規格；Controller 會分清已確認內容、安全假設和關鍵缺口，重要缺口問清楚後才派工。
+
+| # | 比較點 | Goal | CER |
+|---:|---|---|---|
+| 1 | 最初的要求 | `/goal` 的文字同時是首個要求和完成條件；方向仍模糊時，可先用 `/plan` 釐清。 | Controller 先分清已確認內容、安全假設和關鍵缺口；缺口會明顯改變成品時，先問清楚再派工。 |
+| 2 | 推進方式 | Codex 持續朝同一 Goal 推進，適合較少介入的長任務。 | Controller 把工作拆成可驗收批次，讀回一批後再決定下一批。 |
+| 3 | 中途回饋 | 可在同一對話用 `Steer` 改變當前工作、用 `Queue` 留待下一輪，亦可暫停或修改 Goal。 | 你把回饋留給 Controller；Controller 判斷受影響範圍、更新路線圖，再把新批次交回同一 Executor。 |
+| 4 | 進度顯示 | ChatGPT 桌面版會顯示 Goal 進度列；你也可要求 Codex 整理目前進度。 | 長期或多階段任務使用頁內路線圖（inline roadmap），顯示目前階段、已接納成果、阻礙和下一個使用者停點。 |
+| 5 | 預覽與停點 | 可隨時要求查看、解釋或調整；何時預覽通常由最初的要求或當下需要決定。 | 路線圖預先標出需要預覽或裁決的停點；方向、交付形狀或驗收改變時會顯示差異。 |
+| 6 | 使用者在流程中的位置 | 你設定 Goal 並可隨時介入，Codex 自主選擇下一步；需要決定或批准時會停下來。 | 你主要留在 Controller 對話，按中間成果補需求或改方向；Controller 負責把決定傳到執行線。 |
+| 7 | 對話與角色 | 主對話可自行工作，也可使用側欄可見的原生子代理；角色和交接方式按任務而定。 | 每輪固定由 C 統籌、同一 E1 寫檔；風險需要時才建立全新 Reviewer 做只讀驗收。 |
+| 8 | 寫檔權責 | 主代理或獲授權的子代理都可能修改；平行工作須避免寫入同一來源。 | 同一輪只有 E1 寫檔，C 和 R 不寫，避免不同角色同時修改。 |
+| 9 | 獨立驗收 | 可另行要求 review（例如 `/review`）或安排子代理檢查，但不是每個 Goal 的固定流程。 | 只有重要、高風險或需要獨立證據時才啟用全新 Reviewer；問題由 C 合併後交同一 E1 修正。 |
+| 10 | 最合適的任務 | 終點穩定、完成條件可寫清楚，而且希望 Codex 連續完成。 | 成品要經過數次預覽才收斂，或你希望保留較強的人手控制、清楚分工和獨立驗收。 |
+
+Goal 部分依 OpenAI 官方的 [Long-running work](https://learn.chatgpt.com/docs/long-running-work)、[Prompting](https://learn.chatgpt.com/docs/prompting) 和 [Subagents](https://learn.chatgpt.com/docs/agent-configuration/subagents) 整理。CER 部分以本儲存庫的 [Controller 前置檢查](skills/cer-workflow/references/core-runtime.md#controller-preflight)、[執行閉環](skills/cer-workflow/references/core-runtime.md#執行閉環) 和 [頁內路線圖](skills/cer-workflow/references/roadmap.md#兩種介面) 為準。
+
 ## 三個角色
 
 **Controller（C）：統籌與裁決**
@@ -97,18 +118,6 @@ CER 啟動：<你想完成的事、限制、優先順序>
 同一成因的問題會合併成一批交回同一個 Executor 修正；只有不同問題、新影響或新風險，才會擴大處理範圍。
 
 CER 啟動時會先確認各個工作 task 能互相回傳訊息；若未能確認，會停止並告知，不會假裝已開始。
-
-## 普通單一對話與 CER
-
-| 普通單一對話 | CER |
-|---|---|
-| 同一個對話完成理解、修改和檢查。 | 統籌、寫檔和驗收分到獨立 Codex task。 |
-| 適合一次性小修改。 | 適合長期、多批、容易中斷或重要工作。 |
-| 對話變長後，容易失去主線。 | Controller 保持主線，分批收斂結果。 |
-| 使用者常要追問、整理和接續上下文。 | 各角色主動把成果和問題回到 Controller。 |
-| 檢查容易受同一段執行脈絡影響。 | Reviewer 可在獨立脈絡做只讀驗收。 |
-
-CER 的價值不是增加角色，而是減少上下文污染、角色混亂和確認偏誤；使用者不必管理每一步。
 
 ## 停用和收尾有甚麼分別
 

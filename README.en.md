@@ -10,6 +10,27 @@ You mainly stay with the Controller. The Controller comes back to you for direct
 
 ![CER workflow diagram: Controller, Executor, and Reviewer handle coordination, file changes, and review](assets/cer-workflow-infographic.en.png)
 
+## Goal And CER: 10 Practical Differences
+
+Goal and CER can both begin with a short request, and both let you add information, change constraints, and check progress along the way. Goal is usually the simpler choice when the endpoint is clear and you want Codex to carry the work through independently. CER is more suitable when the result needs to converge through intermediate versions, or when you want a Controller to manage implementation, checkpoints, and review.
+
+CER is closer to human-guided co-development: Codex does the work, while you take part in decisions that would materially change the result. The first prompt does not need to be a complete specification. The Controller separates confirmed facts, safe assumptions, and critical gaps, then resolves important gaps before delegating implementation.
+
+| # | Point of comparison | Goal | CER |
+|---:|---|---|---|
+| 1 | First prompt | The `/goal` text becomes both the first prompt and the completion criteria. If the direction is still unclear, you can use `/plan` first. | The Controller separates confirmed facts, safe assumptions, and critical gaps. It asks before delegating when a gap would materially change the result. |
+| 2 | Working rhythm | Codex keeps moving toward the same Goal, which suits long tasks that need less intervention. | The Controller divides the work into reviewable batches and decides the next batch after reading back the current one. |
+| 3 | Feedback during the work | In the same chat, `Steer` can change the current run and `Queue` can hold a message for the next run. You can also pause or edit the Goal. | You give feedback to the Controller. It identifies the affected scope, updates the roadmap, and sends a new batch to the same Executor. |
+| 4 | Progress display | The desktop app shows a Goal progress row, and you can ask Codex for a progress recap. | Long or multi-stage work uses an inline roadmap showing the current stage, accepted results, blockers, and the next user checkpoint. |
+| 5 | Previews and checkpoints | You can ask to inspect, explain, or adjust the work at any time. Preview timing usually comes from the prompt or the immediate need. | The roadmap marks points that need a preview or decision. When direction, deliverable shape, or acceptance changes, it shows what changed. |
+| 6 | Your place in the workflow | You set the Goal and can intervene at any time, while Codex chooses the next step. It pauses when it needs a decision or approval. | You mainly stay in the Controller chat, adding requirements or changing direction after seeing intermediate work. The Controller carries those decisions into the implementation track. |
+| 7 | Task and agent structure | The main chat can work alone or use native, sidebar-visible subagents. Roles and handoffs depend on the task. | Each cycle has a fixed C for coordination and the same E1 for file changes. A fresh, read-only R is created only when risk warrants it. |
+| 8 | File ownership | The main agent or an authorized subagent may make changes. Parallel work must avoid writing to the same source. | Only E1 writes files during a cycle. C and R stay read-only, avoiding concurrent changes from different roles. |
+| 9 | Independent review | You can request a review, such as `/review`, or ask a subagent to check the work, but it is not a fixed part of every Goal. | A fresh R is used only for important, high-risk work or when independent evidence is needed. C groups the findings and returns them to the same E1. |
+| 10 | Best fit | The endpoint is stable, the completion criteria can be stated clearly, and you want Codex to carry the work through continuously. | The result needs several previews to converge, or you want stronger human control, explicit role boundaries, and independent review. |
+
+The Goal details above follow OpenAI's [Long-running work](https://learn.chatgpt.com/docs/long-running-work), [Prompting](https://learn.chatgpt.com/docs/prompting), and [Subagents](https://learn.chatgpt.com/docs/agent-configuration/subagents) documentation. The CER details follow this repo's [Controller Preflight](skills/cer-workflow-en/references/core-runtime.md#controller-preflight), [Execution Loop](skills/cer-workflow-en/references/core-runtime.md#execution-loop), and [inline roadmap](skills/cer-workflow-en/references/roadmap.md#two-different-surfaces).
+
 ## Roles
 
 **Controller (C): coordination and decisions**
@@ -102,18 +123,6 @@ A plain close/finish message does not close CER and is not treated as `/CER-stop
 Issues with the same cause are grouped into one batch and sent back to the same Executor. The scope widens only for a different problem, a new effect, or a new risk.
 
 When CER starts, it first confirms that the working tasks can return messages to each other. If that cannot be confirmed, CER stops and tells you instead of pretending it has started.
-
-## Ordinary Conversation vs CER
-
-| Ordinary conversation | CER |
-|---|---|
-| One conversation handles understanding, changes, and checking. | Coordination, file changes, and review happen in independent Codex tasks. |
-| Best for small one-time edits. | Best for long, multi-batch, interruption-prone, or important work. |
-| A long conversation can lose the main line. | The Controller keeps the main line and gathers each batch back together. |
-| You often need to ask follow-up questions and pull context together. | Each role returns results and issues to the Controller. |
-| Review can be shaped by the same implementation context. | The Reviewer can check from an independent read-only context. |
-
-The value of CER is not adding roles for their own sake. It is reducing context pollution, role confusion, and confirmation bias while keeping you out of step-by-step management.
 
 ## Stop Versus Close CER
 
