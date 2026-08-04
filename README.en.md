@@ -4,79 +4,92 @@
 
 CER = Controller, Executor, Reviewer.
 
-CER separates coordination, file changes, and review into independent Codex tasks, then has the Controller connect them into one closed loop. It is for work that is long-running, split across batches, easy to interrupt, or important enough to need independent checking. Small tasks can still stay in one ordinary conversation.
+CER is a workflow skill for Codex. It does not replace Goal. Use Goal for ordinary work. Use CER when the task is not fully settled, or when you need mid-work decisions, role boundaries, or independent review.
 
-You mainly stay with the Controller. The Controller comes back to you for direction, permissions, cost, publication, major issues, or final acceptance.
+In plain language: when you discover halfway through that the direction, constraints, or risk has changed, CER brings that change back to you before assigning the next batch of work. It is for tasks where the human and the AI need to make decisions together. It is not worth using for every small task.
 
-![CER workflow diagram: Controller, Executor, and Reviewer handle coordination, file changes, and review](assets/cer-workflow-infographic.en.png)
+![Goal vs CER: 10 practical differences, with G/C badges showing which side is usually more suitable for workplace AI users](assets/goal-vs-cer-infographic.en.png)
+
+## Choose First
+
+Use Goal when:
+
+- You are summarizing, organizing documents, making a clear edit, or working toward clear acceptance criteria.
+- You know the endpoint, even if implementation details may change.
+- You want Codex to keep moving with less management from you.
+
+Use CER when:
+
+- The direction is not fully settled, and the tradeoffs only become clear during the work.
+- The work affects public content, workflow design, long-running tasks, or areas where the AI can easily drift from your intent.
+- You need mid-work decisions, clear role boundaries, or independent review on important or risky work.
+
+Examples:
+
+- "Turn these meeting notes into a one-page summary": use Goal.
+- "Fix the login bug and make the tests pass": use Goal.
+- "Redesign the onboarding flow, and show me checkpoints before the direction is locked": use CER.
+- "Rewrite the README so non-CER users understand when to use CER instead of Goal": use CER.
+
+## When The Plan Changes During The Work
+
+Goal and CER can both start from a short request. Both let you add information, change constraints, and check progress while the work is running. The difference is how they handle things that only become clear halfway through.
+
+Goal keeps moving inside the same target. You can add context in the same chat, use Steer to change the current work, use Queue for the next turn, or ask for a progress recap. When Codex needs a decision or approval, it pauses and asks. This suits tasks where the target is clear and only the implementation path changes as Codex learns more.
+
+CER puts the new discovery in front of the Controller before the next batch is assigned. The Controller separates what is confirmed, what is only a safe assumption, and what gap would change the result. It only sets the next batch that is safe to run. If a test result, tool response, user correction, or Reviewer finding changes the direction, scope, deliverable shape, or acceptance standard, the Controller updates the roadmap before sending the next batch.
+
+The difference is the working style:
+
+- Goal: the AI adjusts the next step inside the same target.
+- CER: the workflow brings result-changing discoveries back for a decision before the next batch.
 
 ## Goal And CER: 10 Practical Differences
 
-Goal and CER can both begin with a short request, and both let you add information, change constraints, and check progress along the way. Goal is usually the simpler choice when the endpoint is clear and you want Codex to carry the work through independently. CER is more suitable when the result needs to converge through intermediate versions, or when you want a Controller to manage implementation, checkpoints, and review.
-
-CER is closer to human-guided co-development: Codex does the work, while you take part in decisions that would materially change the result. The first prompt does not need to be a complete specification. The Controller separates confirmed facts, safe assumptions, and critical gaps, then resolves important gaps before delegating implementation.
-
-| # | Point of comparison | Goal | CER |
-|---:|---|---|---|
-| 1 | First prompt | The `/goal` text becomes both the first prompt and the completion criteria. If the direction is still unclear, you can use `/plan` first. | The Controller separates confirmed facts, safe assumptions, and critical gaps. It asks before delegating when a gap would materially change the result. |
-| 2 | Working rhythm | Codex keeps moving toward the same Goal, which suits long tasks that need less intervention. | The Controller divides the work into reviewable batches and decides the next batch after reading back the current one. |
-| 3 | Feedback during the work | In the same chat, `Steer` can change the current run and `Queue` can hold a message for the next run. You can also pause or edit the Goal. | You give feedback to the Controller. It identifies the affected scope, updates the roadmap, and sends a new batch to the same Executor. |
-| 4 | Progress display | The desktop app shows a Goal progress row, and you can ask Codex for a progress recap. | Long or multi-stage work uses an inline roadmap showing the current stage, accepted results, blockers, and the next user checkpoint. |
-| 5 | Previews and checkpoints | You can ask to inspect, explain, or adjust the work at any time. Preview timing usually comes from the prompt or the immediate need. | The roadmap marks points that need a preview or decision. When direction, deliverable shape, or acceptance changes, it shows what changed. |
-| 6 | Your place in the workflow | You set the Goal and can intervene at any time, while Codex chooses the next step. It pauses when it needs a decision or approval. | You mainly stay in the Controller chat, adding requirements or changing direction after seeing intermediate work. The Controller carries those decisions into the implementation track. |
-| 7 | Task and agent structure | The main chat can work alone or use native, sidebar-visible subagents. Roles and handoffs depend on the task. | Each cycle has a fixed C for coordination and the same E1 for file changes. A fresh, read-only R is created only when risk warrants it. |
-| 8 | File ownership | The main agent or an authorized subagent may make changes. Parallel work must avoid writing to the same source. | Only E1 writes files during a cycle. C and R stay read-only, avoiding concurrent changes from different roles. |
-| 9 | Independent review | You can request a review, such as `/review`, or ask a subagent to check the work, but it is not a fixed part of every Goal. | A fresh R is used only for important, high-risk work or when independent evidence is needed. C groups the findings and returns them to the same E1. |
-| 10 | Best fit | The endpoint is stable, the completion criteria can be stated clearly, and you want Codex to carry the work through continuously. | The result needs several previews to converge, or you want stronger human control, explicit role boundaries, and independent review. |
+| # | Point of comparison | Goal | CER | How most users should read it |
+|---:|---|---|---|---|
+| 1 | First prompt | The `/goal` text becomes both the first prompt and the completion criteria. If the direction is still unclear, you can use `/plan` first. | The Controller separates confirmed facts, safe assumptions, and critical gaps. It asks before delegating when a gap would materially change the result. | Goal is more direct for everyday work. |
+| 2 | Working rhythm | Codex keeps moving toward the same Goal, which suits long tasks that need less intervention. | The Controller divides the work into reviewable batches and decides the next batch after reading back the current one. | Use Goal for a clear target; use CER when batches need checkpoints. |
+| 3 | Feedback during the work | In the same chat, `Steer` can change the current run and `Queue` can hold a message for the next run. You can also pause or edit the Goal. | You give feedback to the Controller. It identifies the affected scope, updates the roadmap, and sends a new batch to the same Executor. | Goal handles normal added context; CER is clearer when feedback changes direction. |
+| 4 | Progress display | The desktop app shows a Goal progress row, and you can ask Codex for a progress recap. | Long or multi-stage work uses a CER roadmap showing the current stage, accepted results, blockers, and the next user checkpoint. | CER is clearer when checkpoints matter. |
+| 5 | Previews and checkpoints | You can ask to inspect, explain, or adjust the work at any time. Preview timing usually comes from the prompt or the immediate need. | The roadmap marks points that need a preview or decision. When direction, deliverable shape, or acceptance changes, it shows what changed. | Use CER when you need to see intermediate work before deciding. |
+| 6 | Your place in the workflow | You set the Goal and can intervene at any time, while Codex chooses the next step. It pauses when it needs a decision or approval. | You mainly stay in the Controller chat, adding requirements or changing direction after seeing intermediate work. The Controller carries those decisions into the implementation track. | Use Goal when you want less management; use CER when you want clearer decision points. |
+| 7 | Task and agent structure | The main chat can work alone or use native, sidebar-visible subagents. Roles and handoffs depend on the task. | Each cycle has a fixed C for coordination and the same E1 for file changes. A fresh, read-only R is created only when risk warrants it. | Use CER when role boundaries and handoff clarity matter. |
+| 8 | File ownership | The main agent or a subagent used for the task may make changes. Parallel work must avoid writing to the same source. | Only E1 writes files during a cycle. C and R stay read-only, avoiding concurrent changes from different roles. | Use CER when you want to avoid multiple roles writing at once. |
+| 9 | Independent review | You can request a review, such as `/review`, or ask a subagent to check the work, but it is not a fixed part of every Goal. | A fresh R is used only for important, high-risk work or when independent evidence is needed. C groups the findings and returns them to the same E1. | Use CER for risky or public deliverables. |
+| 10 | Best fit | The endpoint is stable, the completion criteria can be stated clearly, and you want Codex to carry the work through continuously. | The task is not fully settled, or it needs mid-work decisions, role boundaries, or independent review. | Neither replaces the other; choose by task. |
 
 The Goal details above follow OpenAI's [Long-running work](https://learn.chatgpt.com/docs/long-running-work), [Prompting](https://learn.chatgpt.com/docs/prompting), and [Subagents](https://learn.chatgpt.com/docs/agent-configuration/subagents) documentation. The CER details follow this repo's [Controller Preflight](skills/cer-workflow-en/references/core-runtime.md#controller-preflight), [Execution Loop](skills/cer-workflow-en/references/core-runtime.md#execution-loop), and [inline roadmap](skills/cer-workflow-en/references/roadmap.md#two-different-surfaces).
 
-## Roles
+## CER Roles
+
+![CER workflow diagram: Controller, Executor, and Reviewer handle coordination, file changes, and review](assets/cer-workflow-infographic.en.png)
 
 **Controller (C): coordination and decisions**
+
 Understands the goal, constraints, and completion criteria; assigns work and judges results. The Controller does not modify project files.
 
 **Executor (E1): implementation and file changes**
+
 The only role that modifies files. It implements in batches, tests, and returns candidate results with evidence. The same E1 stays in use throughout one CER cycle, so file changes do not come from several roles at once.
 
 **Reviewer (R1): independent review**
+
 An independent Codex task that checks in read-only mode, gives conclusions, and does not write files. It is used only for important or high-risk work, or when independent verification is needed.
 
 Sidebar labels such as `C:01`, `E1:01`, and `R1:01` mark the roles in the same CER cycle.
 
-## Exploration Helpers: Accelerating Controller Analysis
+## Advanced: Exploration Helpers
 
-CER still has only three formal roles: C, E, and R. Medium and large tasks often require several
-kinds of preparation at once, such as finding information, comparing options, exploring interface
-ideas, and identifying possible problems early. When the Controller handles every direction one
-by one, this preparation can slow down the whole workflow.
+Exploration Helpers are not a fourth formal role. The formal roles remain Controller, Executor, and Reviewer.
 
-The Controller may therefore start a small number of Exploration Helpers to examine and organize
-different information at the same time. Exploration Helpers support C; they are not a fourth
-formal role. They cannot change the project, replace the Executor or Reviewer, or declare the
-work complete. The Controller still checks the information, resolves different answers, and makes
-the final decision, so the existing writing and independent-review arrangements do not change.
+Medium and large tasks sometimes need several kinds of preparation at once: finding information, comparing options, sketching interface directions, or spotting likely risks. If the Controller handles all of that one item at a time, the early analysis can slow down the workflow. When it is useful, the Controller may start a small number of Exploration Helpers to organize candidate information before the Controller checks, deduplicates, and decides.
+
+Exploration Helpers only produce candidate material. They do not modify the project, replace the Executor or Reviewer, or declare the work complete. The Controller decides whether to start them based on task size, source clarity, and whether parallel preparation is actually useful. The complete conditions live in the [complete Exploration Helper rules](skills/cer-workflow-en/references/parallel-producers.md#activation-eligibility).
 
 ![CER Exploration Helpers decision tree: C decides first, small tasks stay with C, medium-large tasks may use Exploration Helpers, candidates return to C, E1 writes, and R reviews read-only only when risk requires](assets/cer-exploration-helper-architecture.en.png)
 
-Helpers remain idle by default. They suit medium and large tasks where the sources are clear,
-the work can be checked in separate parts, and doing those parts together offers a worthwhile
-time saving. The Controller decides automatically whether to start them. The complete conditions
-are defined only in the
-[complete Exploration Helper rules](skills/cer-workflow-en/references/parallel-producers.md#activation-eligibility)
-so separate documents do not drift apart.
-
-Simple tasks use no helpers. If the information changes, only the affected part is redone. If a
-helper cannot start, times out, or cannot find the required information, the Controller continues
-the analysis directly instead of needlessly stopping the whole CER workflow.
-
-In one practical test using a medium-sized task, two information-gathering jobs would have taken
-about 71 seconds if completed one after the other. Running them together took about 43 seconds,
-reducing the wait by roughly two-fifths. During that time, the Controller also checked the
-information and workflow rules. This shows that Exploration Helpers can save real time on suitable
-tasks, but it is one test example and does not promise the same improvement for every project.
-
-## Install Or Upgrade With One Prompt
+## Install Or Upgrade
 
 Paste this into Codex:
 
@@ -114,8 +127,8 @@ A plain close/finish message does not close CER and is not treated as `/CER-stop
 
 ## How CER Works
 
-1. You give the full task to the Controller, including the goal, constraints, and priorities.
-2. The Controller confirms the completion criteria, sources, and stopping points, then sends implementation work to the Executor.
+1. You give the task to the Controller, including the goal, constraints, and priorities.
+2. The Controller confirms the completion criteria, sources, and stopping points, then sets only the next batch that is safe to run.
 3. The Executor changes files, tests the work, and returns candidate results with evidence to the Controller.
 4. For important or risky work, the Controller asks the Reviewer to perform an independent read-only check.
 5. The Controller groups issues, decides what should be fixed, and returns the result, risks, and decisions that need you.
