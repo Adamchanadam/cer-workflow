@@ -4,9 +4,9 @@ Scope note: each version section records release history for that version; unrel
 explicitly marked as a candidate. Runtime authority remains the Skill references bundled with the
 version the user has installed.
 
-## v0.3.5 (candidate — not released)
+## v0.3.5
 
-This candidate adds two runtime root fixes.
+This release adds two runtime root fixes.
 
 First, the `messageId` identity boundary is explicit: it is a CER message-layer
 identity, deduplication, and tracing field, not a Codex execution command, an App Server
@@ -28,8 +28,8 @@ carry CER identity and C/E1/R context so it is not mistaken for a native Codex i
   write, or authorization
 - Bilingual runtime, roadmap, UAT, and Skill validators add living-brief and CER visible-style
   counterexamples and fixed regressions; each package grows from 141 to 172 mutation cases
-- This remains a local candidate; it has not been committed, pushed, released on GitHub, installed
-  as a global Skill, or covered by post-release user manual UAT
+- Released on GitHub and installable through the skills CLI; post-release user manual UAT remains
+  a separate follow-up
 
 ## v0.3.4
 

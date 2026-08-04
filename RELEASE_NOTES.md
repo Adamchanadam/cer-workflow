@@ -3,9 +3,9 @@
 範圍說明：本檔各版本區段記錄對應版本的 release history；未發布內容會明確標示
 為候選。實際執行規則以使用者已安裝版本隨附的 Skill references 為準。
 
-## v0.3.5（候選，尚未發布）
+## v0.3.5
 
-本候選補上兩項 runtime 根修。
+本版補上兩項 runtime 根修。
 
 第一，`messageId` 的身份邊界更清楚：它是 CER 訊息層的識別、去重及追蹤欄位，
 不是 Codex 執行指令、App Server `method`、JSON-RPC request `id`、thread/session
@@ -24,8 +24,8 @@
   workspace 文字，就當成建立 thread、開始 turn、呼叫工具、觸發寫入或授權
 - 雙語 runtime、roadmap、UAT 與 Skill validator 加入 living brief、CER 可見樣式的
   反例及固定回歸，套件各由 141 增至 172 個 mutation cases
-- 這只是本地候選；尚未 commit、push、建立 GitHub Release、安裝全域 Skill 或進行
-  發布後使用者手動 UAT
+- 已發布至 GitHub Release，並可用 skills CLI 安裝繁體中文版 Skill；發布後使用者
+  手動 UAT 仍需另行回報
 
 ## v0.3.4
 
