@@ -10,6 +10,12 @@ In plain language: when you discover halfway through that the direction, constra
 
 ![Goal vs CER: 10 practical differences, with G/C badges showing which side is usually more suitable for workplace AI users](assets/goal-vs-cer-infographic.en.png)
 
+## What You See When CER Starts
+
+When CER starts, the Controller first shows a small bear startup card and a roadmap. The tasks in the left sidebar are named with C / E1 / R, so you can tell which task coordinates, which one writes, and which one reviews in read-only mode. The inline roadmap in the main chat shows the current stage, confirmed context, and the next checkpoint.
+
+![CER startup screen: small bear card, inline roadmap, and sidebar C / E1 / R task names](assets/cer_start_screen_1.en.png)
+
 ## Choose First
 
 Use an ordinary chat when:
@@ -32,11 +38,14 @@ Use CER when:
 
 Examples:
 
-- "Turn these meeting notes into a one-page summary": use an ordinary chat; no Goal or CER needed.
-- "Rewrite one paragraph, or fix a small issue that is already located": use an ordinary chat.
-- "Complete a clearly scoped upgrade, preserve existing behavior, and make the tests pass": use Goal.
-- "Redesign the onboarding flow, and show me checkpoints before the direction is locked": use CER.
-- "Rewrite the README so non-CER users understand when to use CER instead of Goal": use CER.
+- "Turn these meeting notes into a one-page summary": use an ordinary chat.
+- "Translate one English paragraph into Traditional Chinese while keeping the meaning": use an ordinary chat.
+- "Upgrade the project to a newer framework version, preserve existing behavior, fix compatibility issues, and run tests": use Goal.
+- "Build a CSV import feature from an existing spec, add tests, and make CI pass": use Goal.
+- "Design an internal knowledge-base workflow for a support team; halfway through, we need to check whether the categories, permissions, and usage flow make sense": use CER.
+- "Rework a public product page; the copy, screenshots, risk claims, and acceptance standard may need to change after the first preview": use CER.
+
+Editing a README is not automatically a CER task. Consider CER only when public positioning, bilingual text and visuals, release impact, handoff, or independent review are part of the real work.
 
 ## When The Plan Changes During The Work
 
