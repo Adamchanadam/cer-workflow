@@ -73,7 +73,7 @@ CER v1 accepts natural-language and slash-command entry points. Slash commands a
 
 ## Controller Preflight
 
-Before creating this cycle's E1, reusing the existing E1 in the same cycle, or dispatching any real E1/R batch, C completes an adaptive task contract. This is not a form-filling ceremony. For simple low-risk work with one clear endpoint, C may complete it internally and proceed with a short summary. For long-running, multi-batch, or new product, flow, design, content, or experience work, compress the necessary answers into a first-public-alignment roadmap and self-contained dispatch.
+Before creating this cycle's E1, reusing the existing E1 in the same cycle, or dispatching any real E1/R batch, C completes an adaptive task contract. This is not a form-filling ceremony. For simple low-risk work with one clear endpoint, C may complete it internally and proceed with a short summary. For long-running, multi-batch, or new product, flow, design, content, or experience work, C maintains a living task brief and compresses the necessary answers into a first-public-alignment roadmap and self-contained dispatch. The living task brief is not a new workflow and does not create fixed project documents; it is only C's working surface for the currently adjudicated task state inside this CER cycle.
 
 C judges only five items, each marked `confirmed`, `safe inference`, or `critical missing`:
 
@@ -85,9 +85,11 @@ C judges only five items, each marked `confirmed`, `safe inference`, or `critica
 
 The three states have evidence boundaries. `confirmed` may come only from an explicit user statement or an authoritative source C has actually read, and C must be able to point to the source anchor. An unsupported assumption must not be labeled `confirmed`. A `safe inference` must pass a counterfactual test: if the opposite assumption were true, the deliverable, user flow, collaboration method, data handling, permissions/risk, acceptance, and rework would still not materially change. If multiple reasonable answers would produce materially different outcomes, the item is `critical missing`.
 
-Before dispatch, C performs one short QC pass: check that every `confirmed` item has a source, that every `safe inference` passes the counterfactual result, and that the frozen task contract has not promoted an assumption into `confirmed`. If QC fails, C must not create/reuse E1 or dispatch real work. C may only perform necessary read-only investigation, or use a `🟡 User decision` stop with at most three questions that would materially change the result.
+For work that needs first public alignment or mid-course convergence, the living task brief lists at least: confirmed requirements/exclusions, safe inferences, critical gaps, latest user feedback, current batch freeze, next observable preview or decision point, and what changed from the previous version. C freezes only the next safely executable batch. Later direction may stay provisional until the user sees an intermediate result, adds information, or R produces contrary evidence. When user feedback, source readback, or R evidence changes direction, scope, deliverable shape, or acceptance, C first updates the living task brief and roadmap delta before dispatching the next batch. If an already-dispatched batch is affected, C refreezes with a new `batchId`/`payloadDigest` or supersedes the old batch first under the batch-deduplication rules.
 
-`critical missing` means C cannot safely judge or dispatch. C may only perform necessary read-only investigation. If information that would materially change the result is still missing, use a `🟡 User decision` stop and ask at most three questions. Only after preflight passes does C verify communication coordinates and `ready`. E1/R dispatches use the same frozen task contract; assignees may report contradictions, blockers, or candidate corrections, but must not expand the goal, sources, permissions, or acceptance on their own.
+Before dispatch, C performs one short QC pass: check that every `confirmed` item has a source, that every `safe inference` passes the counterfactual result, and that the current batch freeze has not promoted an assumption into `confirmed`. If QC fails, C must not create/reuse E1 or dispatch real work. C may only perform necessary read-only investigation, or use a `🟡 User decision` stop with at most three questions that would materially change the result.
+
+`critical missing` means C cannot safely judge or dispatch. C may only perform necessary read-only investigation. If information that would materially change the result is still missing, use a `🟡 User decision` stop and ask at most three questions. Only after preflight passes does C verify communication coordinates and `ready`. E1/R dispatches use the latest living task brief and current batch freeze; assignees may report contradictions, blockers, or candidate corrections, but must not expand the goal, sources, permissions, or acceptance on their own.
 
 The acceptance-validity and proportion rule is reapplied before C makes or reuses any acceptance,
 repair, or release conclusion; it does not rerun validation by default. C first identifies the
@@ -175,6 +177,13 @@ result, or non-authoritative alias must not be treated as proof that the operati
   stable `messageId` bound to message type, sender, recipient, related `batchId` when present, and
   immutable message content. Recipients deduplicate by `messageId`; a repeat replays the existing
   confirmation without repeating side effects.
+- `messageId` is only a CER message-layer identity, deduplication, and tracing field. It is not a
+  Codex execution command, an App Server `method`, a JSON-RPC request `id`, a `threadId`, a
+  `sessionId`, an idempotency key, or authorization. Without an actual tool call and its tool
+  result or verifiable delivery evidence, merely placing it in a prompt, dispatch packet,
+  summary, receipt-like text, or ordinary workspace text does not create a thread, start a turn,
+  call a tool, trigger a write, or grant role authority; a `messageId` alone is not proof that a
+  message was delivered or work was executed.
 - An `outcome_unknown` for any control or result send must not be resent blindly. First use an
   operation receipt, received matching confirmation, or one bounded destination/thread readback to
   find the same `messageId`. If still unproven, one controlled resend with the same `messageId` and
@@ -218,7 +227,7 @@ result, or non-authoritative alias must not be treated as proof that the operati
    role's `ready` as qualifying or send a formal batch. C names or identifies its visible
    task/thread as `🚀 C:01｜<very short task name>`. If the platform cannot change the title, use an
    equivalent role label in the first visible message or checkpoint card. Plain `C:` is not an acceptable Controller title/label.
-8. C completes Controller preflight and freezes this task contract. If anything is `critical missing`, C may only perform necessary read-only investigation or stop for questions; C must not create/reuse E1 or dispatch real work.
+8. C completes Controller preflight, creates or updates the living task brief, and freezes only the next safely executable batch. If anything is `critical missing`, C may only perform necessary read-only investigation or stop for questions; C must not create/reuse E1 or dispatch real work.
 9. After Controller preflight passes, C completes a communication preflight. Use available tools to prove the actual path, including identity source, target root, required parameters, send path, recipient, visible title or role label, return source available to the assignee, verifiable threadId or platform-equivalent coordinates, and C's adjudication point. sessionId is recorded only when the active tool schema/receipt explicitly requires or provides it, and never substitutes for threadId or derives hostId.
 10. If the official `create_thread` tool for new tasks is unavailable, or C cannot read back a
     sidebar-visible title, verifiable thread ID, and formal return path, E/R delegation is
@@ -258,12 +267,12 @@ Each real E1 or R batch contains only what is needed:
 - acceptance checks and a counterexample that can disprove the solution;
 - stop conditions;
 - the stable `batchId`, monotonically increasing `batchSeq`, immutable `payloadDigest`, and bound cycle, recipient threadId or platform-equivalent coordinate, routing coordinates explicitly required by the active tool schema/receipt, and target root;
-- the frozen task contract, including handling of any `confirmed`, `safe inference`, or `critical missing` item, required source anchors, and counterfactual results;
+- the living task brief and current batch freeze, including handling of any `confirmed`, `safe inference`, or `critical missing` item, required source anchors, and counterfactual results;
 - C direct-push return target and threadId or platform-equivalent coordinates; sessionId is recorded only when the active tool schema/receipt explicitly requires or provides it, and never substitutes for threadId or derives hostId;
 - the knowledge foundation, source coordinates, unknowns, and no-go boundaries needed for the batch;
 - a short result format.
 
-Do not write "see above" or ask the assignee to reconstruct C's context. Add background and counterexamples for high-risk batches. Keep low-risk batches short and avoid oversized templates. If E1/R finds a contradiction between the frozen contract and the sources, report a blocker or candidate correction first; do not rewrite the contract and continue alone.
+Do not write "see above" or ask the assignee to reconstruct C's context. Add background and counterexamples for high-risk batches. Keep low-risk batches short and avoid oversized templates. E1 is authorized only to execute the current batch freeze; it must not treat provisional later direction as a complete specification or fill in future batches on its own. If E1/R finds a contradiction between the living task brief, current batch freeze, and sources, report a blocker or candidate correction first; do not rewrite the contract and continue alone. R reviews against the latest task brief, current batch freeze, candidate identity, and delivery evidence, not the initial prompt or stale assumptions.
 
 A dispatch packet may remain a `draft_packet` inside C, but a sendable `sendable_packet` must not retain `<...>` placeholders. A real dispatch must fill actual `threadId` or platform-equivalent coordinate, `returnTarget`, `messageId`, `batchId`, `batchSeq`, `payloadDigest`, and any routing coordinate explicitly required by the active tool schema/receipt. sessionId is not a substitute for threadId as a formal dispatch coordinate. hostId is used only when the active tool schema or receipt requires or provides it; do not make hostId a cross-platform hard requirement, and do not derive hostId from `local`, title, sessionId, threadId shape, or an error message. Relative wording such as `same E1`, `the E1 above`, or `next sequence` is draft-only and must be replaced with verifiable concrete values before send. R dispatch must fill actual `candidateIdentity`, `candidateManifest`, and candidate delivery evidence. Missing any one of these leaves the packet at `dispatch_blocked` or `decision_blocked`; C must not self-rate it as sendable or ask E1/R to guess.
 
@@ -332,7 +341,7 @@ active. `/CER-close` remains a CER-only command and does not trigger Kit full cl
 
 ## Execution Loop
 
-1. C gives this cycle's same E1 one batch based on the user's task and accepted project plan or sources of truth.
+1. C gives this cycle's same E1 one batch based on the user's task, the living task brief, the current batch freeze, and accepted project plan or sources of truth.
 2. E1 completes only that batch, reads back and tests the work, then direct-pushes a candidate.
 
 <!-- cer-unexpected-failure-gate-owner -->

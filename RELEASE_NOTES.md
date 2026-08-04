@@ -3,6 +3,30 @@
 範圍說明：本檔各版本區段記錄對應版本的 release history；未發布內容會明確標示
 為候選。實際執行規則以使用者已安裝版本隨附的 Skill references 為準。
 
+## v0.3.5（候選，尚未發布）
+
+本候選補上兩項 runtime 根修。
+
+第一，`messageId` 的身份邊界更清楚：它是 CER 訊息層的識別、去重及追蹤欄位，
+不是 Codex 執行指令、App Server `method`、JSON-RPC request `id`、thread/session
+身份、idempotency key 或授權。只有實際工具呼叫及可核實工具結果／送達證據，才可
+推進訊息送達或工作執行判斷。
+
+第二，Controller preflight 及路線圖正式整合「活的任務簡報」：模糊但可起步的
+多批任務不要求使用者先寫完整規格；C 會分清已確認要求／排除、可安全推定、
+關鍵缺口、最新回饋、本批凍結、下一個可觀察預覽或裁決點，且只凍結下一個可安全
+執行批次。中途回饋改變方向時，C 先更新任務簡報和路線圖差異，再用新的批次身份
+或 supersede 流程交回同一 E1；R 依最新任務簡報及本批凍結驗收，不按過期 prompt
+驗收。用戶可見的簡報必須帶 CER 標識和 C／E1／R 語境，避免看起來像 Codex 原生
+內部功能。
+
+- 雙語 runtime owner 明確禁止只把 `messageId` 寫入 prompt、派工包、摘要或一般
+  workspace 文字，就當成建立 thread、開始 turn、呼叫工具、觸發寫入或授權
+- 雙語 runtime、roadmap、UAT 與 Skill validator 加入 living brief、CER 可見樣式的
+  反例及固定回歸，套件各由 141 增至 172 個 mutation cases
+- 這只是本地候選；尚未 commit、push、建立 GitHub Release、安裝全域 Skill 或進行
+  發布後使用者手動 UAT
+
 ## v0.3.4
 
 本版收斂四項已在實際 CER 使用中確認的通用 runtime 修正，不新增指令、角色或

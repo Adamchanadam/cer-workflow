@@ -4,6 +4,33 @@ Scope note: each version section records release history for that version; unrel
 explicitly marked as a candidate. Runtime authority remains the Skill references bundled with the
 version the user has installed.
 
+## v0.3.5 (candidate — not released)
+
+This candidate adds two runtime root fixes.
+
+First, the `messageId` identity boundary is explicit: it is a CER message-layer
+identity, deduplication, and tracing field, not a Codex execution command, an App Server
+`method`, a JSON-RPC request `id`, a thread/session identity, an idempotency key, or authorization.
+Only an actual tool call and verifiable tool result or delivery evidence can advance a delivery or
+execution decision.
+
+Second, Controller preflight and the roadmap now include the living task brief. A fuzzy but
+startable multi-batch task does not require the user to write a complete specification first. C
+separates confirmed requirements/exclusions, safe inferences, critical gaps, latest feedback,
+current batch freeze, and the next observable preview or decision point, then freezes only the next
+safely executable batch. When mid-work feedback changes direction, C updates the brief and roadmap
+delta before using a new batch identity or supersede flow with the same E1. R reviews against the
+latest task brief and current batch freeze, not a stale initial prompt. Any user-visible brief must
+carry CER identity and C/E1/R context so it is not mistaken for a native Codex internal feature.
+
+- The bilingual runtime owner now rejects treating a `messageId` written only in a prompt, dispatch
+  packet, summary, or ordinary workspace text as proof of thread creation, turn start, tool call,
+  write, or authorization
+- Bilingual runtime, roadmap, UAT, and Skill validators add living-brief and CER visible-style
+  counterexamples and fixed regressions; each package grows from 141 to 172 mutation cases
+- This remains a local candidate; it has not been committed, pushed, released on GitHub, installed
+  as a global Skill, or covered by post-release user manual UAT
+
 ## v0.3.4
 
 This release consolidates four reusable runtime corrections confirmed in real CER use. It adds no

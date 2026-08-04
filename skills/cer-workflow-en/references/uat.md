@@ -278,7 +278,10 @@ cycle label or guess a number.
 
 - When the user gives a natural-language task that is sufficient to start a small batch but omits reversible details that would not materially change the outcome, C may mark them `safe inference` and continue.
 - If missing information has multiple reasonable answers and different answers would materially change the deliverable, permissions/risk, acceptance, or cause major rework, C must mark the item `critical missing` and stop for questions.
-- C's frozen task contract and E1/R dispatches preserve the three states, required source anchors, and counterfactual results. They must not invent user confirmation.
+- For a fuzzy but startable multi-batch task, C creates a living task brief that preserves confirmed requirements/exclusions, safe inferences, critical gaps, latest user feedback, current batch freeze, and the next observable preview or decision point. C freezes only the next safely executable batch; it does not require the user to write a complete specification first, does not treat `$project-context-workflow` as a prerequisite, and does not create fixed project documents.
+- After the user sees an intermediate result and changes direction or adds a constraint, C first updates the living task brief and roadmap delta. If an already-dispatched batch is affected, C uses a new `batchId`/`payloadDigest` or supersedes the old batch before returning to the same E1. It does not continue with stale assumptions.
+- R reviews against the latest task brief, current batch freeze, candidate identity, and delivery evidence; it must not review only against the initial prompt or stale assumptions.
+- C's current batch freeze and E1/R dispatches preserve the three states, required source anchors, and counterfactual results. They must not invent user confirmation.
 
 ## Unexpected Failure And Scope-Exception Scenarios
 
@@ -398,7 +401,10 @@ These scenarios only test the unexpected-failure gate in
 - Safely inferable details are wrongly upgraded into a blocking form, or simple work is forced to display governance ceremony.
 - C labels an assumption as `confirmed` without an explicit user statement or an authoritative source C has read.
 - C labels an item `safe inference` and dispatches even though the opposite assumption would materially change the deliverable, permissions/risk, acceptance, or cause major rework.
-- The frozen task contract or dispatch writes an unsupported assumption as `confirmed`.
+- The initial prompt is treated as an immutable complete specification for the whole cycle, or C dispatches the next batch after a user direction change without updating the living task brief and roadmap delta.
+- E1 treats provisional later direction as a complete specification and implements an unfrozen future batch, or R rejects a candidate only against the initial prompt or stale assumptions.
+- The living task brief is written as another process, fixed document set, or new role instead of being part of the existing Controller preflight and roadmap.
+- The current batch freeze or dispatch writes an unsupported assumption as `confirmed`.
 - C dispatches instead of stopping when critical endpoint, permission, or acceptance information is missing.
 - E1 treats a test failure as new modification authority, or treats an allowed file as authority to
   change every meaning in that file.
@@ -469,6 +475,10 @@ These scenarios only test the unexpected-failure gate in
 - A ready, accept, stop, state, result, or result-acceptance message lacks stable `messageId`, or an
   ambiguous outcome causes blind resend or permanent waiting.
 - An ambiguous send uses a new `messageId` or `batchId` to bypass deduplication.
+- A `messageId` is merely placed in a prompt, dispatch packet, summary, or receipt-like text and
+  treated as proof that a thread was created, a turn started, a tool was called, a write was
+  triggered, or authority was granted; or without an actual tool call and verifiable tool result
+  or delivery evidence, the message is still claimed as delivered or the work as executed.
 - A higher-`batchSeq` revision is dispatched or started before the old batch is canceled zero-write,
   terminated, or fully recovered, or a delayed `SUPERSEDED`/lower-sequence batch still executes.
 - "Read only after push" is used to refuse bounded exact-`messageId` failure recovery and wait

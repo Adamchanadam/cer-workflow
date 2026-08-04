@@ -197,6 +197,58 @@ SENDABLE_PACKET_FORBIDDEN = {
     "draft_pass": "`draft_packet` 可自評為可送出",
 }
 
+MESSAGE_ID_BOUNDARY_REQUIREMENTS = (
+    "`messageId` 只是 CER 訊息層的識別、去重及追蹤欄位",
+    "不是 Codex 執行指令、App Server `method`、JSON-RPC request `id`、`threadId`、`sessionId`、idempotency key 或授權",
+    "未經實際工具呼叫及工具結果／可核實送達證據",
+    "只有 `messageId` 不算訊息已送達或工作已執行",
+)
+
+MESSAGE_ID_UAT_REQUIREMENTS = {
+    "identity_not_command": "只在 prompt、派工包、摘要或自稱回執中放入 `messageId`，就把它當成已建立 thread、開始 turn、呼叫工具、觸發寫入或授權",
+}
+
+MESSAGE_ID_FORBIDDEN = {
+    "messageid_starts_operation": "單獨 `messageId` 可以建立 thread、開始 turn 或呼叫工具",
+    "messageid_is_authority": "`messageId` 本身就是授權或 idempotency key",
+}
+
+LIVING_BRIEF_REQUIREMENTS = (
+    "C 維護一份活的任務簡報",
+    "活的任務簡報不是新 workflow，也不建立固定項目文件",
+    "已確認要求／排除、可安全推定、關鍵缺口、最新使用者回饋、本批凍結、下一個可觀察預覽或裁決點、與上一版相比改變了甚麼",
+    "C 只凍結下一個可安全執行批次",
+    "E1／R 派工使用最新活的任務簡報與本批凍結",
+    "E1 只獲授權執行本批凍結內容",
+    "R 依最新任務簡報、本批凍結、候選 identity 及 delivery evidence 驗收",
+)
+
+LIVING_BRIEF_ROADMAP_REQUIREMENTS = (
+    "顯示活的任務簡報、本批凍結和下一個可觀察停點",
+    "任何用戶可見的活的任務簡報都必須明示 `CER`",
+    "不得以「Codex 任務簡報」",
+    "CER 路線圖｜活簡報",
+    "CER 活簡報：已確認=<...>｜安全推定=<...>｜待裁決=<...>",
+    "CER 本批凍結：<只本批會做>",
+    "CER 上次回饋／變更：<...／無>",
+    "活的任務簡報也只由最高可用權威來源",
+)
+
+LIVING_BRIEF_UAT_REQUIREMENTS = {
+    "fuzzy_start": "模糊但可開始的多批任務，C 建立活的任務簡報",
+    "no_full_spec_first": "不要求使用者先寫完整規格",
+    "not_project_context_prereq": "不把 `$project-context-workflow` 當成前置",
+    "feedback_delta": "使用者看過中間成果後改方向或補限制時，C 先更新活的任務簡報和路線圖差異",
+    "review_latest_brief": "R 驗收依最新任務簡報、本批凍結、候選 identity 及 delivery evidence",
+}
+
+LIVING_BRIEF_FORBIDDEN = {
+    "new_workflow": "活的任務簡報是一個獨立新 workflow",
+    "initial_prompt_full_freeze": "整輪初始 prompt 永遠是完整凍結規格",
+    "e1_unfrozen_future": "E1 可自行實作未凍結後續批次",
+    "r_initial_prompt_only": "R 只按最初 prompt 驗收",
+}
+
 
 def read_texts(root: Path) -> dict[str, str]:
     texts: dict[str, str] = {}
@@ -443,6 +495,7 @@ def validate_texts(root: Path, texts: dict[str, str]) -> list[str]:
     core = texts["references/core-runtime.md"]
     uat = re.sub(r"\s+", " ", texts["references/uat.md"])
     roadmap = re.sub(r"\s+", " ", texts["references/roadmap.md"])
+    core_normalized = re.sub(r"\s+", " ", core)
     unexpected_failure_match = re.search(
         r"^## 執行閉環[ \t]*\n([\s\S]*?)(?=^## |\Z)", core, re.MULTILINE
     )
@@ -467,6 +520,27 @@ def validate_texts(root: Path, texts: dict[str, str]) -> list[str]:
         for label, required in SENDABLE_PACKET_REQUIREMENTS.items():
             if required not in self_contained_owner:
                 findings.append(f"sendable-packet gate missing {label}")
+    message_identity_match = re.search(
+        r"^## 工具結果不明、角色對帳與批次去重[ \t]*\n([\s\S]*?)(?=^## |\Z)",
+        core,
+        re.MULTILINE,
+    )
+    if not message_identity_match:
+        findings.append("core-runtime.md lacks the message-identity boundary section")
+    else:
+        message_identity_owner = re.sub(r"\s+", " ", message_identity_match.group(1))
+        for index, required in enumerate(MESSAGE_ID_BOUNDARY_REQUIREMENTS):
+            if required not in message_identity_owner:
+                findings.append(f"message-identity boundary missing requirement_{index}")
+        for label, forbidden in MESSAGE_ID_FORBIDDEN.items():
+            if forbidden in message_identity_owner:
+                findings.append(f"message-identity fixed contradiction present {label}")
+    for index, required in enumerate(LIVING_BRIEF_REQUIREMENTS):
+        if required not in core_normalized:
+            findings.append(f"living-brief runtime missing requirement_{index}")
+    for label, forbidden in LIVING_BRIEF_FORBIDDEN.items():
+        if forbidden in core_normalized:
+            findings.append(f"living-brief fixed contradiction present {label}")
     for label, forbidden in UNEXPECTED_FAILURE_FORBIDDEN.items():
         if forbidden in normalized_markdown:
             findings.append(f"unexpected-failure fixed contradiction present {label}")
@@ -496,6 +570,12 @@ def validate_texts(root: Path, texts: dict[str, str]) -> list[str]:
     for label, required in SENDABLE_PACKET_UAT_REQUIREMENTS.items():
         if required not in uat:
             findings.append(f"uat.md missing sendable-packet counterexample {label}")
+    for label, required in MESSAGE_ID_UAT_REQUIREMENTS.items():
+        if required not in uat:
+            findings.append(f"uat.md missing message-identity counterexample {label}")
+    for label, required in LIVING_BRIEF_UAT_REQUIREMENTS.items():
+        if required not in uat:
+            findings.append(f"uat.md missing living-brief counterexample {label}")
     unexpected_failure_uat_match = re.search(
         r"^## 未預期失敗與範圍例外情景[ \t]*\n([\s\S]*?)(?=^## |\Z)",
         texts["references/uat.md"],
@@ -510,6 +590,9 @@ def validate_texts(root: Path, texts: dict[str, str]) -> list[str]:
                 findings.append(f"unexpected-failure UAT marker invalid {label}")
     if "平行候選生產者是 C 的內部按需能力，不加入角色欄" not in roadmap:
         findings.append("roadmap.md lacks display-only producer boundary")
+    for index, required in enumerate(LIVING_BRIEF_ROADMAP_REQUIREMENTS):
+        if required not in roadmap:
+            findings.append(f"roadmap.md missing living-brief display requirement_{index}")
     for relative in (
         "references/core-runtime.md",
         "references/roadmap.md",
@@ -798,10 +881,45 @@ def mutation_matrix(root: Path) -> tuple[int, list[str]]:
                 mutated_fragment("references/core-runtime.md", fragment),
             )
         )
+    for index, fragment in enumerate(MESSAGE_ID_BOUNDARY_REQUIREMENTS):
+        cases.append(
+            (
+                f"message_id_owner_missing_{index}",
+                mutated_fragment("references/core-runtime.md", fragment),
+            )
+        )
+    for index, fragment in enumerate(LIVING_BRIEF_REQUIREMENTS):
+        cases.append(
+            (
+                f"living_brief_runtime_missing_{index}",
+                mutated_fragment("references/core-runtime.md", fragment),
+            )
+        )
+    for index, fragment in enumerate(LIVING_BRIEF_ROADMAP_REQUIREMENTS):
+        cases.append(
+            (
+                f"living_brief_roadmap_missing_{index}",
+                mutated_fragment("references/roadmap.md", fragment),
+            )
+        )
     for label, fragment in SENDABLE_PACKET_UAT_REQUIREMENTS.items():
         cases.append(
             (
                 f"sendable_packet_uat_missing_{label}",
+                mutated_fragment("references/uat.md", fragment),
+            )
+        )
+    for label, fragment in MESSAGE_ID_UAT_REQUIREMENTS.items():
+        cases.append(
+            (
+                f"message_id_uat_missing_{label}",
+                mutated_fragment("references/uat.md", fragment),
+            )
+        )
+    for label, fragment in LIVING_BRIEF_UAT_REQUIREMENTS.items():
+        cases.append(
+            (
+                f"living_brief_uat_missing_{label}",
                 mutated_fragment("references/uat.md", fragment),
             )
         )
@@ -831,6 +949,28 @@ def mutation_matrix(root: Path) -> tuple[int, list[str]]:
                     "references/core-runtime.md",
                     "## 自足派工",
                     f"## 自足派工\n\n{contradiction}。",
+                ),
+            )
+        )
+    for label, contradiction in MESSAGE_ID_FORBIDDEN.items():
+        cases.append(
+            (
+                f"message_id_contradiction_{label}",
+                mutated(
+                    "references/core-runtime.md",
+                    "## 工具結果不明、角色對帳與批次去重",
+                    f"## 工具結果不明、角色對帳與批次去重\n\n{contradiction}。",
+                ),
+            )
+        )
+    for label, contradiction in LIVING_BRIEF_FORBIDDEN.items():
+        cases.append(
+            (
+                f"living_brief_contradiction_{label}",
+                mutated(
+                    "references/core-runtime.md",
+                    "## Controller preflight",
+                    f"## Controller preflight\n\n{contradiction}。",
                 ),
             )
         )

@@ -17,6 +17,8 @@
   multi-stage, multi-batch, or first-public-alignment CER work without requiring user action. Layout, stage count, and
   extra fields adapt to the project. Do not use a fixed four-box or fixed-table template as a
   substitute for real task information. Minimum content is defined under "Display Priority".
+  Work that needs convergence also shows the living task brief, current batch freeze, and next
+  observable checkpoint.
 - The **four-color ASCII bear card** is a checkpoint signal. It answers whether the user must preview,
   decide, handle a blocker, or accept a result. It is not the roadmap or a continuous tracker.
 
@@ -27,7 +29,8 @@ position, while the card names the current checkpoint.
 
 1. When C classifies work as multi-stage, multi-batch, or a new product, flow, design, content,
    or experience deliverable that needs first public alignment, show the initial roadmap before
-   the first real batch.
+   the first real batch. It includes the living task brief, current batch freeze, and next preview
+   or decision point.
 2. Update it after C reads back and accepts a result that changes the stage, batch, or next
    checkpoint.
 3. When a user decision, an actual new constraint, or R evidence materially changes direction,
@@ -127,9 +130,14 @@ complete/current/pending state; overall progress; the current action and verifie
 blocker; C/E1/R state; the next checkpoint; and knowledge-foundation state only for
 knowledge-heavy work. First public alignment also shows scope/exclusions, key assumptions, the
 smallest observable result, whether technical acceptance and fit check apply, and whether a user
-decision is needed. A bear card reduces the current situation to a preview, decision,
+decision is needed. Work that needs convergence also shows the living task brief: confirmed
+requirements/exclusions, safe inferences, critical gaps, latest feedback, current batch freeze,
+the next preview or decision point, and what changed from the previous version. A bear card reduces the current situation to a preview, decision,
 blocker, or acceptance checkpoint. Both derive from existing project plan/progress or verified
 execution state and do not create a second progress source.
+Any user-visible living-brief rendering must carry `CER` identity and C/E1/R or
+Controller/Executor/Reviewer context. Do not present it as a Codex task brief, Goal plan,
+assistant plan, or unbranded internal feature.
 
 1. When Codex exposes a callable in-conversation visualization capability, create an inline HTML visualization by default and use the capability's official rendering instruction, such as `::codex-inline-vis{file="..."}`.
 2. Mermaid does not satisfy the first layer. Use Mermaid only when inline visualization is unavailable, not callable, cannot write to its required visual directory, or fails to render.
@@ -139,9 +147,13 @@ execution state and do not create a second progress source.
 Plain-text fallback:
 
 ```text
-Goal: <destination>
-Scope/exclusions: <in scope / not doing now>
-Key assumptions: <confirmed / safe inference / decision needed>
+CER roadmap | live brief
+CER goal: <destination>
+CER scope/exclusions: <in scope / not doing now>
+CER assumptions: <confirmed / safe inference / decision needed>
+CER live brief: confirmed=<...> | safe inference=<...> | decisions needed=<...>
+CER current batch freeze: <only what this batch will do>
+CER last feedback / change: <... / none>
 [Public alignment: <confirmed / safe inference / decision needed>]
 [✓] Complete -> [● Now] Current stage -> [○] Later stage -> [○] Final delivery / closeout
 Current: <one sentence>
@@ -149,7 +161,7 @@ Smallest observable outcome: <next thing the user will see>
 Acceptance: technical acceptance=<condition / not applicable>; fit check=<condition / not applicable>
 Next checkpoint: <one sentence>
 Knowledge foundation: <confirmed / source missing / not applicable>
-Roles: C=<state> | E1=<state> | R=<not created / reviewing / complete>
+CER roles: C=<state> | E1=<state> | R=<not created / reviewing / complete>
 ```
 
 ## Role Display Boundary
@@ -161,7 +173,9 @@ ordinary risk language when it becomes a material blocker.
 
 ## Roadmap Source
 
-Use the highest available authority and do not create a second progress record:
+Use the highest available authority and do not create a second progress record. The living task
+brief also derives only from the highest available authority and C-adjudicated facts in this
+cycle; it is not a second plan, fixed document set, or new workflow:
 
 1. If the target project has an authoritative progress source or roadmap, derive from it.
 2. If it has only an accepted plan, derive temporary state from that plan plus verified execution evidence.

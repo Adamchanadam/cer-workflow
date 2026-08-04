@@ -76,7 +76,7 @@ CER v1 接受自然語言和 slash command 兩種入口。slash command 是穩�
 
 ## Controller preflight
 
-在建立本輪 E1、復用同輪既有 E1，或派任何實際 E1／R 批次前，C 先完成適應式任務契約。它不是表格儀式；簡單低風險且終點唯一的任務可只在內部完成並以短摘要直接工作。長期、多批，或新產品、流程、設計、內容、體驗型成果，則把必要答案濃縮進首次公開對齊的初始路線圖與自足派工。
+在建立本輪 E1、復用同輪既有 E1，或派任何實際 E1／R 批次前，C 先完成適應式任務契約。它不是表格儀式；簡單低風險且終點唯一的任務可只在內部完成並以短摘要直接工作。長期、多批，或新產品、流程、設計、內容、體驗型成果，C 維護一份活的任務簡報，並把必要答案濃縮進首次公開對齊的初始路線圖與自足派工。活的任務簡報不是新 workflow，也不建立固定項目文件；它只是 C 在本輪 CER 內用來承載目前已裁決任務狀態的工作面。
 
 C 只判斷五項，每項標成 `已確認`、`可安全推定` 或 `關鍵缺失`：
 
@@ -88,9 +88,11 @@ C 只判斷五項，每項標成 `已確認`、`可安全推定` 或 `關鍵缺�
 
 三態判定必須有證據邊界。`已確認` 只可來自使用者明示或已讀權威真源，C 必須能指出來源錨點；沒有來源的推測不得標成 `已確認`。`可安全推定` 必須通過反事實測試：若相反假設成立，仍不會實質改變交付物、使用流程、協作方式、資料處理、權限／風險或驗收，也不會造成重大重做，才可通過；若多個合理答案會導致實質不同成果，該項就是 `關鍵缺失`。
 
-派工前，C 做一次短 QC：逐項核對 `已確認` 是否有來源、`可安全推定` 的反事實結果是否成立，以及凍結任務契約沒有把推測升格為 `已確認`。QC 失敗時，C 不得建立／復用 E1，也不得派實際批次；只能先做必要唯讀調查，或用 `🟡 使用者裁決` 最多問三個會實質改變結果的問題。
+對需要首次公開對齊或中途收斂的任務，活的任務簡報至少列明：已確認要求／排除、可安全推定、關鍵缺口、最新使用者回饋、本批凍結、下一個可觀察預覽或裁決點、與上一版相比改變了甚麼。C 只凍結下一個可安全執行批次；後續方向可保持暫定，待使用者看到中間成果、補資料或 R 提出反證後再更新。使用者回饋、真源讀回或 R 證據改變方向／範圍／交付形狀／驗收時，C 先更新活的任務簡報和路線圖差異，再派下一批；若已派出的批次受影響，按批次去重規則用新的 `batchId`／`payloadDigest` 重凍結或先 supersede 舊批次。
 
-`關鍵缺失` 代表 C 不能安全判斷或派工。此時 C 只可先做必要唯讀調查；若仍缺少會實質改變結果的資訊，用 `🟡 使用者裁決` 最多問三個問題。preflight 通過後，C 才做通訊座標與 ready 驗證。E1／R 派工使用同一份凍結任務契約，只能回報矛盾、阻礙或候選修正，不能自行擴大目標、真源、權限或驗收。
+派工前，C 做一次短 QC：逐項核對 `已確認` 是否有來源、`可安全推定` 的反事實結果是否成立，以及本批凍結沒有把推測升格為 `已確認`。QC 失敗時，C 不得建立／復用 E1，也不得派實際批次；只能先做必要唯讀調查，或用 `🟡 使用者裁決` 最多問三個會實質改變結果的問題。
+
+`關鍵缺失` 代表 C 不能安全判斷或派工。此時 C 只可先做必要唯讀調查；若仍缺少會實質改變結果的資訊，用 `🟡 使用者裁決` 最多問三個問題。preflight 通過後，C 才做通訊座標與 ready 驗證。E1／R 派工使用最新活的任務簡報與本批凍結，只能回報矛盾、阻礙或候選修正，不能自行擴大目標、真源、權限或驗收。
 
 驗收有效性與比例原則在 C 每次作成或沿用驗收、修補或發布結論前都再次套用，不是預設重跑驗證。
 C 先指出具體結論、支撐該結論的證據及其前提。既有證據只在被驗對象、需求、
@@ -162,6 +164,11 @@ source／package mismatch 或發布／安裝產物不一致，或可信理由顯
 - 所有 ready、accept、stop、批次回執、狀態、結果及結果接納訊息都使用穩定
   `messageId`，綁定訊息種類、sender、recipient、相關 `batchId` 如有，以及
   不可變訊息內容。接收者按 `messageId` 去重；重複訊息重播既有確認，不重做副作用。
+- `messageId` 只是 CER 訊息層的識別、去重及追蹤欄位，不是 Codex 執行指令、App Server
+  `method`、JSON-RPC request `id`、`threadId`、`sessionId`、idempotency key 或授權。
+  未經實際工具呼叫及工具結果／可核實送達證據，單獨把它寫入 prompt、派工包、摘要、
+  自稱回執或一般 workspace 文字，不會建立 thread、開始 turn、呼叫工具、觸發寫入或
+  授予角色權限；只有 `messageId` 不算訊息已送達或工作已執行。
 - 任一控制或結果 send 為 `outcome_unknown` 時禁止盲目重發。先以 operation receipt、
   已收到的對應確認，或一次有界目的地／thread 讀回尋找相同 `messageId`；仍無法
   證明時，只有接收者身份仍唯一且具訊息去重，才可用相同 `messageId` 及完全相同
@@ -184,7 +191,7 @@ source／package mismatch 或發布／安裝產物不一致，或可信理由顯
 5. Remote 接收 task 收到明確 Remote CER 啟動語意後，先 direct-push candidate `C_READY`，必含自身 threadId 或平台等價座標、target_root、return target／path，以及當前工具 schema／receipt 明示必需的回傳或路由座標；不得猜 hostId。發送方完成唯一性核實並實際讀回 `C_READY` 後，必須以同一可用回傳路徑向接收者發 `C_ACCEPTED`；接收者收到 `C_ACCEPTED` 後才成為 active C 並做 Controller preflight。只發送 `C_READY`、未讀回 `C_READY` 或未收到 `C_ACCEPTED`，Remote C 身份及通訊路徑都不成立。若發送方原本是 active C，須先完成 handoff／close 才可發 `C_ACCEPTED`。
 6. 不得為唯一 C 新增 lock file、central registry、run ID、conflict engine、新角色或測試例外；唯一性只靠已存在真源、官方枚舉、明示座標與本輪實際回傳／讀回證據判定。
 7. C 為每輪 CER-start 分配 project 內側欄辨識用短 cycle 編號。規則生效後的新 cycle 不得使用 `00`，必須用官方 project task/title 枚舉讀回既有數字 cycle 標籤，選下一個未使用正整數，至少兩位顯示為 `01`、`02`；超過 99 可自然擴展。不得新增 central registry、lock 或 run ID。`00` 只表示 cycle numbering 規則生效前已開始、無法可靠回推原 cycle number 的 legacy/migration cycle；它和其他 cycle 編號一樣只供顯示，不是 lock、run ID、唯一 C 證據或 thread 身份，完整 threadId 仍是權威。Codex title 工具可用時，不得用初始 prompt、模型自動生成 title 或首行 label 代替側欄 rename；`create_thread` receipt 後立即呼叫官方 title 工具（目前 Codex schema 為 `set_thread_title`）設定／改名，並用 `list_threads`、`read_thread` 或平台等價讀回確認。讀回前，C 不得把該角色的 `ready` 判為合格，也不得送正式批次。若新 cycle 無法可靠枚舉或設定 title，保留最短 role title 並報真實 `title sync warning`；不得顯示問號 cycle 標籤、不得猜測數字，也不得因顯示標籤失敗冒充 lifecycle 或 identity failure。C 命名或識別自身可見 task／thread 為 `🚀 C:01｜<極短任務名>`；平台不能改 title 時，在首則可見訊息或停點卡首行標示同等角色標籤。單獨 `C:` 不是合格 Controller title／label。
-8. C 完成 Controller preflight，凍結本次任務契約；若有 `關鍵缺失`，只做必要唯讀調查或停問，不建立／復用 E1，也不派實際批次。
+8. C 完成 Controller preflight，建立或更新活的任務簡報，並只凍結下一個可安全執行批次；若有 `關鍵缺失`，只做必要唯讀調查或停問，不建立／復用 E1，也不派實際批次。
 9. Controller preflight 通過後，C 完成通訊 preflight：以可用工具證明本次實際採用的路徑可用，包括身份來源、目標 root、必要參數、發送路徑、接收者、可見標題或角色標籤、assignee 可取得的回傳來源、可核實 threadId 或平台等價座標，以及 C 的裁決點。sessionId 只在當前工具 schema／receipt 明示需要／提供時附帶記錄，不可代替 threadId 或推導 hostId。
 10. 若官方 `create_thread` 新建 task 工具不可用，或無法讀回側欄可見 title、可核實 thread id 與正式回傳路徑，E／R 委派即阻塞；不得降級用 inline sub-agent、fork、delegate 或既有 task 冒充正式 E／R。
 11. 新建 E1／R／E2 時，標題或首行標籤必須分別以 `E1:01｜<極短任務名>`、`R1:01｜<極短審閱名>`／`R2:01｜...`、`E2:01｜...` 格式開首，不加 `🚀`；角色序號在冒號前，cycle 編號在冒號後，避免把第二輪 E1 誤作 E2。同輪所有 C／E／R 使用相同 cycle 編號，下一輪使用新 cycle 編號；legacy/migration cycle 可用 `00`。每個派工包和 ready／結果回執都要包含發送者角色、接收者、回傳目標、threadId 或平台等價座標。
@@ -208,12 +215,12 @@ source／package mismatch 或發布／安裝產物不一致，或可信理由顯
 - 驗收與能推翻方案的反例；
 - 停止條件；
 - 本批穩定 `batchId`、單調遞增 `batchSeq`、不可變 `payloadDigest`，以及所綁定的 cycle、接收者 threadId 或平台等價座標、當前工具 schema／receipt 明示必需的路由座標與 target root；
-- 凍結任務契約，以及任何 `已確認`、`可安全推定`、`關鍵缺失` 的處置、必要來源錨點和反事實結果；
+- 活的任務簡報與本批凍結，以及任何 `已確認`、`可安全推定`、`關鍵缺失` 的處置、必要來源錨點和反事實結果；
 - 回傳 C 的 direct-push 目標、threadId 或平台等價座標；sessionId 只在當前工具 schema／receipt 明示需要／提供時附帶記錄，不可代替 threadId 或推導 hostId；
 - 本批需要的知識底座、來源座標、未知與禁止越界範圍；
 - 短回報要求。
 
-不得寫「見上文」或要求 assignee 自行重建 C 的上下文。高風險批次補足背景與反例；低風險小修改保持短，不套巨型表格。E1／R 發現凍結契約與真源矛盾時，先回報 blocker 或候選修正，不自行改寫契約後繼續。
+不得寫「見上文」或要求 assignee 自行重建 C 的上下文。高風險批次補足背景與反例；低風險小修改保持短，不套巨型表格。E1 只獲授權執行本批凍結內容，不得把暫定後續意向當成完整規格或自行補成後續批次。E1／R 發現活的任務簡報、本批凍結與真源矛盾時，先回報 blocker 或候選修正，不自行改寫契約後繼續。R 依最新任務簡報、本批凍結、候選 identity 及 delivery evidence 驗收，不按最初 prompt 或過期假設驗收。
 
 派工包可在 C 內部暫為 `draft_packet`；但正式可送出的 `sendable_packet` 不得保留 `<...>` 佔位符。正式派工必須填入實際 `threadId` 或平台等價座標、`returnTarget`、`messageId`、`batchId`、`batchSeq`、`payloadDigest`，以及當前工具 schema／receipt 明示必需的路由座標。sessionId 不可代替 threadId 作正式派工座標。hostId 只在當前工具 schema 或 receipt 明示需要／提供時使用；不得把 hostId 寫成跨平台硬性必填，不得由 `local`、title、sessionId、threadId 形狀或錯誤訊息推導 hostId。`同一 E1`／`上述 E1`／`下一個序號` 等相對說法只可作草稿，正式派工必須換成可核實實值。R 派工必須填入實際 `candidateIdentity`、`candidateManifest` 及候選 delivery evidence；缺任一項即停在 `dispatch_blocked` 或 `decision_blocked`，不得自評為可送出或要求 E1／R 盲猜。
 
@@ -265,7 +272,7 @@ Governance bridge 完成後只作一般成果讀回與裁決，CER 保持啟動�
 
 ## 執行閉環
 
-1. C 依使用者任務及目標專案已確認的計劃／真源，給本輪同一 E1 一個批次。
+1. C 依使用者任務、活的任務簡報、目前本批凍結，以及目標專案已確認的計劃／真源，給本輪同一 E1 一個批次。
 2. E1 只完成本批，讀回、測試並 direct-push 候選。
 
 <!-- cer-unexpected-failure-gate-owner -->

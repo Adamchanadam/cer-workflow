@@ -197,6 +197,58 @@ SENDABLE_PACKET_FORBIDDEN = {
     "draft_pass": "`draft_packet` may self-rate as sendable",
 }
 
+MESSAGE_ID_BOUNDARY_REQUIREMENTS = (
+    "`messageId` is only a CER message-layer identity, deduplication, and tracing field",
+    "It is not a Codex execution command, an App Server `method`, a JSON-RPC request `id`, a `threadId`, a `sessionId`, an idempotency key, or authorization",
+    "Without an actual tool call and its tool result or verifiable delivery evidence",
+    "a `messageId` alone is not proof that a message was delivered or work was executed",
+)
+
+MESSAGE_ID_UAT_REQUIREMENTS = {
+    "identity_not_command": "A `messageId` is merely placed in a prompt, dispatch packet, summary, or receipt-like text and treated as proof that a thread was created, a turn started, a tool was called, a write was triggered, or authority was granted",
+}
+
+MESSAGE_ID_FORBIDDEN = {
+    "messageid_starts_operation": "A `messageId` alone can create a thread, start a turn, or call a tool",
+    "messageid_is_authority": "A `messageId` itself is authorization or an idempotency key",
+}
+
+LIVING_BRIEF_REQUIREMENTS = (
+    "C maintains a living task brief",
+    "The living task brief is not a new workflow and does not create fixed project documents",
+    "confirmed requirements/exclusions, safe inferences, critical gaps, latest user feedback, current batch freeze, next observable preview or decision point, and what changed from the previous version",
+    "C freezes only the next safely executable batch",
+    "E1/R dispatches use the latest living task brief and current batch freeze",
+    "E1 is authorized only to execute the current batch freeze",
+    "R reviews against the latest task brief, current batch freeze, candidate identity, and delivery evidence",
+)
+
+LIVING_BRIEF_ROADMAP_REQUIREMENTS = (
+    "shows the living task brief, current batch freeze, and next observable checkpoint",
+    "Any user-visible living-brief rendering must carry `CER` identity",
+    "Do not present it as a Codex task brief, Goal plan, assistant plan, or unbranded internal feature",
+    "CER roadmap | live brief",
+    "CER live brief: confirmed=<...> | safe inference=<...> | decisions needed=<...>",
+    "CER current batch freeze: <only what this batch will do>",
+    "CER last feedback / change: <... / none>",
+    "The living task brief also derives only from the highest available authority",
+)
+
+LIVING_BRIEF_UAT_REQUIREMENTS = {
+    "fuzzy_start": "For a fuzzy but startable multi-batch task, C creates a living task brief",
+    "no_full_spec_first": "does not require the user to write a complete specification first",
+    "not_project_context_prereq": "does not treat `$project-context-workflow` as a prerequisite",
+    "feedback_delta": "After the user sees an intermediate result and changes direction or adds a constraint, C first updates the living task brief and roadmap delta",
+    "review_latest_brief": "R reviews against the latest task brief, current batch freeze, candidate identity, and delivery evidence",
+}
+
+LIVING_BRIEF_FORBIDDEN = {
+    "new_workflow": "The living task brief is an independent new workflow",
+    "initial_prompt_full_freeze": "The initial prompt is always the complete frozen specification for the cycle",
+    "e1_unfrozen_future": "E1 may implement unfrozen future batches on its own",
+    "r_initial_prompt_only": "R reviews only against the initial prompt",
+}
+
 
 def read_texts(root: Path) -> dict[str, str]:
     texts: dict[str, str] = {}
@@ -443,6 +495,7 @@ def validate_texts(root: Path, texts: dict[str, str]) -> list[str]:
     core = texts["references/core-runtime.md"]
     uat = re.sub(r"\s+", " ", texts["references/uat.md"])
     roadmap = re.sub(r"\s+", " ", texts["references/roadmap.md"])
+    core_normalized = re.sub(r"\s+", " ", core)
     unexpected_failure_match = re.search(
         r"^## Execution Loop[ \t]*\n([\s\S]*?)(?=^## |\Z)", core, re.MULTILINE
     )
@@ -469,6 +522,27 @@ def validate_texts(root: Path, texts: dict[str, str]) -> list[str]:
         for label, required in SENDABLE_PACKET_REQUIREMENTS.items():
             if required not in self_contained_owner:
                 findings.append(f"sendable-packet gate missing {label}")
+    message_identity_match = re.search(
+        r"^## Ambiguous Tool Outcomes, Role Reconciliation, And Batch Deduplication[ \t]*\n([\s\S]*?)(?=^## |\Z)",
+        core,
+        re.MULTILINE,
+    )
+    if not message_identity_match:
+        findings.append("core-runtime.md lacks the message-identity boundary section")
+    else:
+        message_identity_owner = re.sub(r"\s+", " ", message_identity_match.group(1))
+        for index, required in enumerate(MESSAGE_ID_BOUNDARY_REQUIREMENTS):
+            if required not in message_identity_owner:
+                findings.append(f"message-identity boundary missing requirement_{index}")
+        for label, forbidden in MESSAGE_ID_FORBIDDEN.items():
+            if forbidden in message_identity_owner:
+                findings.append(f"message-identity fixed contradiction present {label}")
+    for index, required in enumerate(LIVING_BRIEF_REQUIREMENTS):
+        if required not in core_normalized:
+            findings.append(f"living-brief runtime missing requirement_{index}")
+    for label, forbidden in LIVING_BRIEF_FORBIDDEN.items():
+        if forbidden in core_normalized:
+            findings.append(f"living-brief fixed contradiction present {label}")
     for label, forbidden in UNEXPECTED_FAILURE_FORBIDDEN.items():
         if forbidden in normalized_markdown:
             findings.append(f"unexpected-failure fixed contradiction present {label}")
@@ -498,6 +572,12 @@ def validate_texts(root: Path, texts: dict[str, str]) -> list[str]:
     for label, required in SENDABLE_PACKET_UAT_REQUIREMENTS.items():
         if required not in uat:
             findings.append(f"uat.md missing sendable-packet counterexample {label}")
+    for label, required in MESSAGE_ID_UAT_REQUIREMENTS.items():
+        if required not in uat:
+            findings.append(f"uat.md missing message-identity counterexample {label}")
+    for label, required in LIVING_BRIEF_UAT_REQUIREMENTS.items():
+        if required not in uat:
+            findings.append(f"uat.md missing living-brief counterexample {label}")
     unexpected_failure_uat_match = re.search(
         r"^## Unexpected Failure And Scope-Exception Scenarios[ \t]*\n([\s\S]*?)(?=^## |\Z)",
         texts["references/uat.md"],
@@ -512,6 +592,9 @@ def validate_texts(root: Path, texts: dict[str, str]) -> list[str]:
                 findings.append(f"unexpected-failure UAT marker invalid {label}")
     if "Parallel candidate producers are C's internal on-demand capability. They do not enter role columns" not in roadmap:
         findings.append("roadmap.md lacks display-only producer boundary")
+    for index, required in enumerate(LIVING_BRIEF_ROADMAP_REQUIREMENTS):
+        if required not in roadmap:
+            findings.append(f"roadmap.md missing living-brief display requirement_{index}")
     for relative in (
         "references/core-runtime.md",
         "references/roadmap.md",
@@ -800,10 +883,45 @@ def mutation_matrix(root: Path) -> tuple[int, list[str]]:
                 mutated_fragment("references/core-runtime.md", fragment),
             )
         )
+    for index, fragment in enumerate(MESSAGE_ID_BOUNDARY_REQUIREMENTS):
+        cases.append(
+            (
+                f"message_id_owner_missing_{index}",
+                mutated_fragment("references/core-runtime.md", fragment),
+            )
+        )
+    for index, fragment in enumerate(LIVING_BRIEF_REQUIREMENTS):
+        cases.append(
+            (
+                f"living_brief_runtime_missing_{index}",
+                mutated_fragment("references/core-runtime.md", fragment),
+            )
+        )
+    for index, fragment in enumerate(LIVING_BRIEF_ROADMAP_REQUIREMENTS):
+        cases.append(
+            (
+                f"living_brief_roadmap_missing_{index}",
+                mutated_fragment("references/roadmap.md", fragment),
+            )
+        )
     for label, fragment in SENDABLE_PACKET_UAT_REQUIREMENTS.items():
         cases.append(
             (
                 f"sendable_packet_uat_missing_{label}",
+                mutated_fragment("references/uat.md", fragment),
+            )
+        )
+    for label, fragment in MESSAGE_ID_UAT_REQUIREMENTS.items():
+        cases.append(
+            (
+                f"message_id_uat_missing_{label}",
+                mutated_fragment("references/uat.md", fragment),
+            )
+        )
+    for label, fragment in LIVING_BRIEF_UAT_REQUIREMENTS.items():
+        cases.append(
+            (
+                f"living_brief_uat_missing_{label}",
                 mutated_fragment("references/uat.md", fragment),
             )
         )
@@ -833,6 +951,28 @@ def mutation_matrix(root: Path) -> tuple[int, list[str]]:
                     "references/core-runtime.md",
                     "## Self-Contained Dispatch",
                     f"## Self-Contained Dispatch\n\n{contradiction}.",
+                ),
+            )
+        )
+    for label, contradiction in MESSAGE_ID_FORBIDDEN.items():
+        cases.append(
+            (
+                f"message_id_contradiction_{label}",
+                mutated(
+                    "references/core-runtime.md",
+                    "## Ambiguous Tool Outcomes, Role Reconciliation, And Batch Deduplication",
+                    f"## Ambiguous Tool Outcomes, Role Reconciliation, And Batch Deduplication\n\n{contradiction}.",
+                ),
+            )
+        )
+    for label, contradiction in LIVING_BRIEF_FORBIDDEN.items():
+        cases.append(
+            (
+                f"living_brief_contradiction_{label}",
+                mutated(
+                    "references/core-runtime.md",
+                    "## Controller Preflight",
+                    f"## Controller Preflight\n\n{contradiction}.",
                 ),
             )
         )
