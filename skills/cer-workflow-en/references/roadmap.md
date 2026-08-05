@@ -31,16 +31,17 @@ position, while the card names the current checkpoint.
    or experience deliverable that needs first public alignment, show the initial roadmap before
    the first real batch. It includes the living task brief, current batch freeze, and next preview
    or decision point.
-2. Update it after C reads back and accepts a result that changes the stage, batch, or next
-   checkpoint.
+2. Update it after C reads back and accepts a result that creates an outcome difference for a user
+   completion condition, or after a necessary diagnostic changes the next handoff path.
 3. When a user decision, an actual new constraint, or R evidence materially changes direction,
    scope, deliverable shape, risk, or acceptance state, show the difference from the prior version
    before updating it.
 4. Show the matching terminal state at staged delivery, technical acceptance, fit check, or closeout.
 
-Do not update it for ordinary internal reads, E1 substeps, polling, unadjudicated candidates, or
-details that do not change user-view progress. Progress comes only from a bounded read after
-direct-push and C adjudication.
+Do not update it for ordinary internal reads, E1 substeps, polling, unadjudicated candidates,
+review completion, format pass, file consistency, logged issues, completed designs, or details
+that do not change a user completion condition. Progress comes only from bounded readback after
+direct-push, C adjudication, and an accepted outcome difference against `outcome_anchor`.
 
 ## Fixed Lifecycle Cards
 
@@ -138,6 +139,11 @@ execution state and do not create a second progress source.
 Any user-visible living-brief rendering must carry `CER` identity and C/E1/R or
 Controller/Executor/Reviewer context. Do not present it as a Codex task brief, Goal plan,
 assistant plan, or unbranded internal feature.
+The living task brief also derives only from the highest available authority and C-adjudicated facts.
+Long multi-batch work also shows the unfinished `outcome_anchor` conditions, accepted outcome
+differences, whether diagnostic/mechanism work is non-mainline only, and how the next batch
+continues a completion condition. Do not substitute batch, task, or review counts for outcome
+progress.
 
 1. When Codex exposes a callable in-conversation visualization capability, create an inline HTML visualization by default and use the capability's official rendering instruction, such as `::codex-inline-vis{file="..."}`.
 2. Mermaid does not satisfy the first layer. Use Mermaid only when inline visualization is unavailable, not callable, cannot write to its required visual directory, or fails to render.
@@ -152,7 +158,9 @@ CER goal: <destination>
 CER scope/exclusions: <in scope / not doing now>
 CER assumptions: <confirmed / safe inference / decision needed>
 CER live brief: confirmed=<...> | safe inference=<...> | decisions needed=<...>
+CER outcome anchor: unfinished=<completion condition> | accepted delta=<outcome difference / none>
 CER current batch freeze: <only what this batch will do>
+CER work lane: <mainline_outcome / diagnostic / mechanism_improvement / governance_self_improvement>
 CER last feedback / change: <... / none>
 [Public alignment: <confirmed / safe inference / decision needed>]
 [✓] Complete -> [● Now] Current stage -> [○] Later stage -> [○] Final delivery / closeout
@@ -174,7 +182,7 @@ ordinary risk language when it becomes a material blocker.
 ## Roadmap Source
 
 Use the highest available authority and do not create a second progress record. The living task
-brief also derives only from the highest available authority and C-adjudicated facts in this
+brief and `outcome_anchor` also derive only from the highest available authority and C-adjudicated facts in this
 cycle; it is not a second plan, fixed document set, or new workflow:
 
 1. If the target project has an authoritative progress source or roadmap, derive from it.
@@ -186,4 +194,5 @@ When `$project-context-workflow` is also in use, read only its accepted plan and
 Do not show cards for ordinary implementation detail. Use yellow for material direction or
 deliverable-shape choices, open-eye red for reliability blockers, and open-eye green for
 observable staged results and ordinary final acceptance. Only a proven stop/close terminal state
-uses a closed-eye card. Ordinary batch progress updates only the inline roadmap.
+uses a closed-eye card. Ordinary batch state does not show a card; update the inline roadmap only
+when the outcome-anchor progress gate is satisfied.

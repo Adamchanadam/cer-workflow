@@ -249,6 +249,47 @@ LIVING_BRIEF_FORBIDDEN = {
     "r_initial_prompt_only": "R 只按最初 prompt 驗收",
 }
 
+OUTCOME_ANCHOR_REQUIREMENTS = (
+    "不可由後續批次自行改寫的 `outcome_anchor`",
+    "不可接受的替代成果",
+    "`mainline_outcome`、`diagnostic`、`mechanism_improvement` 或 `governance_self_improvement`",
+    "預期成果改善為零且不是必要條件的實作批次不得派出",
+    "活動不等於成果",
+    "只有 C 讀回並裁決某項使用者完成條件取得已接納差異",
+    "同一失敗類別按共同根因、使用者後果、受影響完成條件和方法判定",
+    "改名、換版本、換包裝",
+    "連續兩次未解決後，C 不得派第三個同類修正版",
+    "每批終態只可為已接納成果",
+)
+
+OUTCOME_ANCHOR_ROADMAP_REQUIREMENTS = (
+    "`outcome_anchor` 的已接納成果差異",
+    "不得以批次、task 或審閱",
+    "CER 成果錨：未完成=<完成條件>｜已接納差異=<成果差異／無>",
+    "CER 工作線：<mainline_outcome／diagnostic／mechanism_improvement／governance_self_improvement>",
+)
+
+OUTCOME_ANCHOR_UAT_REQUIREMENTS = {
+    "anchor_fixed": "長期多批任務在首批前固定 `outcome_anchor`",
+    "zero_delta_rejected": "預期成果改善為零且不是必要條件的實作批次被拒絕",
+    "diagnostic_not_progress": "診斷批次可以執行並產生承接條件，但標為 `diagnostic`，不增加主線進度",
+    "technical_pass_not_progress": "技術檢查、格式、檔案一致或審閱通過，但 `outcome_anchor` 沒有已接納成果差異時，不標記為成功進度",
+    "third_retry_intercepted": "同一失敗類別連續兩次未解決後，第三次同類修正版被攔截",
+    "rename_same_retry": "改名、換版本、換包裝或同方法重派仍被識別為同類重試",
+    "reviewer_rejects_drift": "R 必須拒絕偏離原始成果、只有技術活動、反覆返工或用另一種交付形式代替使用者原要求的批次",
+    "mechanism_not_mainline": "`mechanism_improvement` 或 `governance_self_improvement` 不污染主線進度",
+    "adjacent_not_blocker": "相鄰改善失敗不會自動阻塞原任務",
+    "simple_lightweight": "簡單、單步、低風險且終點唯一的任務仍可用短摘要和 C 讀回驗收",
+    "completion_outcomes": "任務完成回報列已接納成果差異和未完成條件",
+}
+
+OUTCOME_ANCHOR_FORBIDDEN = {
+    "zero_delta_dispatch": "預期成果改善為零的實作批次可以派出",
+    "diagnostic_mainline": "診斷批次增加主線進度",
+    "third_retry_allowed": "第三個同類修正版可以繼續派出",
+    "activity_completion": "批次、task、Reviewer 或候選數量就是完成證據",
+}
+
 
 def read_texts(root: Path) -> dict[str, str]:
     texts: dict[str, str] = {}
@@ -547,6 +588,12 @@ def validate_texts(root: Path, texts: dict[str, str]) -> list[str]:
     for label, forbidden in SENDABLE_PACKET_FORBIDDEN.items():
         if forbidden in normalized_markdown:
             findings.append(f"sendable-packet fixed contradiction present {label}")
+    for index, required in enumerate(OUTCOME_ANCHOR_REQUIREMENTS):
+        if required not in core_normalized:
+            findings.append(f"outcome-anchor runtime missing requirement_{index}")
+    for label, forbidden in OUTCOME_ANCHOR_FORBIDDEN.items():
+        if forbidden in normalized_markdown:
+            findings.append(f"outcome-anchor fixed contradiction present {label}")
     if "[parallel-producers.md](references/parallel-producers.md)" not in skill:
         findings.append("SKILL.md lacks direct progressive-disclosure route")
     if "[平行候選生產者](parallel-producers.md)" not in core:
@@ -576,6 +623,11 @@ def validate_texts(root: Path, texts: dict[str, str]) -> list[str]:
     for label, required in LIVING_BRIEF_UAT_REQUIREMENTS.items():
         if required not in uat:
             findings.append(f"uat.md missing living-brief counterexample {label}")
+    if "## 成果錨定與進展情景" not in texts["references/uat.md"]:
+        findings.append("uat.md lacks outcome-anchor progress scenarios")
+    for label, required in OUTCOME_ANCHOR_UAT_REQUIREMENTS.items():
+        if required not in uat:
+            findings.append(f"uat.md missing outcome-anchor counterexample {label}")
     unexpected_failure_uat_match = re.search(
         r"^## 未預期失敗與範圍例外情景[ \t]*\n([\s\S]*?)(?=^## |\Z)",
         texts["references/uat.md"],
@@ -593,6 +645,9 @@ def validate_texts(root: Path, texts: dict[str, str]) -> list[str]:
     for index, required in enumerate(LIVING_BRIEF_ROADMAP_REQUIREMENTS):
         if required not in roadmap:
             findings.append(f"roadmap.md missing living-brief display requirement_{index}")
+    for index, required in enumerate(OUTCOME_ANCHOR_ROADMAP_REQUIREMENTS):
+        if required not in roadmap:
+            findings.append(f"roadmap.md missing outcome-anchor display requirement_{index}")
     for relative in (
         "references/core-runtime.md",
         "references/roadmap.md",
@@ -902,6 +957,20 @@ def mutation_matrix(root: Path) -> tuple[int, list[str]]:
                 mutated_fragment("references/roadmap.md", fragment),
             )
         )
+    for index, fragment in enumerate(OUTCOME_ANCHOR_REQUIREMENTS):
+        cases.append(
+            (
+                f"outcome_anchor_runtime_missing_{index}",
+                mutated_fragment("references/core-runtime.md", fragment),
+            )
+        )
+    for index, fragment in enumerate(OUTCOME_ANCHOR_ROADMAP_REQUIREMENTS):
+        cases.append(
+            (
+                f"outcome_anchor_roadmap_missing_{index}",
+                mutated_fragment("references/roadmap.md", fragment),
+            )
+        )
     for label, fragment in SENDABLE_PACKET_UAT_REQUIREMENTS.items():
         cases.append(
             (
@@ -920,6 +989,13 @@ def mutation_matrix(root: Path) -> tuple[int, list[str]]:
         cases.append(
             (
                 f"living_brief_uat_missing_{label}",
+                mutated_fragment("references/uat.md", fragment),
+            )
+        )
+    for label, fragment in OUTCOME_ANCHOR_UAT_REQUIREMENTS.items():
+        cases.append(
+            (
+                f"outcome_anchor_uat_missing_{label}",
                 mutated_fragment("references/uat.md", fragment),
             )
         )
@@ -971,6 +1047,17 @@ def mutation_matrix(root: Path) -> tuple[int, list[str]]:
                     "references/core-runtime.md",
                     "## Controller preflight",
                     f"## Controller preflight\n\n{contradiction}。",
+                ),
+            )
+        )
+    for label, contradiction in OUTCOME_ANCHOR_FORBIDDEN.items():
+        cases.append(
+            (
+                f"outcome_anchor_contradiction_{label}",
+                mutated(
+                    "references/core-runtime.md",
+                    "## 成果錨定與進展閘",
+                    f"## 成果錨定與進展閘\n\n{contradiction}。",
                 ),
             )
         )

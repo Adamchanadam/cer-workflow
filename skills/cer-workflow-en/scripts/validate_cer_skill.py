@@ -249,6 +249,47 @@ LIVING_BRIEF_FORBIDDEN = {
     "r_initial_prompt_only": "R reviews only against the initial prompt",
 }
 
+OUTCOME_ANCHOR_REQUIREMENTS = (
+    "immutable `outcome_anchor`",
+    "unacceptable substitute outcomes",
+    "`mainline_outcome`, `diagnostic`, `mechanism_improvement`, or `governance_self_improvement`",
+    "zero expected outcome improvement and no necessary-prerequisite role must not be dispatched",
+    "Activity is not outcome",
+    "only after reading back and accepting a difference against one of the user's completion conditions",
+    "same failure class is judged by shared root cause, user consequence, affected completion condition, and method",
+    "Renaming, version changes, repackaging",
+    "After two consecutive unresolved attempts in one class, C must not dispatch a third same-class repair",
+    "A batch may end only as accepted outcome",
+)
+
+OUTCOME_ANCHOR_ROADMAP_REQUIREMENTS = (
+    "accepted outcome difference against `outcome_anchor`",
+    "Do not substitute batch, task, or review counts for outcome progress",
+    "CER outcome anchor: unfinished=<completion condition> | accepted delta=<outcome difference / none>",
+    "CER work lane: <mainline_outcome / diagnostic / mechanism_improvement / governance_self_improvement>",
+)
+
+OUTCOME_ANCHOR_UAT_REQUIREMENTS = {
+    "anchor_fixed": "Long multi-batch work fixes `outcome_anchor` before the first batch",
+    "zero_delta_rejected": "An implementation batch with zero expected outcome improvement and no necessary-prerequisite role is rejected",
+    "diagnostic_not_progress": "A diagnostic batch may run and produce a handoff prerequisite, but it is classified as `diagnostic` and does not increase mainline progress",
+    "technical_pass_not_progress": "Technical checks, format, file consistency, or review may pass, but when `outcome_anchor` has no accepted outcome difference, the batch is not marked as successful progress",
+    "third_retry_intercepted": "After two consecutive unresolved attempts in the same failure class, a third same-class repair is intercepted",
+    "rename_same_retry": "Renaming, version changes, repackaging, or redispatching the same method is still treated as the same retry class",
+    "reviewer_rejects_drift": "R must reject a batch that diverges from the original outcome, is only technical activity, repeats rework, or substitutes another deliverable shape for what the user asked for",
+    "mechanism_not_mainline": "`mechanism_improvement` or `governance_self_improvement` does not contaminate mainline progress",
+    "adjacent_not_blocker": "Adjacent improvement failure does not automatically block the original task",
+    "simple_lightweight": "Simple, one-step, low-risk work with one clear endpoint still uses lightweight summary and C readback",
+    "completion_outcomes": "Completion reporting lists accepted outcome differences and unfinished conditions",
+}
+
+OUTCOME_ANCHOR_FORBIDDEN = {
+    "zero_delta_dispatch": "An implementation batch with zero expected outcome improvement may be dispatched",
+    "diagnostic_mainline": "A diagnostic batch increases mainline progress",
+    "third_retry_allowed": "A third same-class repair may continue",
+    "activity_completion": "Batch, task, Reviewer, or candidate counts are completion evidence",
+}
+
 
 def read_texts(root: Path) -> dict[str, str]:
     texts: dict[str, str] = {}
@@ -549,6 +590,12 @@ def validate_texts(root: Path, texts: dict[str, str]) -> list[str]:
     for label, forbidden in SENDABLE_PACKET_FORBIDDEN.items():
         if forbidden in normalized_markdown:
             findings.append(f"sendable-packet fixed contradiction present {label}")
+    for index, required in enumerate(OUTCOME_ANCHOR_REQUIREMENTS):
+        if required not in core_normalized:
+            findings.append(f"outcome-anchor runtime missing requirement_{index}")
+    for label, forbidden in OUTCOME_ANCHOR_FORBIDDEN.items():
+        if forbidden in normalized_markdown:
+            findings.append(f"outcome-anchor fixed contradiction present {label}")
     if "[parallel-producers.md](references/parallel-producers.md)" not in skill:
         findings.append("SKILL.md lacks direct progressive-disclosure route")
     if "[Parallel Candidate Producers](parallel-producers.md)" not in core:
@@ -578,6 +625,11 @@ def validate_texts(root: Path, texts: dict[str, str]) -> list[str]:
     for label, required in LIVING_BRIEF_UAT_REQUIREMENTS.items():
         if required not in uat:
             findings.append(f"uat.md missing living-brief counterexample {label}")
+    if "## Outcome Anchor And Progress Scenarios" not in texts["references/uat.md"]:
+        findings.append("uat.md lacks outcome-anchor progress scenarios")
+    for label, required in OUTCOME_ANCHOR_UAT_REQUIREMENTS.items():
+        if required not in uat:
+            findings.append(f"uat.md missing outcome-anchor counterexample {label}")
     unexpected_failure_uat_match = re.search(
         r"^## Unexpected Failure And Scope-Exception Scenarios[ \t]*\n([\s\S]*?)(?=^## |\Z)",
         texts["references/uat.md"],
@@ -595,6 +647,9 @@ def validate_texts(root: Path, texts: dict[str, str]) -> list[str]:
     for index, required in enumerate(LIVING_BRIEF_ROADMAP_REQUIREMENTS):
         if required not in roadmap:
             findings.append(f"roadmap.md missing living-brief display requirement_{index}")
+    for index, required in enumerate(OUTCOME_ANCHOR_ROADMAP_REQUIREMENTS):
+        if required not in roadmap:
+            findings.append(f"roadmap.md missing outcome-anchor display requirement_{index}")
     for relative in (
         "references/core-runtime.md",
         "references/roadmap.md",
@@ -904,6 +959,20 @@ def mutation_matrix(root: Path) -> tuple[int, list[str]]:
                 mutated_fragment("references/roadmap.md", fragment),
             )
         )
+    for index, fragment in enumerate(OUTCOME_ANCHOR_REQUIREMENTS):
+        cases.append(
+            (
+                f"outcome_anchor_runtime_missing_{index}",
+                mutated_fragment("references/core-runtime.md", fragment),
+            )
+        )
+    for index, fragment in enumerate(OUTCOME_ANCHOR_ROADMAP_REQUIREMENTS):
+        cases.append(
+            (
+                f"outcome_anchor_roadmap_missing_{index}",
+                mutated_fragment("references/roadmap.md", fragment),
+            )
+        )
     for label, fragment in SENDABLE_PACKET_UAT_REQUIREMENTS.items():
         cases.append(
             (
@@ -922,6 +991,13 @@ def mutation_matrix(root: Path) -> tuple[int, list[str]]:
         cases.append(
             (
                 f"living_brief_uat_missing_{label}",
+                mutated_fragment("references/uat.md", fragment),
+            )
+        )
+    for label, fragment in OUTCOME_ANCHOR_UAT_REQUIREMENTS.items():
+        cases.append(
+            (
+                f"outcome_anchor_uat_missing_{label}",
                 mutated_fragment("references/uat.md", fragment),
             )
         )
@@ -973,6 +1049,17 @@ def mutation_matrix(root: Path) -> tuple[int, list[str]]:
                     "references/core-runtime.md",
                     "## Controller Preflight",
                     f"## Controller Preflight\n\n{contradiction}.",
+                ),
+            )
+        )
+    for label, contradiction in OUTCOME_ANCHOR_FORBIDDEN.items():
+        cases.append(
+            (
+                f"outcome_anchor_contradiction_{label}",
+                mutated(
+                    "references/core-runtime.md",
+                    "## Outcome Anchor And Progress Gate",
+                    f"## Outcome Anchor And Progress Gate\n\n{contradiction}.",
                 ),
             )
         )

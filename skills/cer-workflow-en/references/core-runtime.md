@@ -7,6 +7,7 @@
 - [Bear-Card Package Version](#bear-card-package-version)
 - [Commands](#commands)
 - [Controller Preflight](#controller-preflight)
+- [Outcome Anchor And Progress Gate](#outcome-anchor-and-progress-gate)
 - [Ambiguous Tool Outcomes, Role Reconciliation, And Batch Deduplication](#ambiguous-tool-outcomes-role-reconciliation-and-batch-deduplication)
 - [Startup](#startup)
 - [Self-Contained Dispatch](#self-contained-dispatch)
@@ -105,6 +106,18 @@ follows causal coverage; depth follows failure consequence and evidence uncertai
 file counts, change size, or `high risk` wording alone neither widen nor narrow acceptance. This
 rule governs scope once evidence is known; it does not replace targeted checks needed to discover
 unstable external claims or verify actual release/install artifacts.
+
+## Outcome Anchor And Progress Gate
+
+For long-running, multi-batch, or rework-prone CER work, C fixes an immutable `outcome_anchor` before the first real dispatch. It stores only the user's request and coordinates to read project authorities; it does not interpret or rewrite professional content. It includes at least: the user-facing accepted outcome, authoritative source pointers for completion conditions, unacceptable substitute outcomes, and explicit exclusions. A new anchor may be created only after the user explicitly changes the target, an authoritative source changes, or C obtains a required checkpoint decision; the new anchor must state the delta from the previous anchor. E1, R, and adjacent mechanism work must not rewrite `outcome_anchor` on their own.
+
+C classifies each work lane as `mainline_outcome`, `diagnostic`, `mechanism_improvement`, or `governance_self_improvement`. Only `mainline_outcome` may increase mainline progress. Diagnostic work may create a necessary prerequisite for a later batch, but it does not count as outcome progress. Generic mechanism or governance self-improvement must prove it is the smallest necessary way to remove a blocker to the original outcome; otherwise it is recorded separately and does not block the mainline.
+
+Before any non-exploratory real batch, C must be able to answer: which unfinished condition this batch improves; what readable before/after difference success will create; whether dependencies, authoritative sources, and handoff path exist; and, if success would still not improve `outcome_anchor`, why it is still a necessary blocker-removal prerequisite. An implementation batch with zero expected outcome improvement and no necessary-prerequisite role must not be dispatched. Batches that only create diagnostics, evidence, candidates, designs, or reviews must be labeled as non-mainline progress.
+
+Activity is not outcome. Candidate creation, review completion, structural or format pass, file consistency, issue logging, design completion, version renaming, or packaging changes do not automatically increase mainline progress. C may report outcome progress only after reading back and accepting a difference against one of the user's completion conditions. Final reporting prioritizes accepted outcomes, not batch, task, or review counts.
+
+A same failure class is judged by shared root cause, user consequence, affected completion condition, and method. Renaming, version changes, repackaging, wording changes, or redispatching the same fix do not create a new class. After two consecutive unresolved attempts in one class, C must not dispatch a third same-class repair or same-method retry. C must return to root cause analysis, use a materially different method, narrow validator claims, stop for user decision, or terminate that route.
 
 ## Ambiguous Tool Outcomes, Role Reconciliation, And Batch Deduplication
 
@@ -263,6 +276,7 @@ Each real E1 or R batch contains only what is needed:
 - role and one objective;
 - target root;
 - required sources of truth and accepted background;
+- `outcome_anchor`, work-lane classification, target completion condition, and expected outcome difference;
 - allowed and forbidden scope;
 - acceptance checks and a counterexample that can disprove the solution;
 - stop conditions;
@@ -272,7 +286,7 @@ Each real E1 or R batch contains only what is needed:
 - the knowledge foundation, source coordinates, unknowns, and no-go boundaries needed for the batch;
 - a short result format.
 
-Do not write "see above" or ask the assignee to reconstruct C's context. Add background and counterexamples for high-risk batches. Keep low-risk batches short and avoid oversized templates. E1 is authorized only to execute the current batch freeze; it must not treat provisional later direction as a complete specification or fill in future batches on its own. If E1/R finds a contradiction between the living task brief, current batch freeze, and sources, report a blocker or candidate correction first; do not rewrite the contract and continue alone. R reviews against the latest task brief, current batch freeze, candidate identity, and delivery evidence, not the initial prompt or stale assumptions.
+Do not write "see above" or ask the assignee to reconstruct C's context. Add background and counterexamples for high-risk batches. Keep low-risk batches short and avoid oversized templates. E1 is authorized only to execute the current batch freeze; it must not treat provisional later direction as a complete specification or fill in future batches on its own. If E1/R finds a contradiction between the living task brief, current batch freeze, `outcome_anchor`, and sources, report a blocker or candidate correction first; do not rewrite the contract and continue alone. R reviews against the latest task brief, current batch freeze, candidate identity, and delivery evidence, and also checks the immutable `outcome_anchor`; it does not review against the initial prompt or stale assumptions. R must also answer whether the batch still serves the original outcome, whether it creates an acceptable outcome difference, whether it is only activity or rework, and whether it substitutes another deliverable shape for what the user originally asked for. A technically valid batch with no outcome improvement must not be reported as ordinary success progress.
 
 A dispatch packet may remain a `draft_packet` inside C, but a sendable `sendable_packet` must not retain `<...>` placeholders. A real dispatch must fill actual `threadId` or platform-equivalent coordinate, `returnTarget`, `messageId`, `batchId`, `batchSeq`, `payloadDigest`, and any routing coordinate explicitly required by the active tool schema/receipt. sessionId is not a substitute for threadId as a formal dispatch coordinate. hostId is used only when the active tool schema or receipt requires or provides it; do not make hostId a cross-platform hard requirement, and do not derive hostId from `local`, title, sessionId, threadId shape, or an error message. Relative wording such as `same E1`, `the E1 above`, or `next sequence` is draft-only and must be replaced with verifiable concrete values before send. R dispatch must fill actual `candidateIdentity`, `candidateManifest`, and candidate delivery evidence. Missing any one of these leaves the packet at `dispatch_blocked` or `decision_blocked`; C must not self-rate it as sendable or ask E1/R to guess.
 
@@ -341,7 +355,7 @@ active. `/CER-close` remains a CER-only command and does not trigger Kit full cl
 
 ## Execution Loop
 
-1. C gives this cycle's same E1 one batch based on the user's task, the living task brief, the current batch freeze, and accepted project plan or sources of truth.
+1. C gives this cycle's same E1 one batch based on the user's task, `outcome_anchor`, the living task brief, the current batch freeze, and accepted project plan or sources of truth.
 2. E1 completes only that batch, reads back and tests the work, then direct-pushes a candidate.
 
 <!-- cer-unexpected-failure-gate-owner -->
@@ -372,15 +386,15 @@ Only C may refreeze the contract and expand scope by dispatching a new batch wit
 `batchId` and `payloadDigest`; C freezes the outcome and semantic boundary, not line-by-line
 implementation.
 
-3. C reads back the actual result and either adjudicates it or creates a fresh R through official `create_thread` according to risk.
-4. R tests only the specified risk and product logic, not format alone.
+3. C reads back the actual result, first judges whether it improves an unfinished condition in `outcome_anchor`, and then either adjudicates it or creates a fresh R through official `create_thread` according to risk.
+4. R tests the specified risk, whether the whole result remains aligned to the original outcome, and product logic, not format alone.
 <!-- cer-review-convergence -->
 5. After R first reports a defect, C groups related findings by common root cause and user consequence, then performs one bounded read-only impact check to find the current sources of truth, delivery surfaces, and check locations that carry this round's contract.
 6. C freezes this round's `owner/affected surfaces/acceptance/counterexample family` and gives the same E1 one batch to repair the whole affected boundary.
 7. After the repair, R re-tests only the frozen scope. If a different root cause, different user consequence, or new regression caused by the latest repair appears, only C may attribute it, refreeze the boundary, and dispatch a new batch; E1 must not expand scope alone.
 8. Changed wording, sentence order, or synonymous phrasing remains the same problem. Do not append rules or validator patterns sentence by sentence. If the same counterexample family keeps escaping a mechanical check, C changes the checking method or narrows the validator's claimed capability.
-9. When the frozen counterexamples pass and no material new defect remains, C accepts the result. Only then may E1 update an existing authoritative project-progress source; if none exists, do not create one.
-10. C stops after required state is converged. List adjacent improvements separately without adding a Reviewer, governance layer, or whole-repository re-review.
+9. When the frozen counterexamples pass, no material new defect remains, and the outcome difference has been read back, C accepts the result. Only then may E1 update an existing authoritative project-progress source; if none exists, do not create one.
+10. C stops after required state is converged. List adjacent improvements separately without adding a Reviewer, governance layer, or whole-repository re-review. A batch may end only as accepted outcome, a necessary prerequisite with a clear next handoff, honest blockage that returns to route selection, or route termination; "make another same-class revision" is not the default next step.
 11. For long-running, multi-stage, or multi-batch work, progress updates and bear-card checkpoints follow [roadmap.md](roadmap.md). Use only facts read back and adjudicated after direct-push; do not poll E1.
 
 For an ordinary small change, C readback and proportionate tests are enough. Re-review only the affected boundary after a high-risk fix. More Reviewers do not replace clear acceptance conditions.
@@ -421,6 +435,7 @@ gates, independent review, or acceptance standards:
 - Add roles, batches, Reviewers, checkpoints, tests, and synchronization only when the current risk and deliverable require them. Under one objective, C dispatches added E/R work or a task branch only when it is the smallest necessary means to complete the original goal or address a verified blocker; otherwise C consolidates, stops, or adjudicates directly.
 - Do not create R when C can reliably accept the work through readback and proportionate tests. Do not re-review accepted areas when a narrow fix is enough.
 - Stop when the requirements are met, core counterexamples pass, and required risk is cleared. List adjacent improvements separately without expanding automatically.
+- Adjacent mechanism improvement, governance self-improvement, or diagnostic failure does not automatically block the original task. It becomes a mainline blocker only when it is a necessary dependency for an unfinished `outcome_anchor` condition and its absence makes the mainline outcome unsafe to accept.
 - Reduce the collaboration structure when agent and governance overhead exceeds task value. Do not add process to compensate for unclear acceptance.
 
 ## Standalone Persistence And Closeout

@@ -1,8 +1,46 @@
 # Release Notes
 
-Scope note: each version section records release history for that version; unreleased content is
-explicitly marked as a candidate. Runtime authority remains the Skill references bundled with the
-version the user has installed.
+Scope note: each version section records release history for that version; unreleased content that
+has not entered an authorized release flow is explicitly marked as a candidate. If the release is
+aborted, the affected content must be marked as candidate again or removed. Runtime authority
+remains the Skill references bundled with the version the user has installed.
+
+## v0.3.6
+
+This release fixes a long-running multi-batch CER failure mode where batch activity could be
+mistaken for progress toward the user's final outcome.
+
+The new `outcome_anchor` is fixed before the first real dispatch for long-running, multi-batch, or
+rework-prone tasks. It preserves the user's final outcome, source pointers for completion
+conditions, unacceptable substitute outcomes, and explicit exclusions. Later E1, R, or adjacent
+mechanism work cannot rewrite that anchor on their own; when the user or an authoritative source
+changes the target, C must state the difference between the old and new anchors.
+
+- Before dispatching any non-exploratory batch, C must identify which unfinished condition the
+  batch improves, what readable before/after difference success will create, and whether
+  dependencies, authoritative sources, and handoff path exist. An implementation batch with zero
+  expected outcome improvement and no necessary-prerequisite role must not be dispatched
+- Candidate creation, review completion, structural or format pass, file consistency, issue
+  logging, design completion, version renaming, and packaging changes are activity only. C may
+  count mainline progress only after reading back and accepting an outcome difference against one
+  of the user's completion conditions
+- A same failure class is judged by shared root cause, user consequence, affected completion
+  condition, and method. Renaming, version changes, or repackaging do not create a new class; after
+  two unresolved attempts, C must not dispatch a third same-class repair
+- Reviewer must also check whether the batch still serves the original outcome, creates an
+  acceptable outcome difference, is only technical activity or rework, or substitutes another
+  deliverable shape for what the user asked for
+- CER now separates `mainline_outcome`, `diagnostic`, `mechanism_improvement`, and
+  `governance_self_improvement`. Diagnostics and generic mechanism work do not contaminate
+  mainline progress and do not automatically block the original task when they fail
+- Bilingual runtime, roadmap, UAT, and Skill validators add fixed regressions for the outcome
+  anchor, activity/outcome separation, retry circuit breaker, Reviewer outcome checks, and work-lane
+  isolation; each package grows from 172 to 201 mutation cases
+- The outer C for each AI real workflow UAT cycle must now direct-push
+  `AI_UAT_CYCLE_N: PASS/FAIL` back to the main release dispatcher; `wait_threads`, `read_thread`,
+  child-task finals, task titles, or user-relayed completion notices alone cannot mark
+  release-readiness as passed
+- Post-release user manual UAT remains a separate follow-up
 
 ## v0.3.5
 

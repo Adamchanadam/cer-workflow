@@ -12,6 +12,7 @@
 - [Parallel Candidate Producer Counterexamples](#parallel-candidate-producer-counterexamples)
 - [Review Convergence Scenarios](#review-convergence-scenarios)
 - [Controller Preflight QC Scenarios](#controller-preflight-qc-scenarios)
+- [Outcome Anchor And Progress Scenarios](#outcome-anchor-and-progress-scenarios)
 - [Unexpected Failure And Scope-Exception Scenarios](#unexpected-failure-and-scope-exception-scenarios)
 - [Acceptance Validity Scenarios](#acceptance-validity-scenarios)
 - [Proportionate Close Scenarios](#proportionate-close-scenarios)
@@ -45,6 +46,17 @@ AI real workflow UAT evidence must list actual thread ids for both cycles and pe
 comparison: same-cycle batches keep the same E1 threadId; C2 threadId differs from C1; cycle-2 E1
 threadId differs from cycle-1 E1; every cycle-2 R is a new threadId that differs from every cycle-1
 R and does not reuse an earlier R in the same cycle. Text that merely says fresh is insufficient.
+
+Each outer UAT cycle C is also a delegated assignee of the release dispatcher: before cycle work
+starts it must direct-push a zero-write `ready` to the main-session return target; at completion,
+blockage, or checkpoint it must direct-push a structured `AI_UAT_CYCLE_N: PASS/FAIL` result to the
+same main target before ending. The dispatcher may use one bounded `wait_threads` or `read_thread`
+only after that direct-push for wakeup, verification, or adjudication. A child-C final answer, wait
+snapshot, passive thread read, task title, or user-relayed notice that the UAT task is done is not
+formal delivery evidence and cannot satisfy AI real workflow UAT or release-readiness by itself. If
+the outer return protocol is missing, the dispatcher may request one bounded delivery-repair push
+from the same cycle C using its existing final evidence; until that push is received, the cycle is
+`delivery_incomplete`, not a passed UAT cycle.
 
 All C/E/R titles in the same cycle must use the same short cycle number, such as
 `🚀 C:01｜...`, `E1:01｜...`, and `R1:01｜...`; the next cycle uses a new number. New cycles after
@@ -283,6 +295,19 @@ cycle label or guess a number.
 - R reviews against the latest task brief, current batch freeze, candidate identity, and delivery evidence; it must not review only against the initial prompt or stale assumptions.
 - C's current batch freeze and E1/R dispatches preserve the three states, required source anchors, and counterfactual results. They must not invent user confirmation.
 
+## Outcome Anchor And Progress Scenarios
+
+- Long multi-batch work fixes `outcome_anchor` before the first batch, preserving the user's final outcome, source pointers for completion conditions, unacceptable substitute outcomes, and exclusions. E1 or R cannot rewrite it in later batches.
+- An implementation batch with zero expected outcome improvement and no necessary-prerequisite role is rejected. C may relabel it as diagnostic, stop for questions, or choose a batch that improves a completion condition.
+- A diagnostic batch may run and produce a handoff prerequisite, but it is classified as `diagnostic` and does not increase mainline progress.
+- Technical checks, format, file consistency, or review may pass, but when `outcome_anchor` has no accepted outcome difference, the batch is not marked as successful progress.
+- After two consecutive unresolved attempts in the same failure class, a third same-class repair is intercepted. Renaming, version changes, repackaging, or redispatching the same method is still treated as the same retry class.
+- R must reject a batch that diverges from the original outcome, is only technical activity, repeats rework, or substitutes another deliverable shape for what the user asked for.
+- `mechanism_improvement` or `governance_self_improvement` does not contaminate mainline progress; it becomes a mainline blocker only when proven necessary for completing `outcome_anchor`.
+- Adjacent improvement failure does not automatically block the original task. C either records it separately or proves that its absence makes the mainline unsafe to accept.
+- Simple, one-step, low-risk work with one clear endpoint still uses lightweight summary and C readback. Do not force an outcome-anchor table, R, or roadmap.
+- Completion reporting lists accepted outcome differences and unfinished conditions, not batch, task, review, or candidate counts as completion evidence.
+
 ## Unexpected Failure And Scope-Exception Scenarios
 
 These scenarios only test the unexpected-failure gate in
@@ -406,6 +431,14 @@ These scenarios only test the unexpected-failure gate in
 - The living task brief is written as another process, fixed document set, or new role instead of being part of the existing Controller preflight and roadmap.
 - The current batch freeze or dispatch writes an unsupported assumption as `confirmed`.
 - C dispatches instead of stopping when critical endpoint, permission, or acceptance information is missing.
+- Long multi-batch work lacks `outcome_anchor`, or later E1/R rewrites the final outcome, completion conditions, substitute outcomes, or exclusions.
+- An implementation batch with zero expected outcome improvement and no necessary-prerequisite role is still dispatched.
+- Diagnostics, candidates, reviews, format pass, file consistency, logged issues, design completion, renaming, or version changes are automatically counted as mainline outcome progress.
+- Technical checks pass but there is no `outcome_anchor` outcome difference, and C reports successful progress.
+- After two consecutive unresolved same-class attempts, C dispatches a third same-class repair, or hides a same-method retry by renaming, versioning, or repackaging it.
+- R checks only technical validity and does not check whether the batch serves the original outcome, is only activity or rework, or substitutes for the user's requested deliverable.
+- Generic mechanism improvement or governance self-improvement contaminates mainline progress, or its failure blocks the original task before a necessary dependency is proven.
+- Completion reporting lists only batch, task, Reviewer, or candidate counts without accepted outcome differences.
 - E1 treats a test failure as new modification authority, or treats an allowed file as authority to
   change every meaning in that file.
 - E1 continues writing while causality is unknown or repair would widen an owner, authoritative
