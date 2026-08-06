@@ -5,6 +5,35 @@ has not entered an authorized release flow is explicitly marked as a candidate. 
 aborted, the affected content must be marked as candidate again or removed. Runtime authority
 remains the Skill references bundled with the version the user has installed.
 
+## v0.3.8
+
+This release publishes two runtime tightenings completed after v0.3.7: readable pre-dispatch
+evidence, and the post-dispatch `POST_DISPATCH_PARKED` no-wait state. The focus is to make C's
+judgment and result-return path verifiable, so long-running CER work does not drift through
+waiting, verbal assurance, or handoff along the wrong direction.
+
+- Long-running, multi-batch, high-risk, or non-simple formal implementation dispatch packets must
+  include compact `pre_dispatch_evidence`. It compresses the existing Controller preflight,
+  `outcome_anchor`, and drift judgment into evidence E1/R can read back; it is not a new source of
+  truth, table, monitoring process, or Full Audit
+- `pre_dispatch_evidence` must at least state the outcome anchor, the unfinished condition this
+  batch improves, the readable outcome difference success should create, the truth-source intake
+  summary and source anchors, required sources read or missing-source disposition, the work lane,
+  and the drift checkpoint conclusion or no-trigger reason
+- If required pre-dispatch evidence is missing, contradictory, dependent on unread required truth,
+  or only says "already judged" without a readable summary, C stays at `dispatch_blocked`; E1/R may
+  only return a zero-write blocker and must not start writing, reviewing, or completing C's judgment
+- After dispatch, task creation, or send, C immediately enters `POST_DISPATCH_PARKED`. In that
+  state, C must not automatically use `wait_threads`, `read_thread`, waiting, polling, commentary
+  reads, child finals, or status probing to discover ready, progress, checkpoints, or results
+- C may read the related task only for a one-time diagnostic check explicitly requested by the user
+  in the same turn, or for one bounded readback/adjudication after a direct-push has been received.
+  Without a direct-push, a wait snapshot, completion state, commentary, child final, or passive read
+  cannot advance lifecycle, trigger the next batch, or become formal delivery evidence
+- The bilingual runtime, UAT, and Skill validators add fixed counterexamples for pre-dispatch
+  evidence and `POST_DISPATCH_PARKED` no-wait behavior; each package has 275 mutation cases
+- Post-release user manual UAT remains a separate follow-up
+
 ## v0.3.7
 
 This release publishes three generic runtime fixes completed after public v0.3.6. The focus is to

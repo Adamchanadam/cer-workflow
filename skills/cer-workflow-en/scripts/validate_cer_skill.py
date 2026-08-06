@@ -153,9 +153,19 @@ UNEXPECTED_FAILURE_REQUIREMENTS = {
 }
 
 DELIVERY_REQUIREMENTS = {
-    "no_auto_wait": "C must not automatically use `wait_threads` or `read_thread` after dispatch, task creation, or send as the receiving mechanism",
-    "wait_preconditions": "Only when a declared direct-push state transition exists, the unique thread or platform-equivalent coordinate and current cursor are known",
-    "no_automatic_waiting": "forbids automatic waiting, repeated waiting",
+    "post_dispatch_parked": "After dispatch, task creation, or send, C immediately enters `POST_DISPATCH_PARKED`",
+    "no_auto_wait": "must not automatically use `wait_threads`, `read_thread`, or a platform-equivalent tool to wait, wake itself, track progress, read commentary, read finals, probe status, or discover results",
+    "no_auto_progress_read": "read finals, probe status, or discover results",
+    "read_exceptions": "has only two read exceptions: a one-time thread check explicitly requested by the user in the same turn, or one bounded readback for verification/adjudication after C has received a direct-push",
+    "no_push_no_progress": "Without a direct-push, a wait snapshot, completion state, commentary, summary, child final, task title, user relay, or passive read cannot advance `pending` / `delivery_incomplete`",
+    "no_push_no_advance": "cannot advance `pending` / `delivery_incomplete`",
+    "no_automatic_waiting": "forbids automatic waiting, repeated waiting, polling, background listening",
+}
+
+DELIVERY_UAT_REQUIREMENTS = {
+    "post_dispatch_parked_uat": "after dispatch it stays `POST_DISPATCH_PARKED`",
+    "bounded_wakeup_wrapper_bad": "wraps waiting as a bounded wakeup",
+    "no_push_next_batch_bad": "advances state or dispatches the next batch without direct-push",
 }
 
 TRUTH_SOURCE_INTAKE_REQUIREMENTS = {
@@ -203,6 +213,11 @@ SENDABLE_PACKET_REQUIREMENTS = {
     "draft_sendable_split": "`draft_packet`",
     "no_placeholders": "`sendable_packet` must not retain `<...>` placeholders",
     "truth_intake_summary": "summary of the truth-source intake four questions passed in Controller preflight: who owns it, who actually uses it, how it takes effect, and what counterexample can disprove it",
+    "pre_dispatch_evidence": "A `sendable_packet` for long-running, multi-batch, high-risk, or non-simple formal implementation work must include a compact `pre_dispatch_evidence` block",
+    "pre_dispatch_not_new_owner": "It is not a new source of truth, fixed form, background monitor, or Full Audit",
+    "pre_dispatch_fields": "It includes at least: an `outcome_anchor` pointer or summary; the unfinished condition this batch improves and the readable outcome difference success should create; the truth-source intake four-question summary with source anchors; required sources read and the disposition of remaining unknowns; work-lane classification; and, when a drift checkpoint trigger exists, the checkpoint conclusion, or why no trigger applies",
+    "pre_dispatch_missing_blocks": "If it is missing, contradictory, depends on unread required sources, or merely says judgment was done without readable support, the packet is not sendable",
+    "pre_dispatch_assignee_blocks": "If E1/R receives a formal batch without required `pre_dispatch_evidence`, it must direct-push a zero-write blocker such as `BATCH_BLOCKED_MISSING_PRE_DISPATCH_EVIDENCE` and stop",
     "concrete_bindings": "A real dispatch must fill actual `threadId` or platform-equivalent coordinate, `returnTarget`, `messageId`, `batchId`, `batchSeq`, `payloadDigest`, and any routing coordinate explicitly required by the active tool schema/receipt",
     "sessionid_not_threadid": "sessionId is not a substitute for threadId as a formal dispatch coordinate",
     "hostid_not_hard_required": "hostId is used only when the active tool schema or receipt requires or provides it",
@@ -219,6 +234,8 @@ SENDABLE_PACKET_UAT_REQUIREMENTS = {
     "hostid_inferred": "derives hostId from `local`, title, sessionId, threadId shape, or an error message",
     "sessionid_replaces_threadid": "A formal dispatch uses sessionId instead of threadId as the formal dispatch coordinate",
     "review_manifest_missing": "R dispatch lacks actual `candidateIdentity`, `candidateManifest`, or candidate delivery evidence",
+    "pre_dispatch_missing": "packet lacks `pre_dispatch_evidence`",
+    "pre_dispatch_claim_only": "only says \"C already judged\" without readable support",
 }
 
 SENDABLE_PACKET_FORBIDDEN = {
@@ -229,6 +246,8 @@ SENDABLE_PACKET_FORBIDDEN = {
     "sessionid_replaces_threadid": "sessionId may replace threadId as formal dispatch coordinate",
     "review_manifest_optional": "R dispatch may omit `candidateManifest`",
     "draft_pass": "`draft_packet` may self-rate as sendable",
+    "pre_dispatch_optional": "Long-running, multi-batch, high-risk, or non-simple formal implementation work does not need `pre_dispatch_evidence`",
+    "assignee_fills_missing_pre_dispatch": "E1/R may fill in C's missing pre-dispatch evidence and continue writing",
 }
 
 MESSAGE_ID_BOUNDARY_REQUIREMENTS = (
@@ -704,6 +723,9 @@ def validate_texts(root: Path, texts: dict[str, str]) -> list[str]:
     for label, required in DELIVERY_REQUIREMENTS.items():
         if required not in core_normalized:
             findings.append(f"delivery gate missing {label}")
+    for label, required in DELIVERY_UAT_REQUIREMENTS.items():
+        if required not in uat:
+            findings.append(f"uat.md missing delivery counterexample {label}")
     for label, forbidden in SENDABLE_PACKET_FORBIDDEN.items():
         if forbidden in normalized_markdown:
             findings.append(f"sendable-packet fixed contradiction present {label}")
@@ -1094,6 +1116,13 @@ def mutation_matrix(root: Path) -> tuple[int, list[str]]:
             (
                 f"delivery_gate_missing_{label}",
                 mutated_fragment("references/core-runtime.md", fragment),
+            )
+        )
+    for label, fragment in DELIVERY_UAT_REQUIREMENTS.items():
+        cases.append(
+            (
+                f"delivery_uat_missing_{label}",
+                mutated_fragment("references/uat.md", fragment),
             )
         )
     for label, fragment in TRUTH_SOURCE_INTAKE_REQUIREMENTS.items():

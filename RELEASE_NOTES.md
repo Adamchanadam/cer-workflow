@@ -4,6 +4,33 @@
 flow 的未發布內容會明確標示為候選。若 release 中止，對應內容必須改回候選或移除。
 實際執行規則以使用者已安裝版本隨附的 Skill references 為準。
 
+## v0.3.8
+
+本版發布 v0.3.7 後完成的兩項 runtime 收斂：派工前可讀回證據，以及派工後
+`POST_DISPATCH_PARKED` no-wait 狀態。重點是把 C 的判斷和收件路徑變成可驗收邊界，
+防止長期 CER 因等待、口頭承諾或錯方向承接而失焦。
+
+- 長期、多批、高風險或非簡單正式實作批次的派工包，必須包含短小
+  `pre_dispatch_evidence`；它把既有 Controller preflight、`outcome_anchor` 和 drift
+  判斷濃縮成 E1／R 可讀回的派工前證據，而不是新增真源、表格、監察程序或 Full
+  Audit
+- `pre_dispatch_evidence` 至少列明成果錨、本批改善的未完成條件、成功後可讀回成果
+  差異、真源攝取四問摘要及來源錨點、必要真源已讀／缺失處置、工作線分類，以及
+  drift checkpoint 結論或未觸發理由
+- 缺少必要派工前證據、證據互相矛盾、依賴未讀必要真源，或只稱「已判斷」但沒有
+  可讀回摘要時，C 停在 `dispatch_blocked`；E1／R 只可回傳零寫入 blocker，不得開始
+  寫入、審閱或替 C 補完判斷
+- C 派工、建立 task 或送訊後立即進入 `POST_DISPATCH_PARKED`。在此狀態下，C 不得
+  自動使用 `wait_threads`、`read_thread`、等待、輪詢、讀 commentary、讀 child final
+  或狀態探測來發現 ready、進度、checkpoint 或結果
+- 只有使用者同一輪明示要求的一次性診斷讀取，或已收到 direct-push 後的一次有界讀回
+  ／裁決，才可讀取相關 task。沒有 direct-push 時，wait snapshot、完成狀態、
+  commentary、child final 或被動讀取都不能推進 lifecycle、觸發下一批或成為正式交付
+  證據
+- 中英文 runtime、UAT 與 Skill validator 加入派工前證據與 `POST_DISPATCH_PARKED`
+  no-wait 的固定反例；套件各有 275 個 mutation cases
+- 發布後使用者手動 UAT 仍需另行回報
+
 ## v0.3.7
 
 本版把 v0.3.6 公開後完成的三項通用 runtime 修補正式發布，重點是讓長期 CER

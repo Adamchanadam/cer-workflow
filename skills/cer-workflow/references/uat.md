@@ -46,9 +46,10 @@ fresh 不足夠。
 每輪外層 UAT cycle C 也是發布派工者的受託 assignee：cycle 工作開始前必須
 direct-push 零寫入 `ready` 回主線 return target；完成、受阻或 checkpoint 時，必須
 先 direct-push 結構化 `AI_UAT_CYCLE_N: PASS/FAIL` 回同一主線 target 才可結束。派工者
-不得自動用 `wait_threads`／`read_thread` 等待外層 UAT；只能在已預期 direct-push
-且平台不自動喚醒時，於該 direct-push 後使用一次有界 `wait_threads`／`read_thread`
-作喚醒、核實或裁決。
+不得自動用 `wait_threads`／`read_thread` 等待、喚醒、追蹤或讀取外層 UAT；派工後
+進入 `POST_DISPATCH_PARKED`，直到 direct-push 成為主線輸入。收到 direct-push 後
+才可作一次有界讀回核實或裁決；使用者同一輪明示要求的一次性查證只屬診斷，不是
+正式交付證據。
 子 C final、wait snapshot、被動讀取、task title 或使用者轉述「UAT task 已完工」本身
 不是正式交付證據，不能滿足 AI 真實流程 UAT 或發布就緒。若外層回傳協議缺失，派工者
 可要求同一 cycle C 以既有 final 證據作一次有界 delivery-repair push；收到前該 cycle 是
@@ -84,7 +85,7 @@ numbering 規則生效前已開始且無法可靠回推原 cycle number。cycle 
    prompt、模型自動 title 或首行 label 代替；再讀回 thread id 與正式回傳路徑，取得含
    threadId 或平台等價座標的 ready direct-push；sessionId 只在當前工具 schema／receipt
    明示需要／提供時附帶記錄，不可代替 threadId 或推導 hostId。若實際平台不會自動喚醒 idle C，
-   C 可對該 E1 使用一次有界 event wait；wait snapshot 不算 ready 證據。
+   C 仍停在 `POST_DISPATCH_PARKED`，不得自行等待；wait snapshot 不算 ready 證據。
 4. C 映射目標專案既有真源與本任務知識底座，不建立固定 CER 文件。
 5. 每次成功接受 `CER-start`，C 的第一個使用者可見成功回執都是固定開眼
    `CER 工作法 v{package_version}`／`🔵 CER 已啟動` 卡；實際輸出前先以
@@ -178,14 +179,13 @@ numbering 規則生效前已開始且無法可靠回推原 cycle number。cycle 
   重複結果取得候選，裁決後回同一 `RESULT_ACCEPTED`；不永久等待，也不接納兩次。
 - 對精確 `messageId` 的故障讀回可在未收到 push 時執行，但只證明該訊息送達；
   不會被當成整條 ready／accept 通訊鏈成立，也不會擴成輪詢。
-- 平台不會自動喚醒 idle C 時，C 對已知唯一 E1 使用一次有界 event wait；
-  E1 direct-push READY 以新輸入中斷等待後才繼續。只得 wait snapshot、完成狀態
-  或 commentary 而沒有 direct-push 時，仍未通過。
-- 同一批次先後預期 `BATCH_RECEIVED` 與最終結果時，兩者使用不同
-  `eventWaitKey` 及最新 cursor，各有一次初始等待；第一個回執不會消耗最終結果
-  的等待額度。
-- 同一預期訊息逾時後，只有完成對帳及唯一一次同 `messageId` 受控重送，才可
-  使用一次 recovery wait；再次逾時即阻塞。額外控制訊息或改名不能重開額度。
+- 平台不會自動喚醒 idle C 時，C 仍不使用 `wait_threads`／`read_thread` 自行等待；
+  派工後停在 `POST_DISPATCH_PARKED`。只有 E1 的 direct-push READY／結果成為主線
+  輸入後，C 才可一次有界讀回核實或裁決。
+- 同一批次先後需要 `BATCH_RECEIVED` 與最終結果時，兩者仍必須各自 direct-push；
+  第一個 direct-push 不代表最終結果已到，也不授權 C 自動等待下一個狀態轉移。
+- 同一預期訊息逾時後，只有完成對帳及唯一一次同 `messageId` 受控重送；重送後
+  仍停在 `POST_DISPATCH_PARKED`。額外控制訊息或改名不能重開等待或輪詢額度。
 - 平台沒有 idempotency key 或權威 operation receipt 時，CER 使用有界對帳與
   `batchId` 去重，不虛構平台 receipt；批次識別只作重複送達防護。
 
@@ -245,6 +245,7 @@ numbering 規則生效前已開始且無法可靠回推原 cycle number。cycle 
 - C 的本批凍結和 E1／R 派工都保留三態、必要來源錨點和反事實結果；不得虛構使用者確認。
 - 非簡單正式實作批次在派工前，C 能逐項回答真源攝取四問：誰擁有、誰實際使用、如何生效、甚麼反例能推翻；答案只作 Controller preflight 與自足派工摘要，不建立第二個規則 owner。
 - C 答不到真源攝取四問任一項，或答案依賴未讀必要真源時，該完成條件是 `關鍵缺失`；C 不派正式實作批次，只做必要唯讀診斷、收窄驗收範圍或停問使用者。
+- 長期、多批、高風險或非簡單正式實作批次的正式派工包含短小 `pre_dispatch_evidence`，可讀回 `outcome_anchor` 指向、目標未完成條件、成功後成果差異、真源攝取四問摘要及來源錨點、必要真源已讀／缺失處置、工作線分類，以及 drift checkpoint 結論或未觸發理由；缺失時 E1／R 只回傳零寫入 `BATCH_BLOCKED_MISSING_PRE_DISPATCH_EVIDENCE`。
 
 ## 成果錨定與進展情景
 
@@ -362,6 +363,7 @@ numbering 規則生效前已開始且無法可靠回推原 cycle number。cycle 
 - 本批凍結或派工把無來源推測寫成 `已確認`。
 - 非簡單正式實作批次未回答誰擁有、誰實際使用、如何生效、甚麼反例能推翻，C 仍建立／復用 E1 或派實作批次。
 - C 把真源攝取門檻擴成預設全文讀取、全 repo 審查、固定 Full Audit、第二份規則 owner 或固定表格流程。
+- 長期、多批、高風險或非簡單正式實作批次的派工包缺 `pre_dispatch_evidence`，或只寫「C 已判斷」但無可讀回摘要，E1／R 仍開始寫入、審閱或補完 C 的判斷。
 - 關鍵終點、權限或驗收缺失時，C 不停問而直接派工。
 - 長期多批任務未固定 `outcome_anchor`，或後續 E1／R 自行改寫最終成果、完成條件、替代成果或排除範圍。
 - 預期成果改善為零且不是必要條件的實作批次仍被派出。
@@ -447,13 +449,14 @@ numbering 規則生效前已開始且無法可靠回推原 cycle number。cycle 
 - fork 帶入來源上下文卻被當成 fresh UAT。
 - assignee 沒有回傳 ready/result 仍宣稱閉環成立。
 - 新 task 沒有可見 `E1:`／`R1:` 標題或首行標籤，或 ready／結果回執缺 threadId 或平台等價座標。
-- C 派工後自動使用 `wait_threads`／`read_thread` 當接收機制、反覆 event wait、在逾時後再次等待、以輪詢發現成果，或把 wait snapshot、
+- C 派工後自動使用 `wait_threads`／`read_thread` 當接收機制、把等待包裝成有界喚醒、
+  追蹤 progress/commentary/final、在逾時後再次等待、以輪詢發現成果，或把 wait snapshot、
   task 完成狀態、commentary／摘要當成 ready/result 證據。
-- `BATCH_RECEIVED` 的等待錯誤消耗最終結果的等待額度，令已 direct-push 結果
-  無法推進。
-- 相同 `messageId` 受控重送被當作全新邏輯 send，因而可無限重開 event wait。
-- 平台需要 event wait 才能喚醒 idle C，但 C 絕對禁止單次有界 event wait，
-  導致已 direct-push 的 READY／結果無法推進。
+- C 因已收到 `BATCH_RECEIVED` 便自動等待最終結果；或把第一個 direct-push 當成下一個
+  狀態轉移也可自動等待。
+- 相同 `messageId` 受控重送被當作全新邏輯 send，因而可重開等待或輪詢額度。
+- 平台不會自動喚醒 idle C 時，C 以「喚醒」為名自行使用 `wait_threads`／`read_thread`
+  追蹤 assignee；未收到 direct-push 仍推進狀態或派下一批。
 - 知識性複雜任務沒有界定知識底座，或 R 只查格式、不反證專業主張。
 - 每個內部小步都發卡，或重大裁決／阻礙／階段交付時沒有發卡。
 - 小熊卡沒有先讀本 Skill 的 `VERSION`，把 `v1` 當 package 版本，或從網路、

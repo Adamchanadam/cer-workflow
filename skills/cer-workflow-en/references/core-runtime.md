@@ -267,7 +267,7 @@ result, or non-authoritative alias must not be treated as proof that the operati
     remains the same. A later cycle after a completed `/CER-close` uses a new cycle number, creates
     a brand-new E1 and only fresh Reviewers; it must not reuse any E/R task or coordinate from the
     previous closed C.
-13. If any communication preflight link is missing, or the assignee does not actually direct-push a qualifying zero-write `ready`, C shows only the open-eye `🔴 Major blocker` card and stops. C must not show the successful start card. A wait snapshot, completion state, commentary, polling, after-the-fact reads, document review, successful forking, and successful one-way sends do not prove communication. When the platform requires an event wait to wake an idle C, Delivery permits one bounded event wait; qualifying `ready` must still arrive by direct-push.
+13. If any communication preflight link is missing, or the assignee does not actually direct-push a qualifying zero-write `ready`, C shows only the open-eye `🔴 Major blocker` card and stops. C must not show the successful start card. A wait snapshot, completion state, commentary, polling, after-the-fact reads, document review, successful forking, and successful one-way sends do not prove communication. If the platform does not automatically wake an idle C, C still must not wait by itself; the state remains `POST_DISPATCH_PARKED` / `delivery_incomplete` until direct-push becomes main-session input or the user explicitly requests a one-time check.
 14. Only now is `CER-start` successfully accepted. C's first user-visible success receipt must be the fixed open-eye `🔵 CER started` card from [roadmap.md](roadmap.md). Keep the complete three-line ASCII bear: version on the first line, status on the second line, and only the bear base line on the third line; output it as a standalone fenced `text` code block. Single-batch and multi-batch starts use the same card. Do not use a closed-eye card or guess a version.
 15. Later batches in the same cycle do not repeat the handshake while C, E1, the return target, and verifiable coordinates remain the same. Repeat `ready` whenever the coordinates or return target changes.
 16. For long-running, multi-stage, multi-batch, or first-public-alignment work, show the initial progress surface under [roadmap.md](roadmap.md) after the fixed start card and before the first batch. A simple single-batch task with one clear endpoint needs only a short summary.
@@ -292,6 +292,8 @@ Each real E1 or R batch contains only what is needed:
 - C direct-push return target and threadId or platform-equivalent coordinates; sessionId is recorded only when the active tool schema/receipt explicitly requires or provides it, and never substitutes for threadId or derives hostId;
 - the knowledge foundation, source coordinates, unknowns, and no-go boundaries needed for the batch;
 - a short result format.
+
+A `sendable_packet` for long-running, multi-batch, high-risk, or non-simple formal implementation work must include a compact `pre_dispatch_evidence` block. It is not a new source of truth, fixed form, background monitor, or Full Audit; it only makes C's existing Controller-preflight and `outcome_anchor`/drift judgments readable to the assignee. It includes at least: an `outcome_anchor` pointer or summary; the unfinished condition this batch improves and the readable outcome difference success should create; the truth-source intake four-question summary with source anchors; required sources read and the disposition of remaining unknowns; work-lane classification; and, when a drift checkpoint trigger exists, the checkpoint conclusion, or why no trigger applies. If it is missing, contradictory, depends on unread required sources, or merely says judgment was done without readable support, the packet is not sendable and C stays at `dispatch_blocked`. If E1/R receives a formal batch without required `pre_dispatch_evidence`, it must direct-push a zero-write blocker such as `BATCH_BLOCKED_MISSING_PRE_DISPATCH_EVIDENCE` and stop; it must not write, review, or fill in C's missing judgment. Simple, one-step, low-risk work with one clear endpoint may pass with a short summary and must not be forced into a large form.
 
 Do not write "see above" or ask the assignee to reconstruct C's context. Add background and counterexamples for high-risk batches. Keep low-risk batches short and avoid oversized templates. E1 is authorized only to execute the current batch freeze; it must not treat provisional later direction as a complete specification or fill in future batches on its own. If E1/R finds a contradiction between the living task brief, current batch freeze, `outcome_anchor`, and sources, report a blocker or candidate correction first; do not rewrite the contract and continue alone. R reviews against the latest task brief, current batch freeze, candidate identity, and delivery evidence, and also checks the immutable `outcome_anchor`; it does not review against the initial prompt or stale assumptions. R must also answer whether the batch still serves the original outcome, whether it creates an acceptable outcome difference, whether it is only activity or rework, and whether it substitutes another deliverable shape for what the user originally asked for. A technically valid batch with no outcome improvement must not be reported as ordinary success progress.
 
@@ -333,33 +335,28 @@ active. `/CER-close` remains a CER-only command and does not trigger Kit full cl
   same identity with a different digest blocks immediately.
 - Unless a participant has observed an explicit `outcome_unknown` and follows this section's
   failure-recovery rule for the exact `messageId`, C performs one bounded readback and adjudication
-  only after receiving the push. Recovery readback must not expand into waiting, polling, or
-  background monitoring.
-- C must not automatically use `wait_threads` or `read_thread` after dispatch, task creation, or
-  send as the receiving mechanism. Only when a declared direct-push state transition exists, the
-  unique thread or platform-equivalent coordinate and current cursor are known, and the platform
-  will not automatically wake an idle C with cross-task input may C form an `eventWaitKey` from the known unique
-  threadId or platform-equivalent coordinate, any coordinate required by the active event tool
-  schema, current cursor, causal `messageId`, and expected message type, then arms one
-  bounded `wait_threads` or platform-equivalent event wait. Post-create `ready`, post-dispatch
-  `BATCH_RECEIVED`, the final result after `BATCH_RECEIVED`, and post-stop confirmation are separate
-  transitions and each may have one initial wait. The wait only keeps the receiver available for
-  direct-push. Completion state, commentary, summaries, or file claims in a wait snapshot are not
-  ready/result evidence. Direct-push must become actual recipient input or have an authoritative
-  receipt.
-- A matching direct-push completes that `eventWaitKey`; the next declared transition may use a new
-  key and latest cursor. Timeout without matching push marks that key `pending` or
-  `outcome_unknown` and requires bounded reconciliation. Commentary, task completion, or unrelated
-  input does not complete the transition.
-- A controlled resend of the same logical message is not a new formal send. Only the single
-  same-`messageId`, identical-content resend allowed after reconciliation may arm one `recovery`
-  wait for the same `eventWaitKey`; a second timeout is `blocked`. Only a new logical operation or
-  the next valid batch-lifecycle transition gets a new key. Extra control messages or renaming must
-  not reopen the wait budget.
+  only after receiving the push. Recovery readback may verify only whether that control message was
+  delivered or misrouted; it must not expand into waiting, polling, background monitoring, or
+  progress tracking.
+- After dispatch, task creation, or send, C immediately enters `POST_DISPATCH_PARKED`. In this
+  state, C must not automatically use `wait_threads`, `read_thread`, or a platform-equivalent tool
+  to wait, wake itself, track progress, read commentary, read finals, probe status, or discover
+  results. The normal path that may advance state is an assignee direct-push becoming actual input
+  to C / the main session, or an authoritative delivery receipt from the tool.
+- `POST_DISPATCH_PARKED` has only two read exceptions: a one-time thread check explicitly requested
+  by the user in the same turn, or one bounded readback for verification/adjudication after C has
+  received a direct-push. The first is user-directed diagnosis, not automatic coordination or formal
+  delivery evidence; the second must not expand into another wait, polling, or commentary tracking.
+- Without a direct-push, a wait snapshot, completion state, commentary, summary, child final, task
+  title, user relay, or passive read cannot advance `pending` / `delivery_incomplete` to ready,
+  done, PASS, RESULT_READY, or RESULT_ACCEPTED, and cannot trigger the next batch.
+- A controlled resend of the same logical message is not a new formal send. After reconciliation,
+  only the single same-`messageId`, identical-content resend allowed by this section may be used.
+  After the resend, C returns to `POST_DISPATCH_PARKED`; extra control messages, renaming, cycle
+  label changes, or repackaging must not reopen a wait budget.
 - "No monitoring" forbids automatic waiting, repeated waiting, polling, background listening,
   repeated status probes, accepting a wait snapshot as a result, and passive thread reads before
-  push. The single bounded event wait above when all preconditions are met, one bounded read
-  explicitly requested by the user, and verification readback after push remain allowed.
+  push. A user-explicit one-time check and one verification readback after push remain allowed.
 - Unavailable delivery blocks delegation only. C may still perform authorized read-only research, analysis, and adjudication, but C may not write in E1's place.
 
 ## Execution Loop

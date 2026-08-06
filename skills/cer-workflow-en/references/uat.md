@@ -51,9 +51,11 @@ Each outer UAT cycle C is also a delegated assignee of the release dispatcher: b
 starts it must direct-push a zero-write `ready` to the main-session return target; at completion,
 blockage, or checkpoint it must direct-push a structured `AI_UAT_CYCLE_N: PASS/FAIL` result to the
 same main target before ending. The dispatcher must not automatically use `wait_threads` or
-`read_thread` to wait for outer UAT; only when direct-push is already expected and the platform
-does not automatically wake the dispatcher may it use one bounded `wait_threads` or `read_thread`
-after that direct-push for wakeup, verification, or adjudication. A child-C final answer, wait
+`read_thread` to wait, wake itself, track, or read outer UAT. After dispatch it enters
+`POST_DISPATCH_PARKED` until direct-push becomes main-session input. Only after receiving that
+direct-push may it perform one bounded readback for verification or adjudication; a one-time check
+explicitly requested by the user in the same turn is diagnostic only, not formal delivery evidence.
+A child-C final answer, wait
 snapshot, passive thread read, task title, or user-relayed notice that the UAT task is done is not
 formal delivery evidence and cannot satisfy AI real workflow UAT or release-readiness by itself. If
 the outer return protocol is missing, the dispatcher may request one bounded delivery-repair push
@@ -94,8 +96,8 @@ cycle label or guess a number.
    model-generated title, or first-line label does not substitute for this when the title tool is
    available. C then reads back the thread ID and formal return path, and receives a `ready` direct-push containing threadId or
    platform-equivalent coordinates. sessionId is recorded only when the active tool schema/receipt
-   explicitly requires or provides it, and never substitutes for threadId or derives hostId. If the actual platform does not automatically wake an idle C, C may use one
-   bounded event wait on that E1; the wait snapshot is not ready evidence.
+   explicitly requires or provides it, and never substitutes for threadId or derives hostId. If the actual platform does not automatically wake an idle C, C still stays
+   `POST_DISPATCH_PARKED` and must not wait by itself; a wait snapshot is not ready evidence.
 4. C maps existing target-project sources of truth and the task knowledge foundation without creating fixed CER documents.
 5. For every successfully accepted `CER-start`, C's first user-visible success receipt is the
    fixed open-eye `CER Workflow v{package_version}` / `🔵 CER started` card. Before output,
@@ -217,15 +219,16 @@ cycle label or guess a number.
 - Failure readback for an exact `messageId` may run before push is received, but proves only that
   message's delivery. It neither establishes the full ready/accept communication chain nor expands
   into polling.
-- When the platform does not automatically wake an idle C, C uses one bounded event wait on the
-  known unique E1. Only E1's direct-push READY interrupting the wait allows continuation. A wait
-  snapshot, completion state, or commentary without direct-push still fails.
-- When one batch expects `BATCH_RECEIVED` and then a final result, they use separate
-  `eventWaitKey` values and the latest cursor, each with one initial wait. The first receipt does
-  not consume the final-result wait budget.
+- When the platform does not automatically wake an idle C, C still does not use `wait_threads` or
+  `read_thread` to wait by itself; after dispatch it stays `POST_DISPATCH_PARKED`. Only when E1's
+  direct-push READY/result becomes main-session input may C perform one bounded readback for
+  verification or adjudication.
+- When one batch needs `BATCH_RECEIVED` and then a final result, each must arrive by its own
+  direct-push. The first direct-push does not mean the final result has arrived and does not
+  authorize C to wait automatically for the next state transition.
 - After timeout for one expected message, only reconciliation plus the single controlled resend
-  with the same `messageId` permits one recovery wait. Another timeout blocks; extra control
-  messages or renaming cannot reopen the budget.
+  with the same `messageId` is allowed; after the resend C still stays `POST_DISPATCH_PARKED`.
+  Extra control messages or renaming cannot reopen a wait or polling budget.
 - When the platform has no idempotency key or authoritative operation receipt, CER uses bounded
   reconciliation and `batchId` deduplication without inventing a platform receipt; the batch
   identifier is used only for duplicate-delivery protection.
@@ -298,6 +301,7 @@ cycle label or guess a number.
 - C's current batch freeze and E1/R dispatches preserve the three states, required source anchors, and counterfactual results. They must not invent user confirmation.
 - Before a non-simple formal implementation batch, C can answer each truth-source intake question: who owns it, who actually uses it, how it takes effect, and what counterexample can disprove it. The answers are only a Controller preflight and self-contained-dispatch summary, not a second rule owner.
 - If C cannot answer any truth-source intake question, or if an answer depends on an unread required source, that completion condition is `critical missing`. C does not dispatch a formal implementation batch and only performs necessary read-only diagnosis, narrows the acceptance scope, or stops for user decision.
+- A formal packet for long-running, multi-batch, high-risk, or non-simple formal implementation work includes compact `pre_dispatch_evidence` that reads back the `outcome_anchor` pointer, target unfinished condition, expected outcome difference, truth-source intake four-question summary with source anchors, required-source read/unknown disposition, work-lane classification, and drift checkpoint conclusion or no-trigger reason; if it is missing, E1/R only returns a zero-write `BATCH_BLOCKED_MISSING_PRE_DISPATCH_EVIDENCE`.
 
 ## Outcome Anchor And Progress Scenarios
 
@@ -438,6 +442,7 @@ These scenarios only test the unexpected-failure gate in
 - The current batch freeze or dispatch writes an unsupported assumption as `confirmed`.
 - A non-simple formal implementation batch has not answered who owns it, who actually uses it, how it takes effect, and what counterexample can disprove it, but C still creates/reuses E1 or dispatches the implementation batch.
 - C expands the truth-source intake gate into default full-text ingestion, whole-repo review, fixed Full Audit, a second rule owner, or a fixed form workflow.
+- A long-running, multi-batch, high-risk, or non-simple formal implementation packet lacks `pre_dispatch_evidence`, or only says "C already judged" without readable support, and E1/R still writes, reviews, or fills in C's missing judgment.
 - C dispatches instead of stopping when critical endpoint, permission, or acceptance information is missing.
 - Long multi-batch work lacks `outcome_anchor`, or later E1/R rewrites the final outcome, completion conditions, substitute outcomes, or exclusions.
 - An implementation batch with zero expected outcome improvement and no necessary-prerequisite role is still dispatched.
@@ -542,14 +547,16 @@ These scenarios only test the unexpected-failure gate in
 - The assignee does not return `ready/result`, but the loop is still claimed.
 - A new task lacks a visible `E1:`/`R1:` title or first-line label, or receipts omit threadId or platform-equivalent coordinates.
 - C automatically uses `wait_threads` or `read_thread` after dispatch as the receiving mechanism,
-  repeats event waits, waits again after timeout, discovers results by polling, or accepts a wait
-  snapshot, task completion state, commentary, or summary as ready/result evidence.
-- The `BATCH_RECEIVED` wait wrongly consumes the final-result wait budget, leaving a direct-pushed
-  result unable to advance.
-- A controlled resend with the same `messageId` is treated as a new logical send and can reopen
-  event waits indefinitely.
-- The platform requires an event wait to wake an idle C, but C absolutely forbids the single bounded
-  event wait, so an already direct-pushed READY/result cannot advance.
+  wraps waiting as a bounded wakeup, tracks progress/commentary/finals, waits again after timeout,
+  discovers results by polling, or accepts a wait snapshot, task completion state, commentary, or
+  summary as ready/result evidence.
+- C receives `BATCH_RECEIVED` and therefore automatically waits for the final result, or treats the
+  first direct-push as authorization to wait for the next state transition.
+- A controlled resend with the same `messageId` is treated as a new logical send and can reopen a
+  wait or polling budget.
+- The platform does not automatically wake an idle C, so C uses `wait_threads` or `read_thread`
+  under the name of wakeup to follow an assignee, then advances state or dispatches the next batch
+  without direct-push.
 - A knowledge-heavy task lacks a defined knowledge foundation, or R checks only format instead of challenging specialist claims.
 - Every internal step gets a card, or a material decision, blocker, or staged delivery gets no card.
 - A bear card does not first read this Skill's `VERSION`, treats `v1` as the package version, or

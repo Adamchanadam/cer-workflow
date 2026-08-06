@@ -153,9 +153,19 @@ UNEXPECTED_FAILURE_REQUIREMENTS = {
 }
 
 DELIVERY_REQUIREMENTS = {
-    "no_auto_wait": "不得在派工、建 task 或送訊後自動使用 `wait_threads`／`read_thread` 當接收機制",
-    "wait_preconditions": "只有已聲明某個 direct-push 狀態轉移、該次唯一 threadId／平台等價座標及目前 cursor 已知",
-    "no_automatic_waiting": "禁止自動 waiting、反覆 waiting",
+    "post_dispatch_parked": "C 派工、建 task 或送訊後立即進入 `POST_DISPATCH_PARKED`",
+    "no_auto_wait": "不得自動使用 `wait_threads`、`read_thread` 或平台等價工具作等待、喚醒",
+    "no_auto_progress_read": "final 讀取、狀態探測或結果發現",
+    "read_exceptions": "只有兩個讀取例外：使用者在同一輪明示要求的一次性 thread 查證；或 C 已收到 direct-push 後，為驗證或裁決作一次有界讀回",
+    "no_push_no_progress": "沒有 direct-push 時，wait snapshot、完成狀態、commentary、摘要、child final",
+    "no_push_no_advance": "不能把 `pending`／`delivery_incomplete`",
+    "no_automatic_waiting": "禁止自動 waiting、反覆 waiting、polling、背景監聽",
+}
+
+DELIVERY_UAT_REQUIREMENTS = {
+    "post_dispatch_parked_uat": "派工後停在 `POST_DISPATCH_PARKED`",
+    "bounded_wakeup_wrapper_bad": "把等待包裝成有界喚醒",
+    "no_push_next_batch_bad": "未收到 direct-push 仍推進狀態或派下一批",
 }
 
 TRUTH_SOURCE_INTAKE_REQUIREMENTS = {
@@ -203,6 +213,11 @@ SENDABLE_PACKET_REQUIREMENTS = {
     "draft_sendable_split": "`draft_packet`",
     "no_placeholders": "`sendable_packet` 不得保留 `<...>` 佔位符",
     "truth_intake_summary": "Controller preflight 已通過的真源攝取四問摘要：誰擁有、誰實際使用、如何生效、甚麼反例能推翻",
+    "pre_dispatch_evidence": "長期、多批、高風險或非簡單正式實作批次的 `sendable_packet` 必須包含短小 `pre_dispatch_evidence`",
+    "pre_dispatch_not_new_owner": "它不是新真源、固定表格、背景監察或 Full Audit",
+    "pre_dispatch_fields": "內容至少列明：`outcome_anchor` 指向或摘要；本批改善的未完成條件與成功後可讀回成果差異；真源攝取四問摘要及來源錨點；已讀必要真源與仍缺真源的處置；本批工作線分類；若觸發 drift checkpoint，列其結論，否則說明未觸發理由",
+    "pre_dispatch_missing_blocks": "缺失、互相矛盾、依賴未讀必要真源，或只有「已判斷」但沒有可讀回摘要時，`sendable_packet` 不可送出",
+    "pre_dispatch_assignee_blocks": "E1／R 收到缺少必要 `pre_dispatch_evidence` 的正式批次時，只可 direct-push 零寫入 blocker（例如 `BATCH_BLOCKED_MISSING_PRE_DISPATCH_EVIDENCE`）並停止",
     "concrete_bindings": "正式派工必須填入實際 `threadId` 或平台等價座標、`returnTarget`、`messageId`、`batchId`、`batchSeq`、`payloadDigest`，以及當前工具 schema／receipt 明示必需的路由座標",
     "sessionid_not_threadid": "sessionId 不可代替 threadId 作正式派工座標",
     "hostid_not_hard_required": "hostId 只在當前工具 schema 或 receipt 明示需要／提供時使用",
@@ -219,6 +234,8 @@ SENDABLE_PACKET_UAT_REQUIREMENTS = {
     "hostid_inferred": "由 `local`、title、sessionId、threadId 形狀或錯誤訊息推導 hostId",
     "sessionid_replaces_threadid": "正式派工以 sessionId 代替 threadId 作正式派工座標",
     "review_manifest_missing": "R 派工缺實際 `candidateIdentity`、`candidateManifest` 或候選 delivery evidence",
+    "pre_dispatch_missing": "派工包缺 `pre_dispatch_evidence`",
+    "pre_dispatch_claim_only": "只寫「C 已判斷」但無可讀回摘要",
 }
 
 SENDABLE_PACKET_FORBIDDEN = {
@@ -229,6 +246,8 @@ SENDABLE_PACKET_FORBIDDEN = {
     "sessionid_replaces_threadid": "sessionId 可代替 threadId 作正式派工座標",
     "review_manifest_optional": "R 派工可以省略 `candidateManifest`",
     "draft_pass": "`draft_packet` 可自評為可送出",
+    "pre_dispatch_optional": "長期、多批、高風險或非簡單正式實作批次不需要 `pre_dispatch_evidence`",
+    "assignee_fills_missing_pre_dispatch": "E1／R 可自行補完 C 的 pre-dispatch evidence 並繼續寫入",
 }
 
 MESSAGE_ID_BOUNDARY_REQUIREMENTS = (
@@ -702,6 +721,9 @@ def validate_texts(root: Path, texts: dict[str, str]) -> list[str]:
     for label, required in DELIVERY_REQUIREMENTS.items():
         if required not in core_normalized:
             findings.append(f"delivery gate missing {label}")
+    for label, required in DELIVERY_UAT_REQUIREMENTS.items():
+        if required not in uat:
+            findings.append(f"uat.md missing delivery counterexample {label}")
     for label, forbidden in SENDABLE_PACKET_FORBIDDEN.items():
         if forbidden in normalized_markdown:
             findings.append(f"sendable-packet fixed contradiction present {label}")
@@ -1092,6 +1114,13 @@ def mutation_matrix(root: Path) -> tuple[int, list[str]]:
             (
                 f"delivery_gate_missing_{label}",
                 mutated_fragment("references/core-runtime.md", fragment),
+            )
+        )
+    for label, fragment in DELIVERY_UAT_REQUIREMENTS.items():
+        cases.append(
+            (
+                f"delivery_uat_missing_{label}",
+                mutated_fragment("references/uat.md", fragment),
             )
         )
     for label, fragment in TRUTH_SOURCE_INTAKE_REQUIREMENTS.items():

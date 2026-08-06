@@ -215,7 +215,7 @@ C 將本輪工作線分類為 `mainline_outcome`、`diagnostic`、`mechanism_imp
 10. 若官方 `create_thread` 新建 task 工具不可用，或無法讀回側欄可見 title、可核實 thread id 與正式回傳路徑，E／R 委派即阻塞；不得降級用 inline sub-agent、fork、delegate 或既有 task 冒充正式 E／R。
 11. 新建 E1／R／E2 時，標題或首行標籤必須分別以 `E1:01｜<極短任務名>`、`R1:01｜<極短審閱名>`／`R2:01｜...`、`E2:01｜...` 格式開首，不加 `🚀`；角色序號在冒號前，cycle 編號在冒號後，避免把第二輪 E1 誤作 E2。同輪所有 C／E／R 使用相同 cycle 編號，下一輪使用新 cycle 編號；legacy/migration cycle 可用 `00`。每個派工包和 ready／結果回執都要包含發送者角色、接收者、回傳目標、threadId 或平台等價座標。
 12. C 透過官方 `create_thread` 建立本輪全新持久 E1。E1 先零寫入 direct-push `ready`；C 必須實際收到含正確角色、cycle 編號、側欄可見標題／標籤、thread 座標和回傳目標的合格零寫入 `ready`。同一輪後續批次持續復用該同一 E1 且 E1 threadId 保持相同；完成上一輪 `/CER-close` 後的新一輪必須建立全新 E1、使用新 cycle 編號，所有 R 也必須 fresh；不得復用上一輪 closed C 的任何 E／R task 或座標。
-13. 任一通訊 preflight 環節缺失，或 assignee 沒有實際 direct-push 合格零寫入 `ready`，C 只顯示開眼 `🔴 重大阻礙` 卡並停止；不得顯示成功啟動卡，也不得用 wait snapshot、完成狀態、commentary、輪詢、事後 read、文件審閱、fork 建立成功或單向 send 成功冒充通訊驗證。平台需要事件等待才會喚醒 idle C 時，只可依「送達」使用一次有界 event wait，真正 `ready` 仍須以 direct-push 到達。
+13. 任一通訊 preflight 環節缺失，或 assignee 沒有實際 direct-push 合格零寫入 `ready`，C 只顯示開眼 `🔴 重大阻礙` 卡並停止；不得顯示成功啟動卡，也不得用 wait snapshot、完成狀態、commentary、輪詢、事後 read、文件審閱、fork 建立成功或單向 send 成功冒充通訊驗證。若平台不會自動喚醒 idle C，C 仍不得自行等待；狀態保持 `POST_DISPATCH_PARKED`／`delivery_incomplete`，直到 direct-push 成為主線輸入，或使用者明示要求一次性查證。
 14. 到此才算成功接受 `CER-start`。C 的第一個使用者可見成功回執必須是 [roadmap.md](roadmap.md) 的固定開眼 `🔵 CER 已啟動` 卡；保留完整三行 ASCII 小熊，版本在第一行，狀態在第二行，第三行只保留小熊底線，並作為獨立 fenced `text` code block 輸出。單批與多批都相同；不得用閉眼卡或猜測版本。
 15. 同一輪、同一 C、同一 E1、同一回傳目標、同一可核實座標的後續批次不重做握手；座標或回傳目標改變即重做 ready。
 16. C 判定為長期、多階段、多批次，或需要首次公開對齊的任務時，在固定啟動卡後、第一批前依 [roadmap.md](roadmap.md) 顯示初始進度面。簡單單批且終點唯一的任務只顯示短摘要，不強制建立路線圖。
@@ -240,6 +240,8 @@ C 將本輪工作線分類為 `mainline_outcome`、`diagnostic`、`mechanism_imp
 - 回傳 C 的 direct-push 目標、threadId 或平台等價座標；sessionId 只在當前工具 schema／receipt 明示需要／提供時附帶記錄，不可代替 threadId 或推導 hostId；
 - 本批需要的知識底座、來源座標、未知與禁止越界範圍；
 - 短回報要求。
+
+長期、多批、高風險或非簡單正式實作批次的 `sendable_packet` 必須包含短小 `pre_dispatch_evidence`。它不是新真源、固定表格、背景監察或 Full Audit，只是把既有 Controller preflight、`outcome_anchor`／drift 判斷濃縮成 assignee 可讀回的派工前證據。內容至少列明：`outcome_anchor` 指向或摘要；本批改善的未完成條件與成功後可讀回成果差異；真源攝取四問摘要及來源錨點；已讀必要真源與仍缺真源的處置；本批工作線分類；若觸發 drift checkpoint，列其結論，否則說明未觸發理由。缺失、互相矛盾、依賴未讀必要真源，或只有「已判斷」但沒有可讀回摘要時，`sendable_packet` 不可送出，C 停在 `dispatch_blocked`。E1／R 收到缺少必要 `pre_dispatch_evidence` 的正式批次時，只可 direct-push 零寫入 blocker（例如 `BATCH_BLOCKED_MISSING_PRE_DISPATCH_EVIDENCE`）並停止，不得開始寫入、審閱或沿錯誤方向補完 C 的判斷。簡單、單步、低風險且終點唯一的任務可用短摘要通過，不強制大表格。
 
 不得寫「見上文」或要求 assignee 自行重建 C 的上下文。高風險批次補足背景與反例；低風險小修改保持短，不套巨型表格。E1 只獲授權執行本批凍結內容，不得把暫定後續意向當成完整規格或自行補成後續批次。E1／R 發現活的任務簡報、本批凍結、`outcome_anchor` 與真源矛盾時，先回報 blocker 或候選修正，不自行改寫契約後繼續。R 依最新任務簡報、本批凍結、候選 identity 及 delivery evidence 驗收，並同時對照不可被批次改寫的 `outcome_anchor`；不按最初 prompt 或過期假設驗收。R 必須同時回答本批是否仍服務原始成果、是否產生可接納的成果差異、是否只是活動或返工，以及是否用另一種交付形式代替使用者原本要求；技術合格但沒有成果改善時，不得回報為一般成功進度。
 
@@ -267,30 +269,27 @@ Governance bridge 完成後只作一般成果讀回與裁決，CER 保持啟動�
 - 完成、受阻或未完成時，先 direct-push 短結果給 C，再停止；結果回執帶 `messageId`、`batchId`、`payloadDigest` 及 threadId 或平台等價座標，避免 C 將另一個 task、另一批或另一修訂的結果誤接納。C 裁決後回 `RESULT_ACCEPTED`。
 - 相同 `batchId` 重複送達時，接收者依 `RECEIVED_ZERO_WRITE`、`IN_PROGRESS`、`RESULT_READY`、`RESULT_ACCEPTED` 或 `STATE_UNKNOWN` 恢復，不得盲目重做；相同身份但不同 digest 立即阻塞。
 - 除非某參與者已觀察到明確 `outcome_unknown` 並依本節故障恢復規則讀取精確
-  `messageId`，C 只有收到 push 後才做一次有界讀回及裁決。故障讀回不可擴成
-  waiting、polling 或背景監聽。
-- C 不得在派工、建 task 或送訊後自動使用 `wait_threads`／`read_thread` 當接收機制。
-  只有已聲明某個 direct-push 狀態轉移、該次唯一 threadId／平台等價座標及目前
-  cursor 已知，且平台不會自動以跨 task 輸入喚醒 idle C 時，C 才可對該轉移以
-  該次已知唯一 threadId 或平台等價座標、當前 event 工具 schema
-  所需座標、目前 cursor、因果
-  `messageId` 及預期訊息種類形成 `eventWaitKey`，啟動一次有界 `wait_threads`
-  或平台等價 event wait。建立後的 `ready`、正式批次後的 `BATCH_RECEIVED`、
-  `BATCH_RECEIVED` 後的最終結果、stop 後的停止確認各是不同狀態轉移，可各有
-  一次初始等待。等待只保持接收端可被 direct-push 喚醒；
-  wait snapshot 內的完成狀態、commentary、摘要或檔案聲稱都不是 ready/result
-  證據。真正 direct-push 必須成為接收端的實際輸入或有權威 receipt。
-- event wait 被符合 `eventWaitKey` 的 direct-push 中斷後，該狀態轉移完成；下一個
-  已聲明轉移可用新的 key 及最新 cursor 建立自己的等待。逾時而沒有相符 push 時，
-  該 key 改標 `pending` 或 `outcome_unknown` 並先做有界對帳；不得只因 commentary、
-  task 完成或不相干輸入而把轉移當完成。
-- 同一邏輯訊息的受控重送不算新的正式 send。只有對帳後依本節允許的唯一一次同
-  `messageId`、同內容重送，才可為同一 `eventWaitKey` 建立一次 `recovery` 等待；
-  recovery 再逾時即 `blocked`。新的邏輯操作或下一個合法批次生命週期轉移才使用
-  新 key，不得以額外控制訊息或改名重開等待額度。
-- 「不監察」禁止自動 waiting、反覆 waiting、polling、背景監聽、反覆狀態探測、把 wait snapshot
-  當成果，以及未收到 push 的被動 thread read；上述符合前置條件的單次有界 event wait、使用者
-  明示的一次有界 read，或 push 後的核對 read，不在禁止範圍。
+  `messageId`，C 只有收到 push 後才做一次有界讀回及裁決。故障讀回只可核對
+  該控制訊息是否送達或目標是否錯誤，不可擴成 waiting、polling、背景監聽或
+  進度追蹤。
+- C 派工、建 task 或送訊後立即進入 `POST_DISPATCH_PARKED`。在此狀態下，
+  C 不得自動使用 `wait_threads`、`read_thread` 或平台等價工具作等待、喚醒、
+  進度追蹤、commentary 讀取、final 讀取、狀態探測或結果發現。唯一可推進狀態
+  的一般路線，是 assignee 的 direct-push 成為 C／主線的實際輸入，或工具回傳
+  權威 delivery receipt。
+- `POST_DISPATCH_PARKED` 只有兩個讀取例外：使用者在同一輪明示要求的一次性
+  thread 查證；或 C 已收到 direct-push 後，為驗證或裁決作一次有界讀回。前者是
+  使用者指示的診斷，不是自動協調或正式交付證據；後者不得擴成下一輪等待、
+  polling 或 commentary 追蹤。
+- 沒有 direct-push 時，wait snapshot、完成狀態、commentary、摘要、child final、
+  task title、使用者轉述或被動讀取都不能把 `pending`／`delivery_incomplete`
+  推進為 ready、done、PASS、RESULT_READY 或 RESULT_ACCEPTED，也不能觸發下一批。
+- 同一邏輯訊息的受控重送不算新的正式 send；對帳後只可依本節允許的唯一一次同
+  `messageId`、同內容重送。重送後 C 仍回到 `POST_DISPATCH_PARKED`，不得以
+  額外控制訊息、改名、改 cycle label 或改包裝重開等待額度。
+- 「不監察」禁止自動 waiting、反覆 waiting、polling、背景監聽、反覆狀態探測、
+  把 wait snapshot 當成果，以及未收到 push 的被動 thread read；使用者明示的
+  一次性查證或 push 後的一次核對 read 不在禁止範圍。
 - 送達不可用只阻止委派；C 仍可做獲授權的唯讀研究、分析與裁決，但不能代替 E1 寫入。
 
 ## 執行閉環
