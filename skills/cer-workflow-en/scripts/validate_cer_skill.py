@@ -24,6 +24,8 @@ TEXT_FILES = EXPECTED_FILES - {"VERSION"}
 SEMVER_RE = re.compile(r"(?<![0-9])\d+\.\d+\.\d+(?![0-9])")
 OWNER_MARKER = "<!-- cer-parallel-producers-owner -->"
 UNEXPECTED_FAILURE_OWNER_MARKER = "<!-- cer-unexpected-failure-gate-owner -->"
+TRUTH_SOURCE_INTAKE_OWNER_MARKER = "<!-- cer-truth-source-intake-gate-owner -->"
+DRIFT_CHECKPOINT_OWNER_MARKER = "<!-- cer-controller-drift-checkpoint-owner -->"
 EXPECTED_DEFAULT_PROMPT = (
     "Use $cer-workflow-en with one writer for this work; create a fresh Reviewer in "
     "proportion to risk, and accelerate internally when useful without extra setup."
@@ -136,6 +138,7 @@ UAT_REQUIREMENTS = {
     "stop_close": "`/CER-stop` or `/CER-close` does not wait",
     "no_lifecycle_identity": "no formal title, cycle, ready, result, slash, lock, registry, or run id",
     "roadmap_boundary": "Roadmap role columns and lifecycle cards still contain formal roles only",
+    "auto_wait_threads_forbidden": "automatically uses `wait_threads` or `read_thread` after dispatch as the receiving mechanism",
 }
 
 UNEXPECTED_FAILURE_REQUIREMENTS = {
@@ -147,6 +150,36 @@ UNEXPECTED_FAILURE_REQUIREMENTS = {
     "unknown_or_boundary": "stop further writes",
     "regression_boundary": "does not expand E1's repair authority",
     "controller_only": "Only C may refreeze the contract and expand scope by dispatching a new batch with a new `batchId` and `payloadDigest`",
+}
+
+DELIVERY_REQUIREMENTS = {
+    "no_auto_wait": "C must not automatically use `wait_threads` or `read_thread` after dispatch, task creation, or send as the receiving mechanism",
+    "wait_preconditions": "Only when a declared direct-push state transition exists, the unique thread or platform-equivalent coordinate and current cursor are known",
+    "no_automatic_waiting": "forbids automatic waiting, repeated waiting",
+}
+
+TRUTH_SOURCE_INTAKE_REQUIREMENTS = {
+    "sole_owner": "The truth-source intake gate is the sole owner inside Controller preflight",
+    "four_questions": "who owns it; who actually uses it; how it takes effect; and what counterexample can disprove it",
+    "owner_definition": "`Who owns it` means the source anchor in a user decision, project source of truth, rule, file, or external authority",
+    "consumer_definition": "`Who actually uses it` means how E1, R, the deliverable, install surface, public surface, later batch, or user flow consumes that condition",
+    "effect_definition": "`How it takes effect` means how it changes this batch's dispatch, deliverable content, permissions, acceptance, or outcome judgment",
+    "disproof_definition": "`What counterexample can disprove it` means the readback, test, Reviewer question, or counterexample that would make this batch unable to count as successful",
+    "missing_is_critical": "If any item cannot be answered, or if the answer depends on a required source C has not read, the condition is `critical missing`",
+    "no_dispatch": "C must not dispatch a formal implementation batch and may only perform necessary read-only diagnosis, narrow the acceptance scope, or use a `🟡 User decision` stop",
+    "not_full_audit": "Do not expand this gate into default full-text ingestion, whole-repo review, or fixed Full Audit",
+}
+
+TRUTH_SOURCE_INTAKE_UAT_REQUIREMENTS = {
+    "four_questions_pass": "Before a non-simple formal implementation batch, C can answer each truth-source intake question",
+    "missing_blocks": "If C cannot answer any truth-source intake question",
+    "missing_still_dispatches": "A non-simple formal implementation batch has not answered who owns it, who actually uses it, how it takes effect, and what counterexample can disprove it, but C still creates/reuses E1 or dispatches the implementation batch",
+    "overwide_gate": "C expands the truth-source intake gate into default full-text ingestion, whole-repo review, fixed Full Audit, a second rule owner, or a fixed form workflow",
+}
+
+TRUTH_SOURCE_INTAKE_FORBIDDEN = {
+    "missing_four_questions_dispatch": "when who owns it, who actually uses it, how it takes effect, and what counterexample can disprove it are unanswered, C may still dispatch a formal implementation batch",
+    "full_ingestion_required": "the truth-source intake gate requires default full-text ingestion, whole-repo review, or fixed Full Audit",
 }
 
 UNEXPECTED_FAILURE_UAT_MARKERS = {
@@ -169,6 +202,7 @@ UNEXPECTED_FAILURE_FORBIDDEN = {
 SENDABLE_PACKET_REQUIREMENTS = {
     "draft_sendable_split": "`draft_packet`",
     "no_placeholders": "`sendable_packet` must not retain `<...>` placeholders",
+    "truth_intake_summary": "summary of the truth-source intake four questions passed in Controller preflight: who owns it, who actually uses it, how it takes effect, and what counterexample can disprove it",
     "concrete_bindings": "A real dispatch must fill actual `threadId` or platform-equivalent coordinate, `returnTarget`, `messageId`, `batchId`, `batchSeq`, `payloadDigest`, and any routing coordinate explicitly required by the active tool schema/receipt",
     "sessionid_not_threadid": "sessionId is not a substitute for threadId as a formal dispatch coordinate",
     "hostid_not_hard_required": "hostId is used only when the active tool schema or receipt requires or provides it",
@@ -288,6 +322,50 @@ OUTCOME_ANCHOR_FORBIDDEN = {
     "diagnostic_mainline": "A diagnostic batch increases mainline progress",
     "third_retry_allowed": "A third same-class repair may continue",
     "activity_completion": "Batch, task, Reviewer, or candidate counts are completion evidence",
+}
+
+DRIFT_CHECKPOINT_REQUIREMENTS = {
+    "sole_owner": "The long-task drift checkpoint is the sole owner in this section",
+    "no_new_monitor": "do not create another monitoring role, background process, or fixed table",
+    "resume_trigger": "resume/context transition",
+    "two_no_delta_trigger": "two consecutive batches with no accepted outcome difference",
+    "same_failure_trigger": "the second same-class failure",
+    "adjacent_trigger": "E1/R proposes an adjacent direction change or substitute deliverable",
+    "user_change_trigger": "the user changes direction or adds constraints",
+    "close_release_trigger": "before close/release/major delivery",
+    "next_condition": "whether the next batch still improves an unfinished `outcome_anchor` condition",
+    "readable_delta": "what readable outcome difference success will create",
+    "mainline_replacement": "are replacing the mainline outcome",
+    "no_dispatch": "C must not dispatch a formal implementation batch",
+    "allowed_exits": "may only switch to diagnostic work, narrow acceptance, stop for user decision, terminate the route",
+    "fresh_r_bounded": "when C cannot reliably disprove the risk and the risk level justifies it",
+    "not_progress": "A checkpoint, living task brief, or roadmap update does not count as outcome progress",
+    "no_monitoring": "must not trigger background monitoring, polling, automatic `wait_threads`, fixed R, fixed Full Audit",
+    "simple_exempt": "simple, one-step, low-risk work with one clear endpoint",
+}
+
+DRIFT_CHECKPOINT_UAT_REQUIREMENTS = {
+    "generic_trigger": "long-running, multi-batch, or context-pollution-prone work",
+    "two_no_delta": "two consecutive batches with no accepted outcome difference",
+    "same_failure": "the second same-class failure",
+    "adjacent_change": "E1/R proposes an adjacent direction change or substitute deliverable",
+    "next_condition": "which unfinished `outcome_anchor` condition the next batch improves",
+    "not_progress": "A drift checkpoint, living task brief, or roadmap update does not count as outcome progress",
+    "no_monitoring": "does not trigger background monitoring, polling, automatic `wait_threads`, fixed R, or fixed Full Audit",
+    "missing_checkpoint_dispatch": "After two consecutive batches with no accepted outcome difference, C dispatches another mainline implementation batch without a drift checkpoint",
+    "adjacent_rewrites_mainline": "After E1/R proposes an adjacent direction change, substitute deliverable, or out-of-scope blocker, C rewrites the next mainline batch without classifying whether that proposal replaces the mainline outcome",
+    "checkpoint_as_progress": "A drift checkpoint, living task brief, or roadmap update is counted as outcome progress",
+    "checkpoint_triggers_monitoring": "A drift checkpoint triggers background monitoring, polling, automatic `wait_threads`, fixed R, or fixed Full Audit",
+    "simple_forced": "Simple, one-step, low-risk work with one clear endpoint is forced to run a drift checkpoint",
+}
+
+DRIFT_CHECKPOINT_FORBIDDEN = {
+    "background_monitor": "a drift checkpoint starts background monitoring",
+    "automatic_wait": "a drift checkpoint may automatically use `wait_threads`",
+    "fixed_reviewer": "every drift checkpoint must create R",
+    "fixed_full_audit": "every drift checkpoint triggers Full Audit",
+    "progress_credit": "a drift checkpoint itself increases mainline outcome progress",
+    "simple_required": "simple one-step work must run a drift checkpoint",
 }
 
 
@@ -524,6 +602,14 @@ def validate_texts(root: Path, texts: dict[str, str]) -> list[str]:
         findings.append("unexpected-failure gate owner marker must occur exactly once")
     if UNEXPECTED_FAILURE_OWNER_MARKER not in texts["references/core-runtime.md"]:
         findings.append("unexpected-failure gate owner marker is not in core-runtime.md")
+    if all_markdown.count(TRUTH_SOURCE_INTAKE_OWNER_MARKER) != 1:
+        findings.append("truth-source intake owner marker must occur exactly once")
+    if TRUTH_SOURCE_INTAKE_OWNER_MARKER not in texts["references/core-runtime.md"]:
+        findings.append("truth-source intake owner marker is not in core-runtime.md")
+    if all_markdown.count(DRIFT_CHECKPOINT_OWNER_MARKER) != 1:
+        findings.append("drift checkpoint owner marker must occur exactly once")
+    if DRIFT_CHECKPOINT_OWNER_MARKER not in texts["references/core-runtime.md"]:
+        findings.append("drift checkpoint owner marker is not in core-runtime.md")
 
     owner = re.sub(r"\s+", " ", texts["references/parallel-producers.md"])
     for label, required in OWNER_REQUIREMENTS.items():
@@ -537,6 +623,20 @@ def validate_texts(root: Path, texts: dict[str, str]) -> list[str]:
     uat = re.sub(r"\s+", " ", texts["references/uat.md"])
     roadmap = re.sub(r"\s+", " ", texts["references/roadmap.md"])
     core_normalized = re.sub(r"\s+", " ", core)
+    preflight_match = re.search(
+        r"^## Controller Preflight[ \t]*\n([\s\S]*?)(?=^## Startup|\Z)",
+        core,
+        re.MULTILINE,
+    )
+    if not preflight_match:
+        findings.append("core-runtime.md lacks the Controller preflight owner section")
+    else:
+        preflight_owner = re.sub(r"\s+", " ", preflight_match.group(1))
+        if TRUTH_SOURCE_INTAKE_OWNER_MARKER not in preflight_owner:
+            findings.append("truth-source intake marker is outside Controller preflight")
+        for label, required in TRUTH_SOURCE_INTAKE_REQUIREMENTS.items():
+            if required not in preflight_owner:
+                findings.append(f"truth-source intake owner missing {label}")
     unexpected_failure_match = re.search(
         r"^## Execution Loop[ \t]*\n([\s\S]*?)(?=^## |\Z)", core, re.MULTILINE
     )
@@ -551,6 +651,20 @@ def validate_texts(root: Path, texts: dict[str, str]) -> list[str]:
         for label, required in UNEXPECTED_FAILURE_REQUIREMENTS.items():
             if required not in unexpected_failure_owner:
                 findings.append(f"unexpected-failure gate owner missing {label}")
+    outcome_anchor_match = re.search(
+        r"^## Outcome Anchor And Progress Gate[ \t]*\n([\s\S]*?)(?=^## |\Z)",
+        core,
+        re.MULTILINE,
+    )
+    if not outcome_anchor_match:
+        findings.append("core-runtime.md lacks the outcome-anchor progress owner section")
+    else:
+        outcome_anchor_owner = re.sub(r"\s+", " ", outcome_anchor_match.group(1))
+        if DRIFT_CHECKPOINT_OWNER_MARKER not in outcome_anchor_owner:
+            findings.append("drift checkpoint marker is outside outcome-anchor progress section")
+        for label, required in DRIFT_CHECKPOINT_REQUIREMENTS.items():
+            if required not in outcome_anchor_owner:
+                findings.append(f"drift checkpoint owner missing {label}")
     self_contained_match = re.search(
         r"^## Self-Contained Dispatch[ \t]*\n([\s\S]*?)(?=^## |\Z)",
         core,
@@ -587,17 +701,28 @@ def validate_texts(root: Path, texts: dict[str, str]) -> list[str]:
     for label, forbidden in UNEXPECTED_FAILURE_FORBIDDEN.items():
         if forbidden in normalized_markdown:
             findings.append(f"unexpected-failure fixed contradiction present {label}")
+    for label, required in DELIVERY_REQUIREMENTS.items():
+        if required not in core_normalized:
+            findings.append(f"delivery gate missing {label}")
     for label, forbidden in SENDABLE_PACKET_FORBIDDEN.items():
         if forbidden in normalized_markdown:
             findings.append(f"sendable-packet fixed contradiction present {label}")
+    for label, forbidden in TRUTH_SOURCE_INTAKE_FORBIDDEN.items():
+        if forbidden in normalized_markdown:
+            findings.append(f"truth-source intake fixed contradiction present {label}")
     for index, required in enumerate(OUTCOME_ANCHOR_REQUIREMENTS):
         if required not in core_normalized:
             findings.append(f"outcome-anchor runtime missing requirement_{index}")
     for label, forbidden in OUTCOME_ANCHOR_FORBIDDEN.items():
         if forbidden in normalized_markdown:
             findings.append(f"outcome-anchor fixed contradiction present {label}")
+    for label, forbidden in DRIFT_CHECKPOINT_FORBIDDEN.items():
+        if forbidden in normalized_markdown:
+            findings.append(f"drift-checkpoint fixed contradiction present {label}")
     if "[parallel-producers.md](references/parallel-producers.md)" not in skill:
         findings.append("SKILL.md lacks direct progressive-disclosure route")
+    if "The long-task drift checkpoint is owned only" not in skill:
+        findings.append("SKILL.md lacks drift-checkpoint owner pointer")
     if "[Parallel Candidate Producers](parallel-producers.md)" not in core:
         findings.append("core-runtime role summary lacks owner pointer")
     if "CER has only the formal roles C, E1, R, and E2" not in core:
@@ -625,11 +750,17 @@ def validate_texts(root: Path, texts: dict[str, str]) -> list[str]:
     for label, required in LIVING_BRIEF_UAT_REQUIREMENTS.items():
         if required not in uat:
             findings.append(f"uat.md missing living-brief counterexample {label}")
+    for label, required in TRUTH_SOURCE_INTAKE_UAT_REQUIREMENTS.items():
+        if required not in uat:
+            findings.append(f"uat.md missing truth-source intake counterexample {label}")
     if "## Outcome Anchor And Progress Scenarios" not in texts["references/uat.md"]:
         findings.append("uat.md lacks outcome-anchor progress scenarios")
     for label, required in OUTCOME_ANCHOR_UAT_REQUIREMENTS.items():
         if required not in uat:
             findings.append(f"uat.md missing outcome-anchor counterexample {label}")
+    for label, required in DRIFT_CHECKPOINT_UAT_REQUIREMENTS.items():
+        if required not in uat:
+            findings.append(f"uat.md missing drift-checkpoint counterexample {label}")
     unexpected_failure_uat_match = re.search(
         r"^## Unexpected Failure And Scope-Exception Scenarios[ \t]*\n([\s\S]*?)(?=^## |\Z)",
         texts["references/uat.md"],
@@ -759,6 +890,33 @@ def mutation_matrix(root: Path) -> tuple[int, list[str]]:
         1,
     )
     cases.append(("unexpected_failure_owner_marker_wrong_section", wrong_section_marker))
+    cases.append(
+        (
+            "drift_checkpoint_owner_marker_duplicate",
+            mutated(
+                "SKILL.md",
+                "# CER Workflow",
+                f"# CER Workflow\n{DRIFT_CHECKPOINT_OWNER_MARKER}",
+            ),
+        )
+    )
+    cases.append(
+        (
+            "drift_checkpoint_owner_marker_missing",
+            mutated("references/core-runtime.md", DRIFT_CHECKPOINT_OWNER_MARKER),
+        )
+    )
+    drift_wrong_section = mutated(
+        "references/core-runtime.md", DRIFT_CHECKPOINT_OWNER_MARKER
+    )
+    drift_wrong_section["references/core-runtime.md"] = drift_wrong_section[
+        "references/core-runtime.md"
+    ].replace(
+        "## YAGNI And Stop",
+        f"{DRIFT_CHECKPOINT_OWNER_MARKER}\n## YAGNI And Stop",
+        1,
+    )
+    cases.append(("drift_checkpoint_owner_marker_wrong_section", drift_wrong_section))
     cases.append(
         (
             "implicit_invocation_true",
@@ -931,6 +1089,27 @@ def mutation_matrix(root: Path) -> tuple[int, list[str]]:
                 mutated_fragment("references/core-runtime.md", fragment),
             )
         )
+    for label, fragment in DELIVERY_REQUIREMENTS.items():
+        cases.append(
+            (
+                f"delivery_gate_missing_{label}",
+                mutated_fragment("references/core-runtime.md", fragment),
+            )
+        )
+    for label, fragment in TRUTH_SOURCE_INTAKE_REQUIREMENTS.items():
+        cases.append(
+            (
+                f"truth_source_intake_owner_missing_{label}",
+                mutated_fragment("references/core-runtime.md", fragment),
+            )
+        )
+    for label, fragment in DRIFT_CHECKPOINT_REQUIREMENTS.items():
+        cases.append(
+            (
+                f"drift_checkpoint_owner_missing_{label}",
+                mutated_fragment("references/core-runtime.md", fragment),
+            )
+        )
     for label, fragment in SENDABLE_PACKET_REQUIREMENTS.items():
         cases.append(
             (
@@ -994,10 +1173,24 @@ def mutation_matrix(root: Path) -> tuple[int, list[str]]:
                 mutated_fragment("references/uat.md", fragment),
             )
         )
+    for label, fragment in TRUTH_SOURCE_INTAKE_UAT_REQUIREMENTS.items():
+        cases.append(
+            (
+                f"truth_source_intake_uat_missing_{label}",
+                mutated_fragment("references/uat.md", fragment),
+            )
+        )
     for label, fragment in OUTCOME_ANCHOR_UAT_REQUIREMENTS.items():
         cases.append(
             (
                 f"outcome_anchor_uat_missing_{label}",
+                mutated_fragment("references/uat.md", fragment),
+            )
+        )
+    for label, fragment in DRIFT_CHECKPOINT_UAT_REQUIREMENTS.items():
+        cases.append(
+            (
+                f"drift_checkpoint_uat_missing_{label}",
                 mutated_fragment("references/uat.md", fragment),
             )
         )
@@ -1052,10 +1245,32 @@ def mutation_matrix(root: Path) -> tuple[int, list[str]]:
                 ),
             )
         )
+    for label, contradiction in TRUTH_SOURCE_INTAKE_FORBIDDEN.items():
+        cases.append(
+            (
+                f"truth_source_intake_contradiction_{label}",
+                mutated(
+                    "references/core-runtime.md",
+                    "## Controller Preflight",
+                    f"## Controller Preflight\n\n{contradiction}.",
+                ),
+            )
+        )
     for label, contradiction in OUTCOME_ANCHOR_FORBIDDEN.items():
         cases.append(
             (
                 f"outcome_anchor_contradiction_{label}",
+                mutated(
+                    "references/core-runtime.md",
+                    "## Outcome Anchor And Progress Gate",
+                    f"## Outcome Anchor And Progress Gate\n\n{contradiction}.",
+                ),
+            )
+        )
+    for label, contradiction in DRIFT_CHECKPOINT_FORBIDDEN.items():
+        cases.append(
+            (
+                f"drift_checkpoint_contradiction_{label}",
                 mutated(
                     "references/core-runtime.md",
                     "## Outcome Anchor And Progress Gate",

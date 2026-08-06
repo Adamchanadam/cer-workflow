@@ -50,8 +50,10 @@ R and does not reuse an earlier R in the same cycle. Text that merely says fresh
 Each outer UAT cycle C is also a delegated assignee of the release dispatcher: before cycle work
 starts it must direct-push a zero-write `ready` to the main-session return target; at completion,
 blockage, or checkpoint it must direct-push a structured `AI_UAT_CYCLE_N: PASS/FAIL` result to the
-same main target before ending. The dispatcher may use one bounded `wait_threads` or `read_thread`
-only after that direct-push for wakeup, verification, or adjudication. A child-C final answer, wait
+same main target before ending. The dispatcher must not automatically use `wait_threads` or
+`read_thread` to wait for outer UAT; only when direct-push is already expected and the platform
+does not automatically wake the dispatcher may it use one bounded `wait_threads` or `read_thread`
+after that direct-push for wakeup, verification, or adjudication. A child-C final answer, wait
 snapshot, passive thread read, task title, or user-relayed notice that the UAT task is done is not
 formal delivery evidence and cannot satisfy AI real workflow UAT or release-readiness by itself. If
 the outer return protocol is missing, the dispatcher may request one bounded delivery-repair push
@@ -294,6 +296,8 @@ cycle label or guess a number.
 - After the user sees an intermediate result and changes direction or adds a constraint, C first updates the living task brief and roadmap delta. If an already-dispatched batch is affected, C uses a new `batchId`/`payloadDigest` or supersedes the old batch before returning to the same E1. It does not continue with stale assumptions.
 - R reviews against the latest task brief, current batch freeze, candidate identity, and delivery evidence; it must not review only against the initial prompt or stale assumptions.
 - C's current batch freeze and E1/R dispatches preserve the three states, required source anchors, and counterfactual results. They must not invent user confirmation.
+- Before a non-simple formal implementation batch, C can answer each truth-source intake question: who owns it, who actually uses it, how it takes effect, and what counterexample can disprove it. The answers are only a Controller preflight and self-contained-dispatch summary, not a second rule owner.
+- If C cannot answer any truth-source intake question, or if an answer depends on an unread required source, that completion condition is `critical missing`. C does not dispatch a formal implementation batch and only performs necessary read-only diagnosis, narrows the acceptance scope, or stops for user decision.
 
 ## Outcome Anchor And Progress Scenarios
 
@@ -305,6 +309,8 @@ cycle label or guess a number.
 - R must reject a batch that diverges from the original outcome, is only technical activity, repeats rework, or substitutes another deliverable shape for what the user asked for.
 - `mechanism_improvement` or `governance_self_improvement` does not contaminate mainline progress; it becomes a mainline blocker only when proven necessary for completing `outcome_anchor`.
 - Adjacent improvement failure does not automatically block the original task. C either records it separately or proves that its absence makes the mainline unsafe to accept.
+- For long-running, multi-batch, or context-pollution-prone work, C performs one bounded drift checkpoint at resume/context transition, after two consecutive batches with no accepted outcome difference, on the second same-class failure, when E1/R proposes an adjacent direction change or substitute deliverable, when the user changes direction or adds constraints, and before close/release/major delivery. If C cannot identify which unfinished `outcome_anchor` condition the next batch improves, the readable outcome difference success will create, or whether E1/R's adjacent proposal is replacing the mainline, C does not dispatch a formal implementation batch and only switches to diagnostics, narrows acceptance, stops for user decision, terminates the route, or creates a fresh R in proportion to risk.
+- A drift checkpoint, living task brief, or roadmap update does not count as outcome progress and does not trigger background monitoring, polling, automatic `wait_threads`, fixed R, or fixed Full Audit.
 - Simple, one-step, low-risk work with one clear endpoint still uses lightweight summary and C readback. Do not force an outcome-anchor table, R, or roadmap.
 - Completion reporting lists accepted outcome differences and unfinished conditions, not batch, task, review, or candidate counts as completion evidence.
 
@@ -430,6 +436,8 @@ These scenarios only test the unexpected-failure gate in
 - E1 treats provisional later direction as a complete specification and implements an unfrozen future batch, or R rejects a candidate only against the initial prompt or stale assumptions.
 - The living task brief is written as another process, fixed document set, or new role instead of being part of the existing Controller preflight and roadmap.
 - The current batch freeze or dispatch writes an unsupported assumption as `confirmed`.
+- A non-simple formal implementation batch has not answered who owns it, who actually uses it, how it takes effect, and what counterexample can disprove it, but C still creates/reuses E1 or dispatches the implementation batch.
+- C expands the truth-source intake gate into default full-text ingestion, whole-repo review, fixed Full Audit, a second rule owner, or a fixed form workflow.
 - C dispatches instead of stopping when critical endpoint, permission, or acceptance information is missing.
 - Long multi-batch work lacks `outcome_anchor`, or later E1/R rewrites the final outcome, completion conditions, substitute outcomes, or exclusions.
 - An implementation batch with zero expected outcome improvement and no necessary-prerequisite role is still dispatched.
@@ -438,6 +446,11 @@ These scenarios only test the unexpected-failure gate in
 - After two consecutive unresolved same-class attempts, C dispatches a third same-class repair, or hides a same-method retry by renaming, versioning, or repackaging it.
 - R checks only technical validity and does not check whether the batch serves the original outcome, is only activity or rework, or substitutes for the user's requested deliverable.
 - Generic mechanism improvement or governance self-improvement contaminates mainline progress, or its failure blocks the original task before a necessary dependency is proven.
+- After two consecutive batches with no accepted outcome difference, C dispatches another mainline implementation batch without a drift checkpoint.
+- After E1/R proposes an adjacent direction change, substitute deliverable, or out-of-scope blocker, C rewrites the next mainline batch without classifying whether that proposal replaces the mainline outcome.
+- A drift checkpoint, living task brief, or roadmap update is counted as outcome progress.
+- A drift checkpoint triggers background monitoring, polling, automatic `wait_threads`, fixed R, or fixed Full Audit.
+- Simple, one-step, low-risk work with one clear endpoint is forced to run a drift checkpoint.
 - Completion reporting lists only batch, task, Reviewer, or candidate counts without accepted outcome differences.
 - E1 treats a test failure as new modification authority, or treats an allowed file as authority to
   change every meaning in that file.
@@ -528,7 +541,8 @@ These scenarios only test the unexpected-failure gate in
 - A fork carrying source context is counted as fresh UAT.
 - The assignee does not return `ready/result`, but the loop is still claimed.
 - A new task lacks a visible `E1:`/`R1:` title or first-line label, or receipts omit threadId or platform-equivalent coordinates.
-- C repeats event waits, waits again after timeout, discovers results by polling, or accepts a wait
+- C automatically uses `wait_threads` or `read_thread` after dispatch as the receiving mechanism,
+  repeats event waits, waits again after timeout, discovers results by polling, or accepts a wait
   snapshot, task completion state, commentary, or summary as ready/result evidence.
 - The `BATCH_RECEIVED` wait wrongly consumes the final-result wait budget, leaving a direct-pushed
   result unable to advance.

@@ -64,9 +64,11 @@ slash command 是文字別名。平台支援 slash、snippet 或 Snap 時，可�
 - create／send 回報失敗、逾時或部分結果時，先標成 `outcome_unknown`，不得當成確定失敗而立即重試。C 只做一次有界權威對帳；重複角色在選定唯一 task 並證明其餘已零寫入停止前，不得接收正式工作。若任何重複 writer 可能已工作或寫入，先阻塞並恢復唯一 writer 狀態。
 - 每個正式批次使用穩定 `batchId`、單調 `batchSeq` 及不可變 `payloadDigest`；所有控制、回執與結果訊息使用穩定 `messageId`。接收者按已登記、執行中、結果已備妥、結果已接納或狀態不明去重與恢復；相同身份但不同內容一律阻塞，舊批次未取消、終結或恢復前不得開始新修訂。
 - 自適應批次加速是預設排程策略，不是 Turbo 模式或額外 slash command；它只在通訊、批次生命週期、唯一 writer、證據有效性及任務契約均可判定時運作，任一狀態不明即自行停用，不降低安全、獨立審閱或驗收要求。
-- E1／R 以 direct-push 主動交付結果。若平台不會自動喚醒 idle C，C 可對每個已聲明的預期 direct-push 狀態轉移，在已知唯一 thread 及目前 cursor 啟動一次有界事件等待；`BATCH_RECEIVED` 與最終結果是兩個不同轉移。不得把 wait snapshot、完成狀態或 commentary 當 ready/result 證據；同一轉移逾時後，只有完成對帳及唯一一次同 `messageId` 受控重送，才可再用一次恢復等待，之後必須阻塞，不得輪詢或背景監察。
+- E1／R 以 direct-push 主動交付結果；C 不得在派工後自動使用 `wait_threads`／`read_thread` 當接收機制。只有已聲明某個 direct-push 狀態轉移、已知唯一 thread 與目前 cursor，且平台不會自動喚醒 idle C 時，C 才可對該轉移啟動一次有界事件等待作喚醒；`BATCH_RECEIVED` 與最終結果是兩個不同轉移。不得把 wait snapshot、完成狀態或 commentary 當 ready/result 證據；同一轉移逾時後，只有完成對帳及唯一一次同 `messageId` 受控重送，才可再用一次恢復等待，之後必須阻塞，不得輪詢或背景監察。
 - C 不寫 workspace；E1 的成果只是候選，只有 C 可按實際讀回裁決接納。
 - 尊重目標專案已有真源、計劃與進度；CER 不建立固定項目文件，也不把自己的角色狀態冒充專案計劃。
+- 真源攝取門檻只由 [core-runtime.md](references/core-runtime.md) 的 Controller preflight 擁有；入口摘要不重寫該規則。
+- 長任務防失焦檢查點只由 [core-runtime.md](references/core-runtime.md) 的成果錨定與進展閘擁有；入口摘要不重寫該規則。
 - 面對醫療、法律、金融、投資、政策、學術、商業、設計、營運等知識性複雜任務時，C 必須先界定任務所需的知識底座；E1 只在該範圍內執行，R 依同一範圍做獨立反證。
 - 重大方向、交付形狀或成本未裁決時必須在使用者主 task 停點；執行後在合理階段交付可觀察成果。
 - 角色、批次、Reviewer、停點與驗收按風險比例化；不得以更多代理、文件、審閱或治理儀式代替清晰目標及可驗收條件。E／R 或任務支線的新增必要性與收斂判斷只由 [core-runtime.md](references/core-runtime.md) 的「YAGNI 與停止」定義。

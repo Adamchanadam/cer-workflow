@@ -86,6 +86,9 @@ C judges only five items, each marked `confirmed`, `safe inference`, or `critica
 
 The three states have evidence boundaries. `confirmed` may come only from an explicit user statement or an authoritative source C has actually read, and C must be able to point to the source anchor. An unsupported assumption must not be labeled `confirmed`. A `safe inference` must pass a counterfactual test: if the opposite assumption were true, the deliverable, user flow, collaboration method, data handling, permissions/risk, acceptance, and rework would still not materially change. If multiple reasonable answers would produce materially different outcomes, the item is `critical missing`.
 
+<!-- cer-truth-source-intake-gate-owner -->
+The truth-source intake gate is the sole owner inside Controller preflight; do not create another document, role, or fixed table for it. For any completion condition that could materially affect this batch's outcome, permissions, acceptance, owner, or protected meaning, C must answer four items before dispatching a formal implementation batch: who owns it; who actually uses it; how it takes effect; and what counterexample can disprove it. `Who owns it` means the source anchor in a user decision, project source of truth, rule, file, or external authority. `Who actually uses it` means how E1, R, the deliverable, install surface, public surface, later batch, or user flow consumes that condition. `How it takes effect` means how it changes this batch's dispatch, deliverable content, permissions, acceptance, or outcome judgment. `What counterexample can disprove it` means the readback, test, Reviewer question, or counterexample that would make this batch unable to count as successful. If any item cannot be answered, or if the answer depends on a required source C has not read, the condition is `critical missing`; C must not dispatch a formal implementation batch and may only perform necessary read-only diagnosis, narrow the acceptance scope, or use a `🟡 User decision` stop. Simple, one-step, low-risk work with one clear endpoint may pass this gate internally, but only when omitted answers would not materially change the result. Do not expand this gate into default full-text ingestion, whole-repo review, or fixed Full Audit.
+
 For work that needs first public alignment or mid-course convergence, the living task brief lists at least: confirmed requirements/exclusions, safe inferences, critical gaps, latest user feedback, current batch freeze, next observable preview or decision point, and what changed from the previous version. C freezes only the next safely executable batch. Later direction may stay provisional until the user sees an intermediate result, adds information, or R produces contrary evidence. When user feedback, source readback, or R evidence changes direction, scope, deliverable shape, or acceptance, C first updates the living task brief and roadmap delta before dispatching the next batch. If an already-dispatched batch is affected, C refreezes with a new `batchId`/`payloadDigest` or supersedes the old batch first under the batch-deduplication rules.
 
 Before dispatch, C performs one short QC pass: check that every `confirmed` item has a source, that every `safe inference` passes the counterfactual result, and that the current batch freeze has not promoted an assumption into `confirmed`. If QC fails, C must not create/reuse E1 or dispatch real work. C may only perform necessary read-only investigation, or use a `🟡 User decision` stop with at most three questions that would materially change the result.
@@ -116,6 +119,9 @@ C classifies each work lane as `mainline_outcome`, `diagnostic`, `mechanism_impr
 Before any non-exploratory real batch, C must be able to answer: which unfinished condition this batch improves; what readable before/after difference success will create; whether dependencies, authoritative sources, and handoff path exist; and, if success would still not improve `outcome_anchor`, why it is still a necessary blocker-removal prerequisite. An implementation batch with zero expected outcome improvement and no necessary-prerequisite role must not be dispatched. Batches that only create diagnostics, evidence, candidates, designs, or reviews must be labeled as non-mainline progress.
 
 Activity is not outcome. Candidate creation, review completion, structural or format pass, file consistency, issue logging, design completion, version renaming, or packaging changes do not automatically increase mainline progress. C may report outcome progress only after reading back and accepting a difference against one of the user's completion conditions. Final reporting prioritizes accepted outcomes, not batch, task, or review counts.
+
+<!-- cer-controller-drift-checkpoint-owner -->
+The long-task drift checkpoint is the sole owner in this section; do not create another monitoring role, background process, or fixed table for it. For long-running, multi-batch, or context-pollution-prone work, C performs one bounded drift checkpoint at resume/context transition, after two consecutive batches with no accepted outcome difference, on the second same-class failure, when E1/R proposes an adjacent direction change or substitute deliverable, when the user changes direction or adds constraints, and before close/release/major delivery: whether the next batch still improves an unfinished `outcome_anchor` condition; what readable outcome difference success will create; and whether E1/R or adjacent improvements are replacing the mainline outcome. If any item cannot be answered, C must not dispatch a formal implementation batch and may only switch to diagnostic work, narrow acceptance, stop for user decision, terminate the route, or create a fresh R when C cannot reliably disprove the risk and the risk level justifies it. A checkpoint, living task brief, or roadmap update does not count as outcome progress; it must not trigger background monitoring, polling, automatic `wait_threads`, fixed R, fixed Full Audit, or apply to simple, one-step, low-risk work with one clear endpoint.
 
 A same failure class is judged by shared root cause, user consequence, affected completion condition, and method. Renaming, version changes, repackaging, wording changes, or redispatching the same fix do not create a new class. After two consecutive unresolved attempts in one class, C must not dispatch a third same-class repair or same-method retry. C must return to root cause analysis, use a materially different method, narrow validator claims, stop for user decision, or terminate that route.
 
@@ -276,6 +282,7 @@ Each real E1 or R batch contains only what is needed:
 - role and one objective;
 - target root;
 - required sources of truth and accepted background;
+- summary of the truth-source intake four questions passed in Controller preflight: who owns it, who actually uses it, how it takes effect, and what counterexample can disprove it;
 - `outcome_anchor`, work-lane classification, target completion condition, and expected outcome difference;
 - allowed and forbidden scope;
 - acceptance checks and a counterexample that can disprove the solution;
@@ -328,8 +335,10 @@ active. `/CER-close` remains a CER-only command and does not trigger Kit full cl
   failure-recovery rule for the exact `messageId`, C performs one bounded readback and adjudication
   only after receiving the push. Recovery readback must not expand into waiting, polling, or
   background monitoring.
-- If the platform does not automatically wake an idle C with cross-task input, for each declared
-  expected direct-push state transition C forms an `eventWaitKey` from the known unique
+- C must not automatically use `wait_threads` or `read_thread` after dispatch, task creation, or
+  send as the receiving mechanism. Only when a declared direct-push state transition exists, the
+  unique thread or platform-equivalent coordinate and current cursor are known, and the platform
+  will not automatically wake an idle C with cross-task input may C form an `eventWaitKey` from the known unique
   threadId or platform-equivalent coordinate, any coordinate required by the active event tool
   schema, current cursor, causal `messageId`, and expected message type, then arms one
   bounded `wait_threads` or platform-equivalent event wait. Post-create `ready`, post-dispatch
@@ -347,10 +356,10 @@ active. `/CER-close` remains a CER-only command and does not trigger Kit full cl
   wait for the same `eventWaitKey`; a second timeout is `blocked`. Only a new logical operation or
   the next valid batch-lifecycle transition gets a new key. Extra control messages or renaming must
   not reopen the wait budget.
-- "No monitoring" forbids repeated waiting, polling, background listening, repeated status probes,
-  accepting a wait snapshot as a result, and passive thread reads before push. The single bounded
-  event wait above, one bounded read explicitly requested by the user, and verification readback
-  after push remain allowed.
+- "No monitoring" forbids automatic waiting, repeated waiting, polling, background listening,
+  repeated status probes, accepting a wait snapshot as a result, and passive thread reads before
+  push. The single bounded event wait above when all preconditions are met, one bounded read
+  explicitly requested by the user, and verification readback after push remain allowed.
 - Unavailable delivery blocks delegation only. C may still perform authorized read-only research, analysis, and adjudication, but C may not write in E1's place.
 
 ## Execution Loop

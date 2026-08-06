@@ -24,6 +24,8 @@ TEXT_FILES = EXPECTED_FILES - {"VERSION"}
 SEMVER_RE = re.compile(r"(?<![0-9])\d+\.\d+\.\d+(?![0-9])")
 OWNER_MARKER = "<!-- cer-parallel-producers-owner -->"
 UNEXPECTED_FAILURE_OWNER_MARKER = "<!-- cer-unexpected-failure-gate-owner -->"
+TRUTH_SOURCE_INTAKE_OWNER_MARKER = "<!-- cer-truth-source-intake-gate-owner -->"
+DRIFT_CHECKPOINT_OWNER_MARKER = "<!-- cer-controller-drift-checkpoint-owner -->"
 EXPECTED_DEFAULT_PROMPT = (
     "使用 $cer-workflow 以唯一 writer 執行這項工作；按風險建立 fresh Reviewer，"
     "必要時在內部自動加速，無需額外設定。"
@@ -136,6 +138,7 @@ UAT_REQUIREMENTS = {
     "stop_close": "`/CER-stop` 或 `/CER-close` 不等待 producer",
     "no_lifecycle_identity": "不取得正式 title、cycle、ready、result、slash、lock、registry 或 run id",
     "roadmap_boundary": "roadmap 的角色欄和 lifecycle 卡仍只有正式角色",
+    "auto_wait_threads_forbidden": "派工後自動使用 `wait_threads`／`read_thread` 當接收機制",
 }
 
 UNEXPECTED_FAILURE_REQUIREMENTS = {
@@ -147,6 +150,36 @@ UNEXPECTED_FAILURE_REQUIREMENTS = {
     "unknown_or_boundary": "停止進一步寫入",
     "regression_boundary": "不會擴大 E1 的修補權",
     "controller_only": "只有 C 可重凍結契約，並用新的 `batchId`／`payloadDigest` 派發新批次來擴大範圍",
+}
+
+DELIVERY_REQUIREMENTS = {
+    "no_auto_wait": "不得在派工、建 task 或送訊後自動使用 `wait_threads`／`read_thread` 當接收機制",
+    "wait_preconditions": "只有已聲明某個 direct-push 狀態轉移、該次唯一 threadId／平台等價座標及目前 cursor 已知",
+    "no_automatic_waiting": "禁止自動 waiting、反覆 waiting",
+}
+
+TRUTH_SOURCE_INTAKE_REQUIREMENTS = {
+    "sole_owner": "真源攝取門檻屬於 Controller preflight 的唯一 owner",
+    "four_questions": "誰擁有；誰實際使用；如何生效；甚麼反例能推翻",
+    "owner_definition": "`誰擁有` 指使用者裁決、專案真源、規則、檔案或外部權威的來源錨點",
+    "consumer_definition": "`誰實際使用` 指 E1、R、交付物、安裝面、公開面、後續批次或使用者流程如何消費該條件",
+    "effect_definition": "`如何生效` 指它如何改變本批派工、交付內容、權限、驗收或成果判定",
+    "disproof_definition": "`甚麼反例能推翻` 指哪個讀回、測試、Reviewer 問題或反例會令本批不能算成功",
+    "missing_is_critical": "任一項答不到，或答案依賴未讀的必要真源，該條件就是 `關鍵缺失`",
+    "no_dispatch": "C 不得派正式實作批次，只能做必要唯讀診斷、收窄驗收範圍，或用 `🟡 使用者裁決` 停問",
+    "not_full_audit": "不得把此門檻擴成預設全文讀取、全 repo 審查或固定 Full Audit",
+}
+
+TRUTH_SOURCE_INTAKE_UAT_REQUIREMENTS = {
+    "four_questions_pass": "非簡單正式實作批次在派工前，C 能逐項回答真源攝取四問",
+    "missing_blocks": "C 答不到真源攝取四問任一項",
+    "missing_still_dispatches": "非簡單正式實作批次未回答誰擁有、誰實際使用、如何生效、甚麼反例能推翻，C 仍建立／復用 E1 或派實作批次",
+    "overwide_gate": "C 把真源攝取門檻擴成預設全文讀取、全 repo 審查、固定 Full Audit、第二份規則 owner 或固定表格流程",
+}
+
+TRUTH_SOURCE_INTAKE_FORBIDDEN = {
+    "missing_four_questions_dispatch": "未回答誰擁有、誰實際使用、如何生效、甚麼反例能推翻時，C 仍可派正式實作批次",
+    "full_ingestion_required": "真源攝取門檻要求預設全文讀取、全 repo 審查或固定 Full Audit",
 }
 
 UNEXPECTED_FAILURE_UAT_MARKERS = {
@@ -169,6 +202,7 @@ UNEXPECTED_FAILURE_FORBIDDEN = {
 SENDABLE_PACKET_REQUIREMENTS = {
     "draft_sendable_split": "`draft_packet`",
     "no_placeholders": "`sendable_packet` 不得保留 `<...>` 佔位符",
+    "truth_intake_summary": "Controller preflight 已通過的真源攝取四問摘要：誰擁有、誰實際使用、如何生效、甚麼反例能推翻",
     "concrete_bindings": "正式派工必須填入實際 `threadId` 或平台等價座標、`returnTarget`、`messageId`、`batchId`、`batchSeq`、`payloadDigest`，以及當前工具 schema／receipt 明示必需的路由座標",
     "sessionid_not_threadid": "sessionId 不可代替 threadId 作正式派工座標",
     "hostid_not_hard_required": "hostId 只在當前工具 schema 或 receipt 明示需要／提供時使用",
@@ -288,6 +322,50 @@ OUTCOME_ANCHOR_FORBIDDEN = {
     "diagnostic_mainline": "診斷批次增加主線進度",
     "third_retry_allowed": "第三個同類修正版可以繼續派出",
     "activity_completion": "批次、task、Reviewer 或候選數量就是完成證據",
+}
+
+DRIFT_CHECKPOINT_REQUIREMENTS = {
+    "sole_owner": "長期任務防失焦檢查點屬於本節唯一 owner",
+    "no_new_monitor": "不另建監察角色、背景程序或固定表格",
+    "resume_trigger": "resume／上下文轉換",
+    "two_no_delta_trigger": "連續兩批沒有已接納成果差異",
+    "same_failure_trigger": "同類失敗第二次",
+    "adjacent_trigger": "E1／R 提出相鄰改向或替代交付",
+    "user_change_trigger": "使用者改方向或補限制",
+    "close_release_trigger": "close／release／重大交付前",
+    "next_condition": "下一批是否仍改善 `outcome_anchor` 的未完成條件",
+    "readable_delta": "成功後有甚麼可讀回成果差異",
+    "mainline_replacement": "是否正在取代主線成果",
+    "no_dispatch": "C 不得派正式實作批次",
+    "allowed_exits": "只可改做診斷、收窄驗收、停問使用者、終止路線",
+    "fresh_r_bounded": "風險足夠時建立 fresh R",
+    "not_progress": "checkpoint、活的任務簡報或路線圖更新不計作成果進度",
+    "no_monitoring": "不得觸發背景 monitoring、polling、自動 `wait_threads`、固定 R、固定 Full Audit",
+    "simple_exempt": "簡單、單步、低風險且終點唯一的任務",
+}
+
+DRIFT_CHECKPOINT_UAT_REQUIREMENTS = {
+    "generic_trigger": "長期、多批或容易受上下文污染的任務",
+    "two_no_delta": "連續兩批沒有已接納成果差異",
+    "same_failure": "同類失敗第二次",
+    "adjacent_change": "E1／R 提出相鄰改向或替代交付",
+    "next_condition": "下一批改善哪個 `outcome_anchor` 未完成條件",
+    "not_progress": "drift checkpoint、活的任務簡報或路線圖更新不計作成果進度",
+    "no_monitoring": "不觸發背景 monitoring、polling、自動 `wait_threads`、固定 R 或固定 Full Audit",
+    "missing_checkpoint_dispatch": "連續兩批沒有已接納成果差異，C 未做 drift checkpoint 仍派主線實作批次",
+    "adjacent_rewrites_mainline": "E1／R 提出相鄰改向、替代交付或範圍外 blocker 後，C 未分類是否取代主線成果便改寫下一批主線",
+    "checkpoint_as_progress": "drift checkpoint、活的任務簡報或路線圖更新被計作成果進度",
+    "checkpoint_triggers_monitoring": "drift checkpoint 觸發背景 monitoring、polling、自動 `wait_threads`、固定 R 或固定 Full Audit",
+    "simple_forced": "簡單、單步、低風險且終點唯一的任務被迫執行 drift checkpoint",
+}
+
+DRIFT_CHECKPOINT_FORBIDDEN = {
+    "background_monitor": "drift checkpoint 會啟動背景 monitoring",
+    "automatic_wait": "drift checkpoint 可自動使用 `wait_threads`",
+    "fixed_reviewer": "每次 drift checkpoint 都必須建立 R",
+    "fixed_full_audit": "每次 drift checkpoint 都觸發 Full Audit",
+    "progress_credit": "drift checkpoint 本身增加主線成果進度",
+    "simple_required": "簡單單步任務必須執行 drift checkpoint",
 }
 
 
@@ -524,6 +602,14 @@ def validate_texts(root: Path, texts: dict[str, str]) -> list[str]:
         findings.append("unexpected-failure gate owner marker must occur exactly once")
     if UNEXPECTED_FAILURE_OWNER_MARKER not in texts["references/core-runtime.md"]:
         findings.append("unexpected-failure gate owner marker is not in core-runtime.md")
+    if all_markdown.count(TRUTH_SOURCE_INTAKE_OWNER_MARKER) != 1:
+        findings.append("truth-source intake owner marker must occur exactly once")
+    if TRUTH_SOURCE_INTAKE_OWNER_MARKER not in texts["references/core-runtime.md"]:
+        findings.append("truth-source intake owner marker is not in core-runtime.md")
+    if all_markdown.count(DRIFT_CHECKPOINT_OWNER_MARKER) != 1:
+        findings.append("drift checkpoint owner marker must occur exactly once")
+    if DRIFT_CHECKPOINT_OWNER_MARKER not in texts["references/core-runtime.md"]:
+        findings.append("drift checkpoint owner marker is not in core-runtime.md")
 
     owner = re.sub(r"\s+", " ", texts["references/parallel-producers.md"])
     for label, required in OWNER_REQUIREMENTS.items():
@@ -537,6 +623,20 @@ def validate_texts(root: Path, texts: dict[str, str]) -> list[str]:
     uat = re.sub(r"\s+", " ", texts["references/uat.md"])
     roadmap = re.sub(r"\s+", " ", texts["references/roadmap.md"])
     core_normalized = re.sub(r"\s+", " ", core)
+    preflight_match = re.search(
+        r"^## Controller preflight[ \t]*\n([\s\S]*?)(?=^## 啟動|\Z)",
+        core,
+        re.MULTILINE,
+    )
+    if not preflight_match:
+        findings.append("core-runtime.md lacks the Controller preflight owner section")
+    else:
+        preflight_owner = re.sub(r"\s+", " ", preflight_match.group(1))
+        if TRUTH_SOURCE_INTAKE_OWNER_MARKER not in preflight_owner:
+            findings.append("truth-source intake marker is outside Controller preflight")
+        for label, required in TRUTH_SOURCE_INTAKE_REQUIREMENTS.items():
+            if required not in preflight_owner:
+                findings.append(f"truth-source intake owner missing {label}")
     unexpected_failure_match = re.search(
         r"^## 執行閉環[ \t]*\n([\s\S]*?)(?=^## |\Z)", core, re.MULTILINE
     )
@@ -551,6 +651,20 @@ def validate_texts(root: Path, texts: dict[str, str]) -> list[str]:
         for label, required in UNEXPECTED_FAILURE_REQUIREMENTS.items():
             if required not in unexpected_failure_owner:
                 findings.append(f"unexpected-failure gate owner missing {label}")
+    outcome_anchor_match = re.search(
+        r"^## 成果錨定與進展閘[ \t]*\n([\s\S]*?)(?=^## |\Z)",
+        core,
+        re.MULTILINE,
+    )
+    if not outcome_anchor_match:
+        findings.append("core-runtime.md lacks the outcome-anchor progress owner section")
+    else:
+        outcome_anchor_owner = re.sub(r"\s+", " ", outcome_anchor_match.group(1))
+        if DRIFT_CHECKPOINT_OWNER_MARKER not in outcome_anchor_owner:
+            findings.append("drift checkpoint marker is outside outcome-anchor progress section")
+        for label, required in DRIFT_CHECKPOINT_REQUIREMENTS.items():
+            if required not in outcome_anchor_owner:
+                findings.append(f"drift checkpoint owner missing {label}")
     self_contained_match = re.search(
         r"^## 自足派工[ \t]*\n([\s\S]*?)(?=^## |\Z)", core, re.MULTILINE
     )
@@ -558,9 +672,9 @@ def validate_texts(root: Path, texts: dict[str, str]) -> list[str]:
         findings.append("core-runtime.md lacks the self-contained dispatch section")
     else:
         self_contained_owner = re.sub(r"\s+", " ", self_contained_match.group(1))
-        for label, required in SENDABLE_PACKET_REQUIREMENTS.items():
-            if required not in self_contained_owner:
-                findings.append(f"sendable-packet gate missing {label}")
+    for label, required in SENDABLE_PACKET_REQUIREMENTS.items():
+        if required not in self_contained_owner:
+            findings.append(f"sendable-packet gate missing {label}")
     message_identity_match = re.search(
         r"^## 工具結果不明、角色對帳與批次去重[ \t]*\n([\s\S]*?)(?=^## |\Z)",
         core,
@@ -585,17 +699,28 @@ def validate_texts(root: Path, texts: dict[str, str]) -> list[str]:
     for label, forbidden in UNEXPECTED_FAILURE_FORBIDDEN.items():
         if forbidden in normalized_markdown:
             findings.append(f"unexpected-failure fixed contradiction present {label}")
+    for label, required in DELIVERY_REQUIREMENTS.items():
+        if required not in core_normalized:
+            findings.append(f"delivery gate missing {label}")
     for label, forbidden in SENDABLE_PACKET_FORBIDDEN.items():
         if forbidden in normalized_markdown:
             findings.append(f"sendable-packet fixed contradiction present {label}")
+    for label, forbidden in TRUTH_SOURCE_INTAKE_FORBIDDEN.items():
+        if forbidden in normalized_markdown:
+            findings.append(f"truth-source intake fixed contradiction present {label}")
     for index, required in enumerate(OUTCOME_ANCHOR_REQUIREMENTS):
         if required not in core_normalized:
             findings.append(f"outcome-anchor runtime missing requirement_{index}")
     for label, forbidden in OUTCOME_ANCHOR_FORBIDDEN.items():
         if forbidden in normalized_markdown:
             findings.append(f"outcome-anchor fixed contradiction present {label}")
+    for label, forbidden in DRIFT_CHECKPOINT_FORBIDDEN.items():
+        if forbidden in normalized_markdown:
+            findings.append(f"drift-checkpoint fixed contradiction present {label}")
     if "[parallel-producers.md](references/parallel-producers.md)" not in skill:
         findings.append("SKILL.md lacks direct progressive-disclosure route")
+    if "長任務防失焦檢查點只由" not in skill:
+        findings.append("SKILL.md lacks drift-checkpoint owner pointer")
     if "[平行候選生產者](parallel-producers.md)" not in core:
         findings.append("core-runtime role summary lacks owner pointer")
     if "CER 正式角色只有 C、E1、R、E2" not in core:
@@ -623,11 +748,17 @@ def validate_texts(root: Path, texts: dict[str, str]) -> list[str]:
     for label, required in LIVING_BRIEF_UAT_REQUIREMENTS.items():
         if required not in uat:
             findings.append(f"uat.md missing living-brief counterexample {label}")
+    for label, required in TRUTH_SOURCE_INTAKE_UAT_REQUIREMENTS.items():
+        if required not in uat:
+            findings.append(f"uat.md missing truth-source intake counterexample {label}")
     if "## 成果錨定與進展情景" not in texts["references/uat.md"]:
         findings.append("uat.md lacks outcome-anchor progress scenarios")
     for label, required in OUTCOME_ANCHOR_UAT_REQUIREMENTS.items():
         if required not in uat:
             findings.append(f"uat.md missing outcome-anchor counterexample {label}")
+    for label, required in DRIFT_CHECKPOINT_UAT_REQUIREMENTS.items():
+        if required not in uat:
+            findings.append(f"uat.md missing drift-checkpoint counterexample {label}")
     unexpected_failure_uat_match = re.search(
         r"^## 未預期失敗與範圍例外情景[ \t]*\n([\s\S]*?)(?=^## |\Z)",
         texts["references/uat.md"],
@@ -757,6 +888,33 @@ def mutation_matrix(root: Path) -> tuple[int, list[str]]:
         1,
     )
     cases.append(("unexpected_failure_owner_marker_wrong_section", wrong_section_marker))
+    cases.append(
+        (
+            "drift_checkpoint_owner_marker_duplicate",
+            mutated(
+                "SKILL.md",
+                "# CER 工作法",
+                f"# CER 工作法\n{DRIFT_CHECKPOINT_OWNER_MARKER}",
+            ),
+        )
+    )
+    cases.append(
+        (
+            "drift_checkpoint_owner_marker_missing",
+            mutated("references/core-runtime.md", DRIFT_CHECKPOINT_OWNER_MARKER),
+        )
+    )
+    drift_wrong_section = mutated(
+        "references/core-runtime.md", DRIFT_CHECKPOINT_OWNER_MARKER
+    )
+    drift_wrong_section["references/core-runtime.md"] = drift_wrong_section[
+        "references/core-runtime.md"
+    ].replace(
+        "## YAGNI 與停止",
+        f"{DRIFT_CHECKPOINT_OWNER_MARKER}\n## YAGNI 與停止",
+        1,
+    )
+    cases.append(("drift_checkpoint_owner_marker_wrong_section", drift_wrong_section))
     cases.append(
         (
             "implicit_invocation_true",
@@ -929,6 +1087,27 @@ def mutation_matrix(root: Path) -> tuple[int, list[str]]:
                 mutated_fragment("references/core-runtime.md", fragment),
             )
         )
+    for label, fragment in DELIVERY_REQUIREMENTS.items():
+        cases.append(
+            (
+                f"delivery_gate_missing_{label}",
+                mutated_fragment("references/core-runtime.md", fragment),
+            )
+        )
+    for label, fragment in TRUTH_SOURCE_INTAKE_REQUIREMENTS.items():
+        cases.append(
+            (
+                f"truth_source_intake_owner_missing_{label}",
+                mutated_fragment("references/core-runtime.md", fragment),
+            )
+        )
+    for label, fragment in DRIFT_CHECKPOINT_REQUIREMENTS.items():
+        cases.append(
+            (
+                f"drift_checkpoint_owner_missing_{label}",
+                mutated_fragment("references/core-runtime.md", fragment),
+            )
+        )
     for label, fragment in SENDABLE_PACKET_REQUIREMENTS.items():
         cases.append(
             (
@@ -992,10 +1171,24 @@ def mutation_matrix(root: Path) -> tuple[int, list[str]]:
                 mutated_fragment("references/uat.md", fragment),
             )
         )
+    for label, fragment in TRUTH_SOURCE_INTAKE_UAT_REQUIREMENTS.items():
+        cases.append(
+            (
+                f"truth_source_intake_uat_missing_{label}",
+                mutated_fragment("references/uat.md", fragment),
+            )
+        )
     for label, fragment in OUTCOME_ANCHOR_UAT_REQUIREMENTS.items():
         cases.append(
             (
                 f"outcome_anchor_uat_missing_{label}",
+                mutated_fragment("references/uat.md", fragment),
+            )
+        )
+    for label, fragment in DRIFT_CHECKPOINT_UAT_REQUIREMENTS.items():
+        cases.append(
+            (
+                f"drift_checkpoint_uat_missing_{label}",
                 mutated_fragment("references/uat.md", fragment),
             )
         )
@@ -1050,10 +1243,32 @@ def mutation_matrix(root: Path) -> tuple[int, list[str]]:
                 ),
             )
         )
+    for label, contradiction in TRUTH_SOURCE_INTAKE_FORBIDDEN.items():
+        cases.append(
+            (
+                f"truth_source_intake_contradiction_{label}",
+                mutated(
+                    "references/core-runtime.md",
+                    "## Controller preflight",
+                    f"## Controller preflight\n\n{contradiction}。",
+                ),
+            )
+        )
     for label, contradiction in OUTCOME_ANCHOR_FORBIDDEN.items():
         cases.append(
             (
                 f"outcome_anchor_contradiction_{label}",
+                mutated(
+                    "references/core-runtime.md",
+                    "## 成果錨定與進展閘",
+                    f"## 成果錨定與進展閘\n\n{contradiction}。",
+                ),
+            )
+        )
+    for label, contradiction in DRIFT_CHECKPOINT_FORBIDDEN.items():
+        cases.append(
+            (
+                f"drift_checkpoint_contradiction_{label}",
                 mutated(
                     "references/core-runtime.md",
                     "## 成果錨定與進展閘",

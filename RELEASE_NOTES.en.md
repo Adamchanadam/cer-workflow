@@ -5,6 +5,34 @@ has not entered an authorized release flow is explicitly marked as a candidate. 
 aborted, the affected content must be marked as candidate again or removed. Runtime authority
 remains the Skill references bundled with the version the user has installed.
 
+## v0.3.7
+
+This release publishes three generic runtime fixes completed after public v0.3.6. The focus is to
+keep long-running CER loops from losing the user's outcome through waiting, adjacent proposals,
+briefing activity, or repeated batches.
+
+- After dispatch, C must not automatically use `wait_threads` or `read_thread` as the result
+  receiving mechanism. Formal results must be actively direct-pushed by the assigned task to the
+  specified return target. A single bounded wait or read is allowed only for a declared direct-push
+  state transition, or after a direct-push has arrived for wakeup, readback, or adjudication
+- Controller preflight now includes a truth-source intake gate. Before a non-simple formal
+  implementation batch, C must be able to answer who owns the completion condition, who actually
+  uses it, how it takes effect, and what counterexample could disprove it. If any answer is
+  missing or depends on unread required truth, C must not dispatch formal implementation work and
+  may only run necessary read-only diagnosis, narrow acceptance scope, or stop for user decision
+- The long-task drift checkpoint is owned only by the outcome-anchor progress gate. On
+  resume/context transition, two consecutive no-delta batches, a second same-class failure,
+  adjacent or substitute E1/R proposals, a user direction or constraint change, and before
+  close/release/major delivery, C must prove the next batch still improves the `outcome_anchor`
+- A checkpoint, brief, or roadmap is not outcome progress by itself, and it must not trigger
+  background monitoring, polling, automatic `wait_threads`, a fixed Reviewer, or a fixed Full
+  Audit. Simple, one-step, low-risk work can still use the lightweight flow
+- The bilingual runtime, UAT, and Skill validators add fixed counterexamples for the wait-auto
+  delivery guard, truth-source intake gate, and drift checkpoint; each package has 259 mutation
+  cases
+- Release-readiness completed full static review and AI real workflow UAT before publication.
+  Post-release user manual UAT remains a separate follow-up
+
 ## v0.3.6
 
 This release fixes a long-running multi-batch CER failure mode where batch activity could be

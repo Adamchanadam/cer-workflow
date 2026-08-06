@@ -4,6 +4,31 @@
 flow 的未發布內容會明確標示為候選。若 release 中止，對應內容必須改回候選或移除。
 實際執行規則以使用者已安裝版本隨附的 Skill references 為準。
 
+## v0.3.7
+
+本版把 v0.3.6 公開後完成的三項通用 runtime 修補正式發布，重點是讓長期 CER
+閉環工作更不容易因等待、相鄰方案、簡報或重複批次而失焦。
+
+- 派工後，C 不得自動把 `wait_threads` 或 `read_thread` 當作接收結果的機制；
+  正式結果必須由受派 task 主動 direct-push 回指定回傳目標。只有在已聲明的
+  direct-push 狀態轉移中，或收到 direct-push 後需要喚醒、讀回或裁決時，才可做
+  一次有界等待或讀回
+- Controller preflight 新增真源攝取門檻：非簡單正式實作批次前，C 必須能回答
+  完成條件由誰擁有、誰實際使用、如何生效，以及甚麼反例能推翻。若答案缺失或
+  依賴未讀真源，C 不得派正式實作，只可做必要唯讀診斷、收窄驗收範圍或停下問
+  使用者
+- 長任務 drift checkpoint 由成果錨定與進展閘唯一擁有。遇到 resume／上下文轉換、
+  連續兩批無已接納成果差異、同類失敗第二次、E1／R 提出相鄰或替代交付、使用者
+  改方向或補限制、close／release／重大交付前，C 必須重新證明下一批仍改善
+  `outcome_anchor`
+- checkpoint、簡報和路線圖本身不計成果進度，也不會觸發背景監察、輪詢、自動
+  `wait_threads`、固定 Reviewer 或固定 Full Audit；簡單、單步、低風險任務仍可
+  使用輕量流程
+- 中英文 runtime、UAT 與 Skill validator 加入 wait-auto delivery guard、真源攝取
+  門檻及 drift checkpoint 的固定反例；套件各有 259 個 mutation cases
+- 發布前 release-readiness 已完成全文靜態審核及 AI 真實流程 UAT；發布後使用者
+  手動 UAT 仍需另行回報
+
 ## v0.3.6
 
 本版修正長期多批 CER 任務可能把批次活動誤當成最終成果進度的問題。

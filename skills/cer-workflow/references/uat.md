@@ -46,7 +46,9 @@ fresh 不足夠。
 每輪外層 UAT cycle C 也是發布派工者的受託 assignee：cycle 工作開始前必須
 direct-push 零寫入 `ready` 回主線 return target；完成、受阻或 checkpoint 時，必須
 先 direct-push 結構化 `AI_UAT_CYCLE_N: PASS/FAIL` 回同一主線 target 才可結束。派工者
-只能在 direct-push 後使用一次有界 `wait_threads`／`read_thread` 作喚醒、核實或裁決。
+不得自動用 `wait_threads`／`read_thread` 等待外層 UAT；只能在已預期 direct-push
+且平台不自動喚醒時，於該 direct-push 後使用一次有界 `wait_threads`／`read_thread`
+作喚醒、核實或裁決。
 子 C final、wait snapshot、被動讀取、task title 或使用者轉述「UAT task 已完工」本身
 不是正式交付證據，不能滿足 AI 真實流程 UAT 或發布就緒。若外層回傳協議缺失，派工者
 可要求同一 cycle C 以既有 final 證據作一次有界 delivery-repair push；收到前該 cycle 是
@@ -241,6 +243,8 @@ numbering 規則生效前已開始且無法可靠回推原 cycle number。cycle 
 - 使用者看過中間成果後改方向或補限制時，C 先更新活的任務簡報和路線圖差異；若已派批次受影響，使用新的 `batchId`／`payloadDigest` 或先 supersede 舊批次，再交回同一 E1，不沿用過期假設。
 - R 驗收依最新任務簡報、本批凍結、候選 identity 及 delivery evidence；不得只按最初 prompt 或過期假設驗收。
 - C 的本批凍結和 E1／R 派工都保留三態、必要來源錨點和反事實結果；不得虛構使用者確認。
+- 非簡單正式實作批次在派工前，C 能逐項回答真源攝取四問：誰擁有、誰實際使用、如何生效、甚麼反例能推翻；答案只作 Controller preflight 與自足派工摘要，不建立第二個規則 owner。
+- C 答不到真源攝取四問任一項，或答案依賴未讀必要真源時，該完成條件是 `關鍵缺失`；C 不派正式實作批次，只做必要唯讀診斷、收窄驗收範圍或停問使用者。
 
 ## 成果錨定與進展情景
 
@@ -252,6 +256,8 @@ numbering 規則生效前已開始且無法可靠回推原 cycle number。cycle 
 - R 必須拒絕偏離原始成果、只有技術活動、反覆返工或用另一種交付形式代替使用者原要求的批次。
 - `mechanism_improvement` 或 `governance_self_improvement` 不污染主線進度；只有被證明是完成 `outcome_anchor` 的必要依賴時才可成為主線 blocker。
 - 相鄰改善失敗不會自動阻塞原任務；C 只能把它另列，或證明其缺失令主線成果不可安全接納。
+- 長期、多批或容易受上下文污染的任務，在 resume／上下文轉換、連續兩批沒有已接納成果差異、同類失敗第二次、E1／R 提出相鄰改向或替代交付、使用者改方向或補限制，以及 close／release／重大交付前，C 做一次有界 drift checkpoint；若不能指出下一批改善哪個 `outcome_anchor` 未完成條件、成功後的可讀回成果差異，或 E1／R 相鄰方案是否正在取代主線，C 不派正式實作批次，只可診斷、收窄、停問、終止路線或按風險建立 fresh R。
+- drift checkpoint、活的任務簡報或路線圖更新不計作成果進度，不觸發背景 monitoring、polling、自動 `wait_threads`、固定 R 或固定 Full Audit。
 - 簡單、單步、低風險且終點唯一的任務仍可用短摘要和 C 讀回驗收，不強制建立成果錨表格、R 或路線圖。
 - 任務完成回報列已接納成果差異和未完成條件，不以批次、task、審閱或候選數量作完成證據。
 
@@ -354,6 +360,8 @@ numbering 規則生效前已開始且無法可靠回推原 cycle number。cycle 
 - E1 把暫定後續意向當成完整規格，自行補做未凍結批次；或 R 只按最初 prompt／過期假設推翻候選。
 - 活的任務簡報被寫成另一套流程、固定文件組或新角色，而不是既有 Controller preflight 和路線圖的一部分。
 - 本批凍結或派工把無來源推測寫成 `已確認`。
+- 非簡單正式實作批次未回答誰擁有、誰實際使用、如何生效、甚麼反例能推翻，C 仍建立／復用 E1 或派實作批次。
+- C 把真源攝取門檻擴成預設全文讀取、全 repo 審查、固定 Full Audit、第二份規則 owner 或固定表格流程。
 - 關鍵終點、權限或驗收缺失時，C 不停問而直接派工。
 - 長期多批任務未固定 `outcome_anchor`，或後續 E1／R 自行改寫最終成果、完成條件、替代成果或排除範圍。
 - 預期成果改善為零且不是必要條件的實作批次仍被派出。
@@ -362,6 +370,11 @@ numbering 規則生效前已開始且無法可靠回推原 cycle number。cycle 
 - 同一失敗類別連續兩次未解決後，C 仍派第三個同類修正版；或用改名、換版本、換包裝掩飾同方法重試。
 - R 只檢查本批技術合格，未檢查是否服務原始成果、是否只有活動或返工、是否替代了使用者原要求。
 - 通用機制改善或治理自我改善污染主線進度，或其失敗在未證明必要依賴前阻塞原任務。
+- 連續兩批沒有已接納成果差異，C 未做 drift checkpoint 仍派主線實作批次。
+- E1／R 提出相鄰改向、替代交付或範圍外 blocker 後，C 未分類是否取代主線成果便改寫下一批主線。
+- drift checkpoint、活的任務簡報或路線圖更新被計作成果進度。
+- drift checkpoint 觸發背景 monitoring、polling、自動 `wait_threads`、固定 R 或固定 Full Audit。
+- 簡單、單步、低風險且終點唯一的任務被迫執行 drift checkpoint。
 - 完成回報只列批次、task、Reviewer 或候選數量，沒有列已接納成果差異。
 - E1 把測試失敗當成新增修改權，或把允許檔案當成可改該檔案所有語意。
 - 未預期失敗因果不明，或修正需要擴大 owner、權威來源、fallback、准入條件時，
@@ -434,7 +447,7 @@ numbering 規則生效前已開始且無法可靠回推原 cycle number。cycle 
 - fork 帶入來源上下文卻被當成 fresh UAT。
 - assignee 沒有回傳 ready/result 仍宣稱閉環成立。
 - 新 task 沒有可見 `E1:`／`R1:` 標題或首行標籤，或 ready／結果回執缺 threadId 或平台等價座標。
-- C 反覆 event wait、在逾時後再次等待、以輪詢發現成果，或把 wait snapshot、
+- C 派工後自動使用 `wait_threads`／`read_thread` 當接收機制、反覆 event wait、在逾時後再次等待、以輪詢發現成果，或把 wait snapshot、
   task 完成狀態、commentary／摘要當成 ready/result 證據。
 - `BATCH_RECEIVED` 的等待錯誤消耗最終結果的等待額度，令已 direct-push 結果
   無法推進。
