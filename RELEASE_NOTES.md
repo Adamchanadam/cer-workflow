@@ -4,6 +4,31 @@
 flow 的未發布內容會明確標示為候選。若 release 中止，對應內容必須改回候選或移除。
 實際執行規則以使用者已安裝版本隨附的 Skill references 為準。
 
+## v0.3.9
+
+本版把 A/B/C true dry-run 證明的 create-prompt lifecycle weakness 收斂進 runtime。
+重點是把「開新 E1／R task」和「正式派工」分開，避免一開始就把完整 corpus 或
+formal batch payload 塞進新 task，令 READY、處理結果、重送去重和驗收證據混在一起。
+
+- 新 E1／R `create_thread` 初始 prompt 只可作 zero-write ready handshake：說明角色、
+  cycle／title、target root、C return target、不得寫入／不得開始工作，並要求回報自身
+  座標或 source availability
+- `create_thread` 初始 prompt 不得包含 complete source corpus、candidate work content
+  或 formal batch payload，也不得要求 E1／R 在 READY 前處理內容
+- 若已發生 pre-ready 內容處理，C 必須視為 `pre-batch payload leak`／batch lifecycle
+  violation，停下或 refreeze；後續同 digest duplicate ack 不可當作正常高效通訊
+- assignee 不能自行讀取已授權 source 時，C 在 READY 後只送一次 formal
+  `sendable_packet`；如內容太長或跨風險邊界，按語義／風險單元分拆
+- assignee 可以讀取已授權 source 時，正式派工優先給 coordinates、digest、必要 excerpts
+  與 no-go boundaries，不重貼整份 corpus
+- A/B/C dry-run 未證明本 CER Skill 有過度 microbatch、harmful over-coarse batching、
+  過度保留、長 prompt send failure 或不合理慢推進的缺陷；本版只修證據成立的
+  create-prompt／formal dispatch 分界
+- 中英文 runtime、UAT 與 Skill validator 加入 create-prompt payload leakage 的固定反例；
+  套件各有 283 個 mutation cases
+- 本版 release-readiness 記錄為 `Full Audit 通過（只限全文靜態審核；AI 真實流程 UAT 不可用）`
+- 發布後使用者手動 UAT 仍需另行回報
+
 ## v0.3.8
 
 本版發布 v0.3.7 後完成的兩項 runtime 收斂：派工前可讀回證據，以及派工後

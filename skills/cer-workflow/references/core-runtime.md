@@ -241,6 +241,16 @@ C 將本輪工作線分類為 `mainline_outcome`、`diagnostic`、`mechanism_imp
 - 本批需要的知識底座、來源座標、未知與禁止越界範圍；
 - 短回報要求。
 
+新建 E1／R 的 `create_thread` 初始 prompt 不等於正式批次。它只可承載零寫入
+ready handshake：角色、cycle／title、target root、C 回傳目標、禁止寫入、
+禁止開始實作，以及需要回報自身座標與來源可用性。不得在 create prompt 放入完整
+source corpus、候選工作內容或正式批次 payload，也不得要求 E1／R 在 ready 前
+處理內容；若已發生，C 必須把它視為 pre-batch payload leak／batch lifecycle
+violation，停止或重凍結，不得把後續相同 digest 的 duplicate ack 當作正常高效
+通訊。若 assignee 無法從已授權真源自行讀取大型輸入，C 只在正式
+`sendable_packet` 發送一次；過長或跨風險邊界的輸入按語義／風險切成多個正式批次。若 assignee 可從已授權真源讀取，派工包優先給來源座標、digest、必要摘錄
+與禁止越界範圍，不重貼整份 corpus。
+
 長期、多批、高風險或非簡單正式實作批次的 `sendable_packet` 必須包含短小 `pre_dispatch_evidence`。它不是新真源、固定表格、背景監察或 Full Audit，只是把既有 Controller preflight、`outcome_anchor`／drift 判斷濃縮成 assignee 可讀回的派工前證據。內容至少列明：`outcome_anchor` 指向或摘要；本批改善的未完成條件與成功後可讀回成果差異；真源攝取四問摘要及來源錨點；已讀必要真源與仍缺真源的處置；本批工作線分類；若觸發 drift checkpoint，列其結論，否則說明未觸發理由。缺失、互相矛盾、依賴未讀必要真源，或只有「已判斷」但沒有可讀回摘要時，`sendable_packet` 不可送出，C 停在 `dispatch_blocked`。E1／R 收到缺少必要 `pre_dispatch_evidence` 的正式批次時，只可 direct-push 零寫入 blocker（例如 `BATCH_BLOCKED_MISSING_PRE_DISPATCH_EVIDENCE`）並停止，不得開始寫入、審閱或沿錯誤方向補完 C 的判斷。簡單、單步、低風險且終點唯一的任務可用短摘要通過，不強制大表格。
 
 不得寫「見上文」或要求 assignee 自行重建 C 的上下文。高風險批次補足背景與反例；低風險小修改保持短，不套巨型表格。E1 只獲授權執行本批凍結內容，不得把暫定後續意向當成完整規格或自行補成後續批次。E1／R 發現活的任務簡報、本批凍結、`outcome_anchor` 與真源矛盾時，先回報 blocker 或候選修正，不自行改寫契約後繼續。R 依最新任務簡報、本批凍結、候選 identity 及 delivery evidence 驗收，並同時對照不可被批次改寫的 `outcome_anchor`；不按最初 prompt 或過期假設驗收。R 必須同時回答本批是否仍服務原始成果、是否產生可接納的成果差異、是否只是活動或返工，以及是否用另一種交付形式代替使用者原本要求；技術合格但沒有成果改善時，不得回報為一般成功進度。

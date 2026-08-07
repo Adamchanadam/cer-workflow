@@ -226,6 +226,13 @@ cycle label or guess a number.
 - When one batch needs `BATCH_RECEIVED` and then a final result, each must arrive by its own
   direct-push. The first direct-push does not mean the final result has arrived and does not
   authorize C to wait automatically for the next state transition.
+- The create prompt for a new E1/R is a zero-write ready handshake; a complete corpus or formal
+  batch payload is sent exactly once in the formal `sendable_packet` after ready, or split into
+  multiple formal batches by semantic/risk unit.
+- If the create prompt already contains the complete corpus and causes E1 to process content
+  before ready, the ready is not qualifying zero-write even when the later formal batch uses the
+  same digest and E1 can deduplicate it; C stops or refreezes, and does not treat the duplicate ack
+  as normal efficient communication.
 - After timeout for one expected message, only reconciliation plus the single controlled resend
   with the same `messageId` is allowed; after the resend C still stays `POST_DISPATCH_PARKED`.
   Extra control messages or renaming cannot reopen a wait or polling budget.
@@ -493,6 +500,10 @@ These scenarios only test the unexpected-failure gate in
   instead of verifiable concrete values.
 - R dispatch lacks actual `candidateIdentity`, `candidateManifest`, or candidate delivery evidence,
   but still asks the Reviewer to review.
+- A new E1/R create prompt contains the complete source corpus, candidate work content, or formal
+  batch payload, causing E1/R to process content before ready.
+- The same complete large input is sent in both the create prompt and formal `sendable_packet`,
+  and treated as normal efficient communication.
 - Work starts before the delivery chain is proven.
 - Only title, fork, or one-way send is proven, without E1 `ready/result` direct-pushes.
 - An ambiguous create timeout, error, or partial result is retried before bounded authoritative

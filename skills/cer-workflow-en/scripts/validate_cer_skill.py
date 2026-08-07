@@ -213,6 +213,10 @@ SENDABLE_PACKET_REQUIREMENTS = {
     "draft_sendable_split": "`draft_packet`",
     "no_placeholders": "`sendable_packet` must not retain `<...>` placeholders",
     "truth_intake_summary": "summary of the truth-source intake four questions passed in Controller preflight: who owns it, who actually uses it, how it takes effect, and what counterexample can disprove it",
+    "create_prompt_handshake_only": "The initial `create_thread` prompt for a new E1/R is not a formal batch",
+    "create_prompt_no_full_payload": "Do not put the complete source corpus, candidate work content, or formal batch payload in the create prompt",
+    "large_payload_once": "C sends it exactly once in the formal `sendable_packet`",
+    "large_payload_split": "inputs that are too long or cross risk boundaries are split into multiple formal batches by semantic/risk unit",
     "pre_dispatch_evidence": "A `sendable_packet` for long-running, multi-batch, high-risk, or non-simple formal implementation work must include a compact `pre_dispatch_evidence` block",
     "pre_dispatch_not_new_owner": "It is not a new source of truth, fixed form, background monitor, or Full Audit",
     "pre_dispatch_fields": "It includes at least: an `outcome_anchor` pointer or summary; the unfinished condition this batch improves and the readable outcome difference success should create; the truth-source intake four-question summary with source anchors; required sources read and the disposition of remaining unknowns; work-lane classification; and, when a drift checkpoint trigger exists, the checkpoint conclusion, or why no trigger applies",
@@ -229,6 +233,8 @@ SENDABLE_PACKET_REQUIREMENTS = {
 
 SENDABLE_PACKET_UAT_REQUIREMENTS = {
     "placeholder_self_pass": "A formal `sendable_packet` still contains `<...>` placeholders",
+    "create_prompt_payload": "A new E1/R create prompt contains the complete source corpus, candidate work content, or formal",
+    "double_large_payload": "The same complete large input is sent in both the create prompt and formal `sendable_packet`",
     "relative_identity": "A formal dispatch uses relative wording such as `same E1`, `the E1 above`, or `next sequence`",
     "hostid_hard_required": "Controller still hard-requires `hostId`",
     "hostid_inferred": "derives hostId from `local`, title, sessionId, threadId shape, or an error message",
@@ -240,6 +246,8 @@ SENDABLE_PACKET_UAT_REQUIREMENTS = {
 
 SENDABLE_PACKET_FORBIDDEN = {
     "placeholder_allowed": "A sendable dispatch may retain `<...>` placeholders",
+    "create_prompt_full_payload": "The create prompt may contain the complete source corpus or formal batch payload",
+    "double_send_large_payload": "C may send the same complete large input in both the create prompt and formal `sendable_packet`",
     "relative_identity_allowed": "`same E1`, `the E1 above`, or `next sequence` may be used as formal dispatch identity",
     "hostid_always_required": "Every real dispatch must include `hostId` even when the active tool schema requires only `threadId`",
     "sessionid_infers_hostid": "hostId may be derived from sessionId, title, `local`, or an error message before continuing",

@@ -184,6 +184,12 @@ numbering 規則生效前已開始且無法可靠回推原 cycle number。cycle 
   輸入後，C 才可一次有界讀回核實或裁決。
 - 同一批次先後需要 `BATCH_RECEIVED` 與最終結果時，兩者仍必須各自 direct-push；
   第一個 direct-push 不代表最終結果已到，也不授權 C 自動等待下一個狀態轉移。
+- 新建 E1／R 的 create prompt 是零寫入 ready handshake；完整 corpus 或正式 batch
+  payload 只在收到 ready 後的 formal `sendable_packet` 一次送出，或按語義／風險
+  切成多個正式批次。
+- 若 create prompt 已包含完整 corpus 並令 E1 在 ready 前處理內容，即使後續正式
+  batch 使用相同 digest 且 E1 能去重，該 ready 仍不是合格零寫入；C 停止或重凍結，
+  不把 duplicate ack 當成正常高效通訊。
 - 同一預期訊息逾時後，只有完成對帳及唯一一次同 `messageId` 受控重送；重送後
   仍停在 `POST_DISPATCH_PARKED`。額外控制訊息或改名不能重開等待或輪詢額度。
 - 平台沒有 idempotency key 或權威 operation receipt 時，CER 使用有界對帳與
@@ -407,6 +413,10 @@ numbering 規則生效前已開始且無法可靠回推原 cycle number。cycle 
 - 正式派工用 `同一 E1`／`上述 E1`／`下一個序號` 等相對說法代替可核實實值。
 - R 派工缺實際 `candidateIdentity`、`candidateManifest` 或候選 delivery evidence，
   仍要求 Reviewer 審閱。
+- 新建 E1／R create prompt 包含完整 source corpus、候選工作內容或正式批次
+  payload，令 E1／R 在 ready 前處理內容。
+- 同一完整大型輸入在 create prompt 和 formal `sendable_packet` 被重複發送，並被
+  當成正常高效通訊。
 - 未證明送達鏈便開始工作。
 - 只證明 title、fork 或單向 send，沒有 E1 direct-push ready/result。
 - create 結果為逾時、錯誤或部分結果時，在有界權威對帳前立即重試。

@@ -5,6 +5,34 @@ has not entered an authorized release flow is explicitly marked as a candidate. 
 aborted, the affected content must be marked as candidate again or removed. Runtime authority
 remains the Skill references bundled with the version the user has installed.
 
+## v0.3.9
+
+This release folds the create-prompt lifecycle weakness proven by true A/B/C dry-runs into the
+runtime. The focus is to separate "create a new E1/R task" from "dispatch formal work", so READY,
+work output, duplicate handling, and acceptance evidence do not get mixed by putting the full
+corpus or formal batch payload into the first task-creation prompt.
+
+- A new E1/R `create_thread` initial prompt may only be a zero-write ready handshake: state the
+  role, cycle/title, target root, C return target, no-write/no-start-work boundary, and ask for the
+  assignee's own coordinates or source availability
+- The `create_thread` initial prompt must not include a complete source corpus, candidate work
+  content, or a formal batch payload, and must not ask E1/R to process content before READY
+- If pre-ready content processing already happened, C must treat it as a `pre-batch payload leak` /
+  batch lifecycle violation and stop or refreeze; a later same-digest duplicate ack is not normal
+  efficient communication
+- When the assignee cannot read an authorized source directly, C sends the formal `sendable_packet`
+  once after READY; if the content is too long or crosses risk boundaries, C splits it by semantic
+  or risk unit
+- When the assignee can read an authorized source, formal dispatch should prefer coordinates,
+  digest, required excerpts, and no-go boundaries instead of repasting the whole corpus
+- The A/B/C dry-runs did not prove that this CER Skill over-microbatches, uses harmful over-coarse
+  batching, over-retains, hits long-prompt send failure, or progresses unreasonably slowly; this
+  release fixes only the evidence-backed create-prompt / formal-dispatch boundary
+- The bilingual runtime, UAT, and Skill validators add fixed counterexamples for create-prompt
+  payload leakage; each package has 283 mutation cases
+- This release records `Full Audit passed (static corpus only; AI real workflow UAT unavailable)`
+- Post-release user manual UAT remains a separate follow-up
+
 ## v0.3.8
 
 This release publishes two runtime tightenings completed after v0.3.7: readable pre-dispatch

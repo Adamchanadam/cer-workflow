@@ -293,6 +293,19 @@ Each real E1 or R batch contains only what is needed:
 - the knowledge foundation, source coordinates, unknowns, and no-go boundaries needed for the batch;
 - a short result format.
 
+The initial `create_thread` prompt for a new E1/R is not a formal batch. It may carry only a
+zero-write ready handshake: role, cycle/title, target root, C return target, no-write and
+do-not-start-work instructions, and a request to report its own coordinates and source
+availability. Do not put the complete source corpus, candidate work content, or formal batch
+payload in the create prompt, and do not ask E1/R to process content before ready. If that has
+happened, C treats it as a pre-batch payload leak / batch lifecycle violation and stops or
+refreezes; C must not treat a later duplicate ack for the same digest as normal efficient
+communication. If the assignee cannot read the large input from an authorized source of truth,
+C sends it exactly once in the formal `sendable_packet`; inputs that are too long or cross risk
+boundaries are split into multiple formal batches by semantic/risk unit. If the assignee can read
+from an authorized source of truth, the dispatch packet prefers source coordinates, digest,
+necessary excerpts, and no-go boundaries rather than repasting the entire corpus.
+
 A `sendable_packet` for long-running, multi-batch, high-risk, or non-simple formal implementation work must include a compact `pre_dispatch_evidence` block. It is not a new source of truth, fixed form, background monitor, or Full Audit; it only makes C's existing Controller-preflight and `outcome_anchor`/drift judgments readable to the assignee. It includes at least: an `outcome_anchor` pointer or summary; the unfinished condition this batch improves and the readable outcome difference success should create; the truth-source intake four-question summary with source anchors; required sources read and the disposition of remaining unknowns; work-lane classification; and, when a drift checkpoint trigger exists, the checkpoint conclusion, or why no trigger applies. If it is missing, contradictory, depends on unread required sources, or merely says judgment was done without readable support, the packet is not sendable and C stays at `dispatch_blocked`. If E1/R receives a formal batch without required `pre_dispatch_evidence`, it must direct-push a zero-write blocker such as `BATCH_BLOCKED_MISSING_PRE_DISPATCH_EVIDENCE` and stop; it must not write, review, or fill in C's missing judgment. Simple, one-step, low-risk work with one clear endpoint may pass with a short summary and must not be forced into a large form.
 
 Do not write "see above" or ask the assignee to reconstruct C's context. Add background and counterexamples for high-risk batches. Keep low-risk batches short and avoid oversized templates. E1 is authorized only to execute the current batch freeze; it must not treat provisional later direction as a complete specification or fill in future batches on its own. If E1/R finds a contradiction between the living task brief, current batch freeze, `outcome_anchor`, and sources, report a blocker or candidate correction first; do not rewrite the contract and continue alone. R reviews against the latest task brief, current batch freeze, candidate identity, and delivery evidence, and also checks the immutable `outcome_anchor`; it does not review against the initial prompt or stale assumptions. R must also answer whether the batch still serves the original outcome, whether it creates an acceptable outcome difference, whether it is only activity or rework, and whether it substitutes another deliverable shape for what the user originally asked for. A technically valid batch with no outcome improvement must not be reported as ordinary success progress.

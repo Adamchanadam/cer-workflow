@@ -213,6 +213,10 @@ SENDABLE_PACKET_REQUIREMENTS = {
     "draft_sendable_split": "`draft_packet`",
     "no_placeholders": "`sendable_packet` 不得保留 `<...>` 佔位符",
     "truth_intake_summary": "Controller preflight 已通過的真源攝取四問摘要：誰擁有、誰實際使用、如何生效、甚麼反例能推翻",
+    "create_prompt_handshake_only": "新建 E1／R 的 `create_thread` 初始 prompt 不等於正式批次",
+    "create_prompt_no_full_payload": "不得在 create prompt 放入完整 source corpus、候選工作內容或正式批次 payload",
+    "large_payload_once": "C 只在正式 `sendable_packet` 發送一次",
+    "large_payload_split": "過長或跨風險邊界的輸入按語義／風險切成多個正式批次",
     "pre_dispatch_evidence": "長期、多批、高風險或非簡單正式實作批次的 `sendable_packet` 必須包含短小 `pre_dispatch_evidence`",
     "pre_dispatch_not_new_owner": "它不是新真源、固定表格、背景監察或 Full Audit",
     "pre_dispatch_fields": "內容至少列明：`outcome_anchor` 指向或摘要；本批改善的未完成條件與成功後可讀回成果差異；真源攝取四問摘要及來源錨點；已讀必要真源與仍缺真源的處置；本批工作線分類；若觸發 drift checkpoint，列其結論，否則說明未觸發理由",
@@ -229,6 +233,8 @@ SENDABLE_PACKET_REQUIREMENTS = {
 
 SENDABLE_PACKET_UAT_REQUIREMENTS = {
     "placeholder_self_pass": "正式 `sendable_packet` 仍保留 `<...>` 佔位符",
+    "create_prompt_payload": "新建 E1／R create prompt 包含完整 source corpus、候選工作內容或正式批次",
+    "double_large_payload": "同一完整大型輸入在 create prompt 和 formal `sendable_packet` 被重複發送",
     "relative_identity": "正式派工用 `同一 E1`／`上述 E1`／`下一個序號` 等相對說法",
     "hostid_hard_required": "Controller 仍硬性要求 `hostId`",
     "hostid_inferred": "由 `local`、title、sessionId、threadId 形狀或錯誤訊息推導 hostId",
@@ -240,6 +246,8 @@ SENDABLE_PACKET_UAT_REQUIREMENTS = {
 
 SENDABLE_PACKET_FORBIDDEN = {
     "placeholder_allowed": "正式可送出的派工包可以保留 `<...>` 佔位符",
+    "create_prompt_full_payload": "create prompt 可包含完整 source corpus 或正式批次 payload",
+    "double_send_large_payload": "C 可在 create prompt 和正式 `sendable_packet` 重複發送同一完整大型輸入",
     "relative_identity_allowed": "`同一 E1`／`上述 E1`／`下一個序號` 可作為正式派工身份",
     "hostid_always_required": "正式派工一律必須填入 `hostId`，即使當前工具 schema 只要求 `threadId`",
     "sessionid_infers_hostid": "可由 sessionId、title、`local` 或錯誤訊息推導 hostId 後繼續",
