@@ -267,6 +267,15 @@ numbering 規則生效前已開始且無法可靠回推原 cycle number。cycle 
 - drift checkpoint、活的任務簡報或路線圖更新不計作成果進度，不觸發背景 monitoring、polling、自動 `wait_threads`、固定 R 或固定 Full Audit。
 - 簡單、單步、低風險且終點唯一的任務仍可用短摘要和 C 讀回驗收，不強制建立成果錨表格、R 或路線圖。
 - 任務完成回報列已接納成果差異和未完成條件，不以批次、task、審閱或候選數量作完成證據。
+- Reviewer 通過候選內容時，C 可接納為 `working_candidate` 或 `evidence_only`，但不得只因內容 PASS 把它列作 `authoritative_input`。
+- `derived_output` 被下一批列作 `authority_input` 但缺使用者明示、目標專案 owner 錨點或升格讀回時，C 必須停在 `dispatch_blocked`；E1／R 收到未分類的上一批 authority 輸入時只回零寫入 blocker。
+- `prior_result_use: authority_input` 缺 `promotion_evidence` 或 `project_owner_anchor` 時，C 不得把上一批結果交給下一批；`prior_result_use: working_material` 只允許修改、比較、審閱或 refine，不得作決策權威。
+- 候選只作 refinement 工作材料時，C 可把 `prior_result_use` 標為 `working_material` 並繼續，但 `authority_effect` 與 `progress_effect` 仍為 `none`。
+- Reviewer 技術 PASS 但 outcome FAIL 或未審 authority promotion 時，C 不得把它報成主線進度或權威升格。
+- Reviewer 只提供 `content_verdict: pass` 或 `implementation_verdict: pass`，但 `outcome_verdict` 是 `fail`／`not_reviewed` 或 `authority_promotion_verdict` 是 `out_of_scope` 時，C 只能按已審維度裁決，不得擴大成 outcome PASS 或 authority promotion PASS。
+- Handoff、計劃、進度或其他目標專案真源對 artifact 角色、下一步或權威來源互相矛盾時，下一批不得派出，直到既有 owner 完成同步並讀回。
+- 結果改變當前階段、artifact 角色、下一產品路線、權威來源、progress claim 或後續批次輸入之一，但尚未按目標專案既有持久化規則回寫並讀回時，`next_dispatch` 必須是 `blocked`。
+- 使用者終點本身就是草稿、候選或樣稿時，候選可合法成為 `terminal_deliverable`；但除非另有 owner 依據，仍不得升格為權威來源。
 
 ## 未預期失敗與範圍例外情景
 
@@ -384,6 +393,10 @@ numbering 規則生效前已開始且無法可靠回推原 cycle number。cycle 
 - drift checkpoint 觸發背景 monitoring、polling、自動 `wait_threads`、固定 R 或固定 Full Audit。
 - 簡單、單步、低風險且終點唯一的任務被迫執行 drift checkpoint。
 - 完成回報只列批次、task、Reviewer 或候選數量，沒有列已接納成果差異。
+- C 只發裸 `RESULT_ACCEPTED` 便把候選當成主線進度、權威輸入或下一批可消費真源。
+- candidate／draft／diagnostic／derived_output／review_only 未有升格依據便被下一批列為 `authoritative_input`。
+- R 只給內容或技術 PASS，C 便推導出 outcome PASS、authority promotion PASS 或 `accepted_outcome_delta`。
+- 會改變階段、artifact 角色、下一路線、權威來源、progress claim 或後續批次輸入的結果尚未按目標專案既有規則持久化及讀回，C 仍派下一批。
 - E1 把測試失敗當成新增修改權，或把允許檔案當成可改該檔案所有語意。
 - 未預期失敗因果不明，或修正需要擴大 owner、權威來源、fallback、准入條件時，
   E1 仍繼續寫入或以測試變綠冒充正確。

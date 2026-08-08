@@ -4,6 +4,33 @@
 flow 的未發布內容會明確標示為候選。若 release 中止，對應內容必須改回候選或移除。
 實際執行規則以使用者已安裝版本隨附的 Skill references 為準。
 
+## v0.3.10
+
+本版補上結果回來後的處置閉環，避免候選、診斷、衍生輸出或 Reviewer PASS 被錯誤
+升格成權威輸入、主線進度或下一批決策來源。
+
+- C 接納結果時必須明示 `accepted_as`、`authority_effect`、`progress_effect`、
+  `permitted_next_use`、`forbidden_next_use`，以及是否需要目標專案既有持久化
+- 裸 `RESULT_ACCEPTED` 只代表該批次已裁決及通訊去重，不代表權威升格、主線進度，
+  也不代表下一批可把結果當權威輸入
+- 候選、草稿、診斷、衍生輸出及純審閱結果預設只可作 `working_material`；要升格為
+  `authoritative_input`，必須有使用者明示或目標專案既有 owner 讀回、升格依據及
+  讀回證據
+- 下一批使用上一批結果時，派工包必須標明 `prior_result_use:
+  working_material | authority_input`；若是 `authority_input`，必須列出
+  `promotion_evidence` 與 `project_owner_anchor`
+- Reviewer verdict 分成 `content_verdict`、`implementation_verdict`、
+  `outcome_verdict`、`authority_promotion_verdict`；內容或技術 PASS 不會自動變成
+  outcome PASS、authority promotion PASS 或主線進度，`out_of_scope` 也不是 PASS
+- 如果結果會改變當前階段、artifact 角色、下一產品路線、權威來源、progress claim
+  或後續批次輸入，C 必須先按目標專案既有持久化規則回寫並讀回；未同步或互相矛盾
+  時，下一批停在 `dispatch_blocked`
+- 中英文 runtime、UAT 與 Skill validators 加入 result-disposition、authority
+  promotion、prior-result consumption 及 persistence-before-next-dispatch 的固定反例；
+  套件各有 316 個 mutation cases
+- Release-readiness 已完成全文靜態審核及兩輪 AI 真實流程 UAT；發布後使用者手動 UAT
+  仍需另行回報
+
 ## v0.3.9
 
 本版把 A/B/C true dry-run 證明的 create-prompt lifecycle weakness 收斂進 runtime。

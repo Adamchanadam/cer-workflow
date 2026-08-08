@@ -118,6 +118,13 @@ C 將本輪工作線分類為 `mainline_outcome`、`diagnostic`、`mechanism_imp
 
 活動不等於成果。候選建立、審閱完成、格式或結構通過、檔案一致、問題已記錄、設計已完成、版本改名或包裝更新，都不自動增加主線進度。只有 C 讀回並裁決某項使用者完成條件取得已接納差異時，才可回報為成果進展；最終回報優先列已接納成果，而不是批次、任務或審閱數量。
 
+<!-- cer-result-disposition-gate-owner -->
+結果處置門檻屬於本節唯一 owner。C 在接納候選、報告進度、更新目標專案真源，或把上一批結果交給下一批使用前，必須明示本次裁決的效果；低風險小批可用一句短摘要，高風險或多批承接須可讀回：`accepted_as` 為 `evidence_only`、`working_candidate`、`terminal_deliverable` 或 `authoritative_input`；`authority_effect` 為 `none` 或 `existing_authority_updated`；`progress_effect` 為 `none` 或 `accepted_outcome_delta`；以及 `permitted_next_use`、`forbidden_next_use`、是否需要目標專案既有持久化。上一批承接另須把 `prior_result_use` 明確標為 `working_material` 或 `authority_input`；若標為 `authority_input`，必須列出 `promotion_evidence` 與 `project_owner_anchor`。裸 `RESULT_ACCEPTED` 只表示 C 已完成該批次裁決及通訊去重，不代表全域權威升格、主線成果進度或下一批可作權威輸入。
+
+候選、草稿、診斷、衍生輸出及純審閱結果預設只可作 `working_material`。要升格為 `authoritative_input`，C 必須有使用者明示或已讀目標專案既有 owner 的來源錨點、升格依據及讀回證據；找不到時，下一批停在 `dispatch_blocked`。Reviewer verdict 被 C 用作裁決依據時，須按 `content_verdict`、`implementation_verdict`、`outcome_verdict`、`authority_promotion_verdict` 分層；內容或技術 PASS 不會自動形成 outcome PASS、authority promotion PASS 或主線進度；R 未審的維度只能標為 `not_reviewed`／`out_of_scope`，`out_of_scope` 不是 PASS，C 不得擴大 R 原本審閱範圍。只有 `outcome_anchor` 本身要求草稿、候選或樣稿作終點時，`working_candidate` 才可成為合法 `terminal_deliverable`；這仍不等於權威來源升格。
+
+若結果會改變當前階段、artifact 角色、下一產品路線、權威來源、progress claim 或後續批次輸入，C 必須先按目標專案既有持久化規則由適當 writer 完成回寫並讀回。持久真源互相矛盾、尚未同步或 artifact 角色未能判定時，`next_dispatch` 必須是 `blocked`；CER 不指定固定 handoff、docs、registry 或資料庫，只要求目標專案 owner 的同步終態可讀回。
+
 <!-- cer-controller-drift-checkpoint-owner -->
 長期任務防失焦檢查點屬於本節唯一 owner，不另建監察角色、背景程序或固定表格。長期、多批或容易受上下文污染的任務，在 resume／上下文轉換、連續兩批沒有已接納成果差異、同類失敗第二次、E1／R 提出相鄰改向或替代交付、使用者改方向或補限制，以及 close／release／重大交付前，C 做一次有界 drift checkpoint：下一批是否仍改善 `outcome_anchor` 的未完成條件；成功後有甚麼可讀回成果差異；E1／R 或相鄰改善是否正在取代主線成果。任一項答不到，C 不得派正式實作批次，只可改做診斷、收窄驗收、停問使用者、終止路線，或在 C 不能可靠反證且風險足夠時建立 fresh R。checkpoint、活的任務簡報或路線圖更新不計作成果進度；不得觸發背景 monitoring、polling、自動 `wait_threads`、固定 R、固定 Full Audit，或套用到簡單、單步、低風險且終點唯一的任務。
 
@@ -232,6 +239,7 @@ C 將本輪工作線分類為 `mainline_outcome`、`diagnostic`、`mechanism_imp
 - 必讀真源與已裁決背景；
 - Controller preflight 已通過的真源攝取四問摘要：誰擁有、誰實際使用、如何生效、甚麼反例能推翻；
 - `outcome_anchor`、本批工作線分類、目標完成條件及預期成果差異；
+- 若本批使用上一批 E／R 結果，列明結果處置門檻已裁決的 `prior_result_use: working_material | authority_input`、可否只作工作材料；若是 `authority_input`，列出 `promotion_evidence`、`project_owner_anchor`、讀回證據及禁止用途；
 - 允許及禁止範圍；
 - 驗收與能推翻方案的反例；
 - 停止條件；
@@ -332,7 +340,7 @@ Governance bridge 完成後只作一般成果讀回與裁決，CER 保持啟動�
 6. C 凍結本輪 `owner／affected surfaces／acceptance／counterexample family`，給同一 E1 一個批次修完整個受影響邊界。
 7. 修後 R 只重驗凍結範圍。若出現不同根因、不同使用者後果或最新修補造成的新回歸，只有 C 可在歸因後重凍結並另派新批次；E1 不得自行擴大。
 8. 換字、換句序或同義改寫仍屬同一問題；不得逐句追加規則或 validator pattern。若同一反例家族持續避過機械檢查，C 改變檢查方法或收窄 validator 聲稱能力。
-9. 凍結反例通過、沒有實質新缺陷，且成果差異已讀回後，C 接納；只有此時才由 E1 更新目標專案既有的權威進度來源，沒有進度來源便不自行創造。
+9. 凍結反例通過、沒有實質新缺陷，且成果差異已讀回後，C 依結果處置門檻接納；只有此時才由 E1 更新目標專案既有的權威進度來源，沒有進度來源便不自行創造。
 10. 必要狀態收斂後 C 停止；相鄰改善另列，不增加 Reviewer、治理層或全 repo 重審。每批終態只可為已接納成果、明確承接的必要條件、誠實阻塞並返回重新選路，或終止該路線；不得把「再做一個同類修正版」當成預設下一步。
 11. 長期、多階段或多批次任務的進度更新與小熊停點分工一律依 [roadmap.md](roadmap.md)；只用 direct-push 後已讀回及已裁決事實，不輪詢 E1。
 

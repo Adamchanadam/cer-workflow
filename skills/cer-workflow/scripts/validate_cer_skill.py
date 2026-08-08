@@ -26,6 +26,7 @@ OWNER_MARKER = "<!-- cer-parallel-producers-owner -->"
 UNEXPECTED_FAILURE_OWNER_MARKER = "<!-- cer-unexpected-failure-gate-owner -->"
 TRUTH_SOURCE_INTAKE_OWNER_MARKER = "<!-- cer-truth-source-intake-gate-owner -->"
 DRIFT_CHECKPOINT_OWNER_MARKER = "<!-- cer-controller-drift-checkpoint-owner -->"
+RESULT_DISPOSITION_OWNER_MARKER = "<!-- cer-result-disposition-gate-owner -->"
 EXPECTED_DEFAULT_PROMPT = (
     "使用 $cer-workflow 以唯一 writer 執行這項工作；按風險建立 fresh Reviewer，"
     "必要時在內部自動加速，無需額外設定。"
@@ -395,6 +396,45 @@ DRIFT_CHECKPOINT_FORBIDDEN = {
     "simple_required": "簡單單步任務必須執行 drift checkpoint",
 }
 
+RESULT_DISPOSITION_REQUIREMENTS = {
+    "sole_owner": "結果處置門檻屬於本節唯一 owner",
+    "accepted_as": "`accepted_as` 為 `evidence_only`、`working_candidate`、`terminal_deliverable` 或 `authoritative_input`",
+    "bare_result": "裸 `RESULT_ACCEPTED` 只表示 C 已完成該批次裁決及通訊去重",
+    "prior_result_use_enum": "`prior_result_use` 明確標為 `working_material` 或 `authority_input`",
+    "authority_fields": "若標為 `authority_input`，必須列出 `promotion_evidence` 與 `project_owner_anchor`",
+    "default_working_material": "候選、草稿、診斷、衍生輸出及純審閱結果預設只可作 `working_material`",
+    "authority_requires_owner": "要升格為 `authoritative_input`，C 必須有使用者明示或已讀目標專案既有 owner 的來源錨點",
+    "reviewer_split": "須按 `content_verdict`、`implementation_verdict`、`outcome_verdict`、`authority_promotion_verdict` 分層",
+    "reviewer_pass_limited": "內容或技術 PASS 不會自動形成 outcome PASS、authority promotion PASS 或主線進度",
+    "out_of_scope_not_pass": "`out_of_scope` 不是 PASS",
+    "review_scope_limited": "C 不得擴大 R 原本審閱範圍",
+    "terminal_candidate": "只有 `outcome_anchor` 本身要求草稿、候選或樣稿作終點時",
+    "persistence_blocks_next": "持久真源互相矛盾、尚未同步或 artifact 角色未能判定時，`next_dispatch` 必須是 `blocked`",
+}
+
+RESULT_DISPOSITION_UAT_REQUIREMENTS = {
+    "content_pass_candidate": "Reviewer 通過候選內容時",
+    "derived_output_blocked": "`derived_output` 被下一批列作 `authority_input`",
+    "authority_input_missing_fields": "`prior_result_use: authority_input` 缺 `promotion_evidence` 或 `project_owner_anchor`",
+    "working_material_use_limits": "`prior_result_use: working_material` 只允許修改、比較、審閱或 refine，不得作決策權威",
+    "working_material_allowed": "`prior_result_use` 標為 `working_material`",
+    "technical_pass_limited": "Reviewer 技術 PASS 但 outcome FAIL",
+    "split_verdict_limited": "Reviewer 只提供 `content_verdict: pass` 或 `implementation_verdict: pass`",
+    "authority_out_of_scope": "`authority_promotion_verdict` 是 `out_of_scope`",
+    "truth_conflict_blocks": "Handoff、計劃、進度或其他目標專案真源",
+    "persistence_change_classes": "結果改變當前階段、artifact 角色、下一產品路線、權威來源、progress claim 或後續批次輸入之一",
+    "draft_terminal_deliverable": "使用者終點本身就是草稿、候選或樣稿",
+}
+
+RESULT_DISPOSITION_FORBIDDEN = {
+    "bare_result_promotes": "裸 `RESULT_ACCEPTED` 代表權威升格",
+    "candidate_auto_authority": "候選 PASS 自動成為權威輸入",
+    "technical_pass_outcome": "R 技術 PASS 就是 outcome PASS",
+    "authority_without_promotion_fields": "`authority_input` 可缺 `promotion_evidence` 或 `project_owner_anchor`",
+    "out_of_scope_pass": "`out_of_scope` 算 PASS",
+    "unpersisted_next_dispatch": "未持久化仍可派下一批",
+}
+
 
 def read_texts(root: Path) -> dict[str, str]:
     texts: dict[str, str] = {}
@@ -637,6 +677,10 @@ def validate_texts(root: Path, texts: dict[str, str]) -> list[str]:
         findings.append("drift checkpoint owner marker must occur exactly once")
     if DRIFT_CHECKPOINT_OWNER_MARKER not in texts["references/core-runtime.md"]:
         findings.append("drift checkpoint owner marker is not in core-runtime.md")
+    if all_markdown.count(RESULT_DISPOSITION_OWNER_MARKER) != 1:
+        findings.append("result disposition owner marker must occur exactly once")
+    if RESULT_DISPOSITION_OWNER_MARKER not in texts["references/core-runtime.md"]:
+        findings.append("result disposition owner marker is not in core-runtime.md")
 
     owner = re.sub(r"\s+", " ", texts["references/parallel-producers.md"])
     for label, required in OWNER_REQUIREMENTS.items():
@@ -689,9 +733,14 @@ def validate_texts(root: Path, texts: dict[str, str]) -> list[str]:
         outcome_anchor_owner = re.sub(r"\s+", " ", outcome_anchor_match.group(1))
         if DRIFT_CHECKPOINT_OWNER_MARKER not in outcome_anchor_owner:
             findings.append("drift checkpoint marker is outside outcome-anchor progress section")
+        if RESULT_DISPOSITION_OWNER_MARKER not in outcome_anchor_owner:
+            findings.append("result disposition marker is outside outcome-anchor progress section")
         for label, required in DRIFT_CHECKPOINT_REQUIREMENTS.items():
             if required not in outcome_anchor_owner:
                 findings.append(f"drift checkpoint owner missing {label}")
+        for label, required in RESULT_DISPOSITION_REQUIREMENTS.items():
+            if required not in outcome_anchor_owner:
+                findings.append(f"result disposition owner missing {label}")
     self_contained_match = re.search(
         r"^## 自足派工[ \t]*\n([\s\S]*?)(?=^## |\Z)", core, re.MULTILINE
     )
@@ -747,6 +796,9 @@ def validate_texts(root: Path, texts: dict[str, str]) -> list[str]:
     for label, forbidden in DRIFT_CHECKPOINT_FORBIDDEN.items():
         if forbidden in normalized_markdown:
             findings.append(f"drift-checkpoint fixed contradiction present {label}")
+    for label, forbidden in RESULT_DISPOSITION_FORBIDDEN.items():
+        if forbidden in normalized_markdown:
+            findings.append(f"result-disposition fixed contradiction present {label}")
     if "[parallel-producers.md](references/parallel-producers.md)" not in skill:
         findings.append("SKILL.md lacks direct progressive-disclosure route")
     if "長任務防失焦檢查點只由" not in skill:
@@ -789,6 +841,9 @@ def validate_texts(root: Path, texts: dict[str, str]) -> list[str]:
     for label, required in DRIFT_CHECKPOINT_UAT_REQUIREMENTS.items():
         if required not in uat:
             findings.append(f"uat.md missing drift-checkpoint counterexample {label}")
+    for label, required in RESULT_DISPOSITION_UAT_REQUIREMENTS.items():
+        if required not in uat:
+            findings.append(f"uat.md missing result-disposition counterexample {label}")
     unexpected_failure_uat_match = re.search(
         r"^## 未預期失敗與範圍例外情景[ \t]*\n([\s\S]*?)(?=^## |\Z)",
         texts["references/uat.md"],
@@ -945,6 +1000,33 @@ def mutation_matrix(root: Path) -> tuple[int, list[str]]:
         1,
     )
     cases.append(("drift_checkpoint_owner_marker_wrong_section", drift_wrong_section))
+    cases.append(
+        (
+            "result_disposition_owner_marker_duplicate",
+            mutated(
+                "SKILL.md",
+                "# CER 工作法",
+                f"# CER 工作法\n{RESULT_DISPOSITION_OWNER_MARKER}",
+            ),
+        )
+    )
+    cases.append(
+        (
+            "result_disposition_owner_marker_missing",
+            mutated("references/core-runtime.md", RESULT_DISPOSITION_OWNER_MARKER),
+        )
+    )
+    result_disposition_wrong_section = mutated(
+        "references/core-runtime.md", RESULT_DISPOSITION_OWNER_MARKER
+    )
+    result_disposition_wrong_section["references/core-runtime.md"] = result_disposition_wrong_section[
+        "references/core-runtime.md"
+    ].replace(
+        "## 自足派工",
+        f"{RESULT_DISPOSITION_OWNER_MARKER}\n## 自足派工",
+        1,
+    )
+    cases.append(("result_disposition_owner_marker_wrong_section", result_disposition_wrong_section))
     cases.append(
         (
             "implicit_invocation_true",
@@ -1145,6 +1227,13 @@ def mutation_matrix(root: Path) -> tuple[int, list[str]]:
                 mutated_fragment("references/core-runtime.md", fragment),
             )
         )
+    for label, fragment in RESULT_DISPOSITION_REQUIREMENTS.items():
+        cases.append(
+            (
+                f"result_disposition_owner_missing_{label}",
+                mutated_fragment("references/core-runtime.md", fragment),
+            )
+        )
     for label, fragment in SENDABLE_PACKET_REQUIREMENTS.items():
         cases.append(
             (
@@ -1229,6 +1318,13 @@ def mutation_matrix(root: Path) -> tuple[int, list[str]]:
                 mutated_fragment("references/uat.md", fragment),
             )
         )
+    for label, fragment in RESULT_DISPOSITION_UAT_REQUIREMENTS.items():
+        cases.append(
+            (
+                f"result_disposition_uat_missing_{label}",
+                mutated_fragment("references/uat.md", fragment),
+            )
+        )
     for label, marker in UNEXPECTED_FAILURE_UAT_MARKERS.items():
         cases.append(
             (
@@ -1306,6 +1402,17 @@ def mutation_matrix(root: Path) -> tuple[int, list[str]]:
         cases.append(
             (
                 f"drift_checkpoint_contradiction_{label}",
+                mutated(
+                    "references/core-runtime.md",
+                    "## 成果錨定與進展閘",
+                    f"## 成果錨定與進展閘\n\n{contradiction}。",
+                ),
+            )
+        )
+    for label, contradiction in RESULT_DISPOSITION_FORBIDDEN.items():
+        cases.append(
+            (
+                f"result_disposition_contradiction_{label}",
                 mutated(
                     "references/core-runtime.md",
                     "## 成果錨定與進展閘",

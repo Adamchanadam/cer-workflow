@@ -5,6 +5,38 @@ has not entered an authorized release flow is explicitly marked as a candidate. 
 aborted, the affected content must be marked as candidate again or removed. Runtime authority
 remains the Skill references bundled with the version the user has installed.
 
+## v0.3.10
+
+This release closes the result-disposition loop after batch results return, so candidates,
+diagnostics, derived outputs, and Reviewer PASS results are not accidentally promoted into
+authoritative input, mainline progress, or next-batch decision sources.
+
+- When C accepts a result, it must state `accepted_as`, `authority_effect`,
+  `progress_effect`, `permitted_next_use`, `forbidden_next_use`, and whether existing
+  target-project persistence is required
+- Bare `RESULT_ACCEPTED` means only that the batch was adjudicated and communication can
+  deduplicate it; it is not authority promotion, mainline progress, or permission for the next
+  batch to use the result as authoritative input
+- Candidates, drafts, diagnostics, derived outputs, and review-only results default to
+  `working_material` only; promotion to `authoritative_input` requires an explicit user decision
+  or a read-back target-project owner anchor, promotion evidence, and readback evidence
+- When a later batch uses a prior result, the dispatch packet must classify
+  `prior_result_use: working_material | authority_input`; if it is `authority_input`, it must
+  include `promotion_evidence` and `project_owner_anchor`
+- Reviewer verdicts are split into `content_verdict`, `implementation_verdict`,
+  `outcome_verdict`, and `authority_promotion_verdict`; content or technical PASS does not
+  automatically become outcome PASS, authority-promotion PASS, or mainline progress, and
+  `out_of_scope` is not PASS
+- If a result changes current phase, artifact role, next product route, authoritative source,
+  progress claim, or later batch input, C must first update and read back the target project's
+  existing persistence; when persistence is unsynchronized or contradictory, the next batch stays
+  at `dispatch_blocked`
+- The bilingual runtime, UAT, and Skill validators add fixed counterexamples for result
+  disposition, authority promotion, prior-result consumption, and
+  persistence-before-next-dispatch; each package has 316 mutation cases
+- Release-readiness completed full static review and two AI real workflow UAT cycles before
+  publication. Post-release user manual UAT remains a separate follow-up
+
 ## v0.3.9
 
 This release folds the create-prompt lifecycle weakness proven by true A/B/C dry-runs into the

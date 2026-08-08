@@ -26,6 +26,7 @@ OWNER_MARKER = "<!-- cer-parallel-producers-owner -->"
 UNEXPECTED_FAILURE_OWNER_MARKER = "<!-- cer-unexpected-failure-gate-owner -->"
 TRUTH_SOURCE_INTAKE_OWNER_MARKER = "<!-- cer-truth-source-intake-gate-owner -->"
 DRIFT_CHECKPOINT_OWNER_MARKER = "<!-- cer-controller-drift-checkpoint-owner -->"
+RESULT_DISPOSITION_OWNER_MARKER = "<!-- cer-result-disposition-gate-owner -->"
 EXPECTED_DEFAULT_PROMPT = (
     "Use $cer-workflow-en with one writer for this work; create a fresh Reviewer in "
     "proportion to risk, and accelerate internally when useful without extra setup."
@@ -395,6 +396,45 @@ DRIFT_CHECKPOINT_FORBIDDEN = {
     "simple_required": "simple one-step work must run a drift checkpoint",
 }
 
+RESULT_DISPOSITION_REQUIREMENTS = {
+    "sole_owner": "The result disposition gate is the sole owner in this section",
+    "accepted_as": "`accepted_as` is `evidence_only`, `working_candidate`, `terminal_deliverable`, or `authoritative_input`",
+    "bare_result": "Bare `RESULT_ACCEPTED` means only that C adjudicated this batch and that communication can deduplicate it",
+    "prior_result_use_enum": "classify `prior_result_use` as `working_material` or `authority_input`",
+    "authority_fields": "if it is `authority_input`, C must list `promotion_evidence` and `project_owner_anchor`",
+    "default_working_material": "Candidates, drafts, diagnostics, derived outputs, and review-only results default to `working_material` only",
+    "authority_requires_owner": "To promote one to `authoritative_input`, C needs an explicit user decision or an actually read target-project owner anchor",
+    "reviewer_split": "separate `content_verdict`, `implementation_verdict`, `outcome_verdict`, and `authority_promotion_verdict`",
+    "reviewer_pass_limited": "a content or technical PASS does not automatically become an outcome PASS, authority-promotion PASS, or mainline progress",
+    "out_of_scope_not_pass": "`out_of_scope` is not PASS",
+    "review_scope_limited": "C must not expand R's original review scope",
+    "terminal_candidate": "Only when the `outcome_anchor` itself asks for a draft, candidate, or sample as the endpoint",
+    "persistence_blocks_next": "persistent truths conflict, are not synchronized, or the artifact role cannot be determined, `next_dispatch` must be `blocked`",
+}
+
+RESULT_DISPOSITION_UAT_REQUIREMENTS = {
+    "content_pass_candidate": "When a Reviewer passes candidate content",
+    "derived_output_blocked": "When a `derived_output` is listed by the next batch as `authority_input`",
+    "authority_input_missing_fields": "When `prior_result_use: authority_input` is missing `promotion_evidence` or `project_owner_anchor`",
+    "working_material_use_limits": "`prior_result_use: working_material` permits only editing, comparison, review, or refinement, not decision authority",
+    "working_material_allowed": "`prior_result_use` to `working_material`",
+    "technical_pass_limited": "When Reviewer technical PASS has outcome FAIL",
+    "split_verdict_limited": "When Reviewer provides only `content_verdict: pass` or `implementation_verdict: pass`",
+    "authority_out_of_scope": "`authority_promotion_verdict` is `out_of_scope`",
+    "truth_conflict_blocks": "handoff, plan, progress, or another target-project source of truth",
+    "persistence_change_classes": "result disposition changes current phase, artifact role, next product route, authoritative source, progress claim, or later batch input",
+    "draft_terminal_deliverable": "user's endpoint itself is a draft, candidate, or sample",
+}
+
+RESULT_DISPOSITION_FORBIDDEN = {
+    "bare_result_promotes": "Bare `RESULT_ACCEPTED` means authority promotion",
+    "candidate_auto_authority": "A candidate PASS automatically becomes authoritative input",
+    "technical_pass_outcome": "R technical PASS is outcome PASS",
+    "authority_without_promotion_fields": "`authority_input` may omit `promotion_evidence` or `project_owner_anchor`",
+    "out_of_scope_pass": "`out_of_scope` counts as PASS",
+    "unpersisted_next_dispatch": "C may dispatch the next batch before persistence",
+}
+
 
 def read_texts(root: Path) -> dict[str, str]:
     texts: dict[str, str] = {}
@@ -637,6 +677,10 @@ def validate_texts(root: Path, texts: dict[str, str]) -> list[str]:
         findings.append("drift checkpoint owner marker must occur exactly once")
     if DRIFT_CHECKPOINT_OWNER_MARKER not in texts["references/core-runtime.md"]:
         findings.append("drift checkpoint owner marker is not in core-runtime.md")
+    if all_markdown.count(RESULT_DISPOSITION_OWNER_MARKER) != 1:
+        findings.append("result disposition owner marker must occur exactly once")
+    if RESULT_DISPOSITION_OWNER_MARKER not in texts["references/core-runtime.md"]:
+        findings.append("result disposition owner marker is not in core-runtime.md")
 
     owner = re.sub(r"\s+", " ", texts["references/parallel-producers.md"])
     for label, required in OWNER_REQUIREMENTS.items():
@@ -689,9 +733,14 @@ def validate_texts(root: Path, texts: dict[str, str]) -> list[str]:
         outcome_anchor_owner = re.sub(r"\s+", " ", outcome_anchor_match.group(1))
         if DRIFT_CHECKPOINT_OWNER_MARKER not in outcome_anchor_owner:
             findings.append("drift checkpoint marker is outside outcome-anchor progress section")
+        if RESULT_DISPOSITION_OWNER_MARKER not in outcome_anchor_owner:
+            findings.append("result disposition marker is outside outcome-anchor progress section")
         for label, required in DRIFT_CHECKPOINT_REQUIREMENTS.items():
             if required not in outcome_anchor_owner:
                 findings.append(f"drift checkpoint owner missing {label}")
+        for label, required in RESULT_DISPOSITION_REQUIREMENTS.items():
+            if required not in outcome_anchor_owner:
+                findings.append(f"result disposition owner missing {label}")
     self_contained_match = re.search(
         r"^## Self-Contained Dispatch[ \t]*\n([\s\S]*?)(?=^## |\Z)",
         core,
@@ -749,6 +798,9 @@ def validate_texts(root: Path, texts: dict[str, str]) -> list[str]:
     for label, forbidden in DRIFT_CHECKPOINT_FORBIDDEN.items():
         if forbidden in normalized_markdown:
             findings.append(f"drift-checkpoint fixed contradiction present {label}")
+    for label, forbidden in RESULT_DISPOSITION_FORBIDDEN.items():
+        if forbidden in normalized_markdown:
+            findings.append(f"result-disposition fixed contradiction present {label}")
     if "[parallel-producers.md](references/parallel-producers.md)" not in skill:
         findings.append("SKILL.md lacks direct progressive-disclosure route")
     if "The long-task drift checkpoint is owned only" not in skill:
@@ -791,6 +843,9 @@ def validate_texts(root: Path, texts: dict[str, str]) -> list[str]:
     for label, required in DRIFT_CHECKPOINT_UAT_REQUIREMENTS.items():
         if required not in uat:
             findings.append(f"uat.md missing drift-checkpoint counterexample {label}")
+    for label, required in RESULT_DISPOSITION_UAT_REQUIREMENTS.items():
+        if required not in uat:
+            findings.append(f"uat.md missing result-disposition counterexample {label}")
     unexpected_failure_uat_match = re.search(
         r"^## Unexpected Failure And Scope-Exception Scenarios[ \t]*\n([\s\S]*?)(?=^## |\Z)",
         texts["references/uat.md"],
@@ -947,6 +1002,33 @@ def mutation_matrix(root: Path) -> tuple[int, list[str]]:
         1,
     )
     cases.append(("drift_checkpoint_owner_marker_wrong_section", drift_wrong_section))
+    cases.append(
+        (
+            "result_disposition_owner_marker_duplicate",
+            mutated(
+                "SKILL.md",
+                "# CER Workflow",
+                f"# CER Workflow\n{RESULT_DISPOSITION_OWNER_MARKER}",
+            ),
+        )
+    )
+    cases.append(
+        (
+            "result_disposition_owner_marker_missing",
+            mutated("references/core-runtime.md", RESULT_DISPOSITION_OWNER_MARKER),
+        )
+    )
+    result_disposition_wrong_section = mutated(
+        "references/core-runtime.md", RESULT_DISPOSITION_OWNER_MARKER
+    )
+    result_disposition_wrong_section["references/core-runtime.md"] = result_disposition_wrong_section[
+        "references/core-runtime.md"
+    ].replace(
+        "## Self-Contained Dispatch",
+        f"{RESULT_DISPOSITION_OWNER_MARKER}\n## Self-Contained Dispatch",
+        1,
+    )
+    cases.append(("result_disposition_owner_marker_wrong_section", result_disposition_wrong_section))
     cases.append(
         (
             "implicit_invocation_true",
@@ -1147,6 +1229,13 @@ def mutation_matrix(root: Path) -> tuple[int, list[str]]:
                 mutated_fragment("references/core-runtime.md", fragment),
             )
         )
+    for label, fragment in RESULT_DISPOSITION_REQUIREMENTS.items():
+        cases.append(
+            (
+                f"result_disposition_owner_missing_{label}",
+                mutated_fragment("references/core-runtime.md", fragment),
+            )
+        )
     for label, fragment in SENDABLE_PACKET_REQUIREMENTS.items():
         cases.append(
             (
@@ -1231,6 +1320,13 @@ def mutation_matrix(root: Path) -> tuple[int, list[str]]:
                 mutated_fragment("references/uat.md", fragment),
             )
         )
+    for label, fragment in RESULT_DISPOSITION_UAT_REQUIREMENTS.items():
+        cases.append(
+            (
+                f"result_disposition_uat_missing_{label}",
+                mutated_fragment("references/uat.md", fragment),
+            )
+        )
     for label, marker in UNEXPECTED_FAILURE_UAT_MARKERS.items():
         cases.append(
             (
@@ -1308,6 +1404,17 @@ def mutation_matrix(root: Path) -> tuple[int, list[str]]:
         cases.append(
             (
                 f"drift_checkpoint_contradiction_{label}",
+                mutated(
+                    "references/core-runtime.md",
+                    "## Outcome Anchor And Progress Gate",
+                    f"## Outcome Anchor And Progress Gate\n\n{contradiction}.",
+                ),
+            )
+        )
+    for label, contradiction in RESULT_DISPOSITION_FORBIDDEN.items():
+        cases.append(
+            (
+                f"result_disposition_contradiction_{label}",
                 mutated(
                     "references/core-runtime.md",
                     "## Outcome Anchor And Progress Gate",

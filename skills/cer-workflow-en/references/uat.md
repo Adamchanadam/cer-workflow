@@ -324,6 +324,15 @@ cycle label or guess a number.
 - A drift checkpoint, living task brief, or roadmap update does not count as outcome progress and does not trigger background monitoring, polling, automatic `wait_threads`, fixed R, or fixed Full Audit.
 - Simple, one-step, low-risk work with one clear endpoint still uses lightweight summary and C readback. Do not force an outcome-anchor table, R, or roadmap.
 - Completion reporting lists accepted outcome differences and unfinished conditions, not batch, task, review, or candidate counts as completion evidence.
+- When a Reviewer passes candidate content, C may accept it as `working_candidate` or `evidence_only`, but must not classify it as `authoritative_input` merely because content passed.
+- When a `derived_output` is listed by the next batch as `authority_input` without an explicit user decision, target-project owner anchor, or promotion readback, C must stay at `dispatch_blocked`; if E1/R receives an unclassified prior result as authority input, it returns only a zero-write blocker.
+- When `prior_result_use: authority_input` is missing `promotion_evidence` or `project_owner_anchor`, C must not hand the prior result to the next batch; `prior_result_use: working_material` permits only editing, comparison, review, or refinement, not decision authority.
+- When a candidate is used only as refinement working material, C may set `prior_result_use` to `working_material` and continue, while `authority_effect` and `progress_effect` remain `none`.
+- When Reviewer technical PASS has outcome FAIL, or authority promotion was not reviewed, C must not report mainline progress or authority promotion.
+- When Reviewer provides only `content_verdict: pass` or `implementation_verdict: pass`, while `outcome_verdict` is `fail`/`not_reviewed` or `authority_promotion_verdict` is `out_of_scope`, C may adjudicate only the reviewed dimensions and must not expand that into outcome PASS or authority-promotion PASS.
+- When handoff, plan, progress, or another target-project source of truth conflicts about artifact role, next action, or authority source, the next batch is not dispatched until the existing owner synchronizes and C reads it back.
+- When result disposition changes current phase, artifact role, next product route, authoritative source, progress claim, or later batch input, but target-project persistence has not been updated and read back under existing rules, `next_dispatch` must be `blocked`.
+- When the user's endpoint itself is a draft, candidate, or sample, the candidate may validly become `terminal_deliverable`; without a separate owner basis, it still must not become an authoritative source.
 
 ## Unexpected Failure And Scope-Exception Scenarios
 
@@ -464,6 +473,10 @@ These scenarios only test the unexpected-failure gate in
 - A drift checkpoint triggers background monitoring, polling, automatic `wait_threads`, fixed R, or fixed Full Audit.
 - Simple, one-step, low-risk work with one clear endpoint is forced to run a drift checkpoint.
 - Completion reporting lists only batch, task, Reviewer, or candidate counts without accepted outcome differences.
+- C sends bare `RESULT_ACCEPTED` and treats the candidate as mainline progress, authoritative input, or a source consumable by the next batch.
+- A candidate/draft/diagnostic/derived_output/review_only result is listed by a later batch as `authoritative_input` without promotion evidence.
+- R gives only content or technical PASS, and C derives outcome PASS, authority promotion PASS, or `accepted_outcome_delta`.
+- A result that changes phase, artifact role, next route, authoritative source, progress claim, or later batch input has not been persisted and read back under target-project rules, but C still dispatches the next batch.
 - E1 treats a test failure as new modification authority, or treats an allowed file as authority to
   change every meaning in that file.
 - E1 continues writing while causality is unknown or repair would widen an owner, authoritative
