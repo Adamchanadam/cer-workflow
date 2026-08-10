@@ -4,6 +4,23 @@
 flow 的未發布內容會明確標示為候選。若 release 中止，對應內容必須改回候選或移除。
 實際執行規則以使用者已安裝版本隨附的 Skill references 為準。
 
+## v0.3.12
+
+本版把 `/CER-auto` 的新手入口和 README 視覺說明整理成可公開版本。重點是讓新用戶
+先知道「直接提出任務」即可，由 Skill 選最低足夠路線；完整 CER 仍保留給明確需要
+full CER 的工作。
+
+- README 首屏改用 `/CER-auto` 四路線選擇圖，說明 ordinary execution、Goal、
+  CER-gated Goal/E1 和 blocked
+- README 補上 `/CER-auto <任務>` 的任務寫法：目標、限制／不可做、成功驗收、
+  權威來源／授權邊界
+- `cer-workflow-infographic.png` 和 `cer-exploration-helper-architecture.png`
+  已更新為 CER-auto 對齊版本；舊圖以 `.legacy-20260810*` 檔名保留
+- `/CER-help` 的 task-template 說明與 README 對齊，例子按用戶背景生成，不固定行業
+- 本版不擴張 runtime owner、不新增平行規則、不取代明示 `/CER-start`
+- 中英文 Skill packages 均為 VERSION `0.3.12`，各 8 files，411 mutation cases 通過
+- 發布後使用者手動 UAT 仍需另行回報
+
 ## v0.3.11
 
 本版加入本地 `/CER-auto` 入口，讓使用者只提出任務，由 Skill 先選最低足夠執行

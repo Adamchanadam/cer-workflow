@@ -51,6 +51,11 @@ ZH_TRIGGER_MATRIX_EXPECTATIONS = {
     "auto_row": ("路線裁決前不成立 C", "Remote 首版不支援"),
     "start_row": ("單獨 `開工` 不啟動 CER",),
     "close_row": ("單獨 `收工` 不觸發 CER close",),
+    "auto_help_template": (
+        "目標＋限制／不可做＋成功驗收＋權威來源／授權邊界",
+        "按使用者情境生成，不固定行業",
+        "如要作正式決策、付款、發布或外部承諾，先停下做 CER gate",
+    ),
     "startup_owner": ("單獨 `開工` 屬於目標 workspace 既有治理，不是 CER trigger",),
     "stop_owner": ("單獨 `收工` 屬於目標 workspace 既有治理，不映射為 CER stop 或 close",),
     "uat_install_start": (
@@ -695,6 +700,12 @@ def trigger_matrix_findings(texts: dict[str, str]) -> list[str]:
             label,
             findings,
         )
+    assert_snippets_present(
+        markdown_section(skill, "## 操作指令"),
+        ZH_TRIGGER_MATRIX_EXPECTATIONS["auto_help_template"],
+        "SKILL.md /CER-auto task template help",
+        findings,
+    )
     assert_snippets_present(
         markdown_section(core, "## 啟動"),
         ZH_TRIGGER_MATRIX_EXPECTATIONS["startup_owner"],

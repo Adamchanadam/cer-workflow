@@ -5,6 +5,25 @@ has not entered an authorized release flow is explicitly marked as a candidate. 
 aborted, the affected content must be marked as candidate again or removed. Runtime authority
 remains the Skill references bundled with the version the user has installed.
 
+## v0.3.12
+
+This release turns the `/CER-auto` onboarding entrypoint and README visuals into a public-ready
+version. The main user-facing change is that new users can state the task first and let the Skill
+choose the minimum sufficient route; full CER remains available for work that explicitly needs it.
+
+- The README first screen now uses a `/CER-auto` four-route selector image covering ordinary
+  execution, Goal, CER-gated Goal/E1, and blocked
+- The README adds the `/CER-auto <task>` task shape: goal, constraints/do-not-do, acceptance, and
+  authority/source/authorization boundary
+- `cer-workflow-infographic.png` and `cer-exploration-helper-architecture.png` are updated to
+  CER-auto-aligned versions; legacy images are retained as `.legacy-20260810*` backups
+- `/CER-help` task-template guidance is aligned with the README, with examples adapted to the
+  user's context instead of a fixed domain
+- This release does not expand the runtime owner, add parallel rules, or replace explicit
+  `/CER-start`
+- Both language Skill packages are VERSION `0.3.12`, 8 files each, with 411 mutation cases passing
+- Post-release user manual UAT remains a separate follow-up
+
 ## v0.3.11
 
 This release adds the local `/CER-auto` entrypoint. Users can state the task first, and the Skill

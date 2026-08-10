@@ -10,7 +10,7 @@ CER 是給 Codex 用的工作法 Skill。它不取代普通對話，也不取代
 
 如果你不想一開始就判斷該用普通對話、Goal 還是 CER，安裝後可先用 `/CER-auto <任務>`。它會先選最低足夠路線：普通執行、Goal、CER-gated Goal/E1，或因缺少權威／安全／驗收條件而 blocked。
 
-![Goal 與 CER 工作法：10 個實際分別，並以 G／C 標出一般 workplace AI 用戶較適合的一方](assets/goal-vs-cer-infographic.png)
+![CER-auto 四路線選擇圖：ordinary execution、Goal、CER-gated Goal/E1 和 blocked](assets/cer-auto-routing-infographic.png)
 
 ## 不確定用哪一種時
 
@@ -18,6 +18,12 @@ CER 是給 Codex 用的工作法 Skill。它不取代普通對話，也不取代
 
 ```text
 /CER-auto <你想完成的事、限制、優先順序>
+```
+
+較好的任務寫法是：`目標＋限制／不可做＋成功驗收＋權威來源／授權邊界`。例子不需要固定行業；Codex 會按你的背景、資料和當前工作生成合適寫法。
+
+```text
+/CER-auto 幫我比較/整理/修補 <我的資料或問題>；不要 <不可做的事>；成功條件是 <可驗收成果>；如要作正式決策、付款、發布或外部承諾，先停下做 CER gate。
 ```
 
 Codex 會先回一行路線：

@@ -44,6 +44,8 @@ Slash commands are text aliases. If the platform has no command UI, pasting the 
 | `/CER-status` | `Show CER status.` | Report only C's known state, coordinates, checkpoint, and blockers; do not poll. |
 | `/CER-help` | `Show CER commands.` | Show this table. |
 
+`/CER-auto` task shape: use `goal + constraints/do-not-do + acceptance + authority/source/authorization boundary`. When an example is needed, adapt it to the user's context rather than a fixed domain: `/CER-auto help me compare/organize/fix <my material or problem>; do not <forbidden action>; success means <verifiable output>; before a formal decision, payment, publication, or external commitment, stop for a CER gate.`
+
 ## Entry Boundaries
 
 - The complete unique-C startup gate is owned by `core-runtime.md`: Candidate `C_READY` plus sender readback is still insufficient; the receiver becomes the active Controller (C) only after actually receiving `C_ACCEPTED`.

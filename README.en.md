@@ -10,7 +10,7 @@ In plain language: when you discover halfway through that the direction, constra
 
 If you do not want to choose between ordinary chat, Goal, and CER up front, use `/CER-auto <task>` after installation. It first selects the minimum sufficient route: ordinary execution, Goal, CER-gated Goal/E1, or blocked because authority, safety, or acceptance conditions are missing.
 
-![Goal vs CER: 10 practical differences, with G/C badges showing which side is usually more suitable for workplace AI users](assets/goal-vs-cer-infographic.en.png)
+![CER-auto route selector: ordinary execution, Goal, CER-gated Goal/E1, and blocked](assets/cer-auto-routing-infographic.en.png)
 
 ## If You Are Not Sure Which Mode To Use
 
@@ -18,6 +18,12 @@ Use:
 
 ```text
 /CER-auto <goal, constraints, priorities>
+```
+
+A stronger task shape is: `goal + constraints/do-not-do + acceptance + authority/source/authorization boundary`. Examples do not need to use a fixed domain; Codex should adapt the wording to your background, material, and current work.
+
+```text
+/CER-auto help me compare/organize/fix <my material or problem>; do not <forbidden action>; success means <verifiable output>; before a formal decision, payment, publication, or external commitment, stop for a CER gate.
 ```
 
 Codex first replies with one route:

@@ -51,6 +51,11 @@ EN_TRIGGER_MATRIX_EXPECTATIONS = {
     "auto_row": ("no C exists before the route decision", "Remote is unsupported in this first version"),
     "start_row": ("Plain start/work messages do not start CER",),
     "close_row": ("Plain close/finish messages do not close CER",),
+    "auto_help_template": (
+        "goal + constraints/do-not-do + acceptance + authority/source/authorization boundary",
+        "adapt it to the user's context rather than a fixed domain",
+        "before a formal decision, payment, publication, or external commitment, stop for a CER gate",
+    ),
     "startup_owner": ("Plain start/work messages belong to the target workspace's existing governance and are not CER triggers",),
     "stop_owner": ("Plain close/finish messages belong to the target workspace's existing governance and do not map to CER stop or close",),
     "uat_install_start": (
@@ -695,6 +700,12 @@ def trigger_matrix_findings(texts: dict[str, str]) -> list[str]:
             label,
             findings,
         )
+    assert_snippets_present(
+        markdown_section(skill, "## Commands"),
+        EN_TRIGGER_MATRIX_EXPECTATIONS["auto_help_template"],
+        "SKILL.md /CER-auto task template help",
+        findings,
+    )
     assert_snippets_present(
         markdown_section(core, "## Startup"),
         EN_TRIGGER_MATRIX_EXPECTATIONS["startup_owner"],
