@@ -27,23 +27,28 @@ UNEXPECTED_FAILURE_OWNER_MARKER = "<!-- cer-unexpected-failure-gate-owner -->"
 TRUTH_SOURCE_INTAKE_OWNER_MARKER = "<!-- cer-truth-source-intake-gate-owner -->"
 DRIFT_CHECKPOINT_OWNER_MARKER = "<!-- cer-controller-drift-checkpoint-owner -->"
 RESULT_DISPOSITION_OWNER_MARKER = "<!-- cer-result-disposition-gate-owner -->"
+EXECUTION_PROFILE_OWNER_MARKER = "<!-- cer-execution-profile-gate-owner -->"
 EXPECTED_DEFAULT_PROMPT = (
     "使用 $cer-workflow 以唯一 writer 執行這項工作；按風險建立 fresh Reviewer，"
     "必要時在內部自動加速，無需額外設定。"
 )
 FORMAL_COMMANDS = {
+    "/CER-auto",
     "/CER-start",
     "/CER-stop",
     "/CER-close",
     "/CER-status",
     "/CER-help",
 }
+MAX_ROUTER_BYTES = 6000
 
 ZH_TRIGGER_MATRIX_EXPECTATIONS = {
     "frontmatter": (
         "只在使用者明確帶 CER 的指令或同等語意時使用",
+        "/CER-auto",
         "單獨「開工／收工」不是 CER 觸發",
     ),
+    "auto_row": ("路線裁決前不成立 C", "Remote 首版不支援"),
     "start_row": ("單獨 `開工` 不啟動 CER",),
     "close_row": ("單獨 `收工` 不觸發 CER close",),
     "startup_owner": ("單獨 `開工` 屬於目標 workspace 既有治理，不是 CER trigger",),
@@ -52,11 +57,96 @@ ZH_TRIGGER_MATRIX_EXPECTATIONS = {
         "`/CER-start`、`CER 啟動`、`CER 開始`、`CER 開工` 正常觸發 CER",
         "單獨 `開工` 不觸發 CER",
     ),
+    "uat_install_auto": (
+        "`/CER-auto`、`CER 自適應` 正常觸發本地執行強度閘門",
+        "路線裁決前不成立 C",
+    ),
     "uat_install_close": (
         "`/CER-close`、`CER 收工`、`CER 關閉`、`關閉 CER` 正常觸發 CER close",
         "單獨 `收工` 不觸發 CER close，也不映射為 `/CER-stop`",
     ),
     "uat_failure": ("單獨 `開工` 啟動 CER，或單獨 `收工` 觸發 CER close／stop",),
+    "uat_failure_auto": ("`/CER-auto` 在路線裁決前自稱 C",),
+}
+
+EXECUTION_PROFILE_REQUIREMENTS = {
+    "sole_owner": "本節是 `/CER-auto` 的唯一 runtime owner",
+    "local_only": "首版只支援本地使用者 task；Remote `/CER-auto` 未支援",
+    "pre_identity": "入口 task 在路線裁決前不是 C",
+    "start_unchanged": "明示 `/CER-start` 的語義保持不變",
+    "selective_read": "先只讀本節及裁決所需的使用者要求與目標專案真源",
+    "single_read_bundle": "必須在同一次有界讀取中取得，不得只為 selector 另開讀取往返",
+    "minimum_strength": "以最低足夠協作強度選 ordinary execution、Goal、CER-gated Goal/E1 或 blocked",
+    "route_lines": "路線：CER-gated Goal/E1 — <升格點與 gate 理由>",
+    "blocked_route_line": "路線：blocked — <缺少的權威／安全／驗收條件>",
+    "ordinary_boundary": "ordinary execution 不啟動 CER、不自稱 C／E／R、不顯示小熊卡，並停止載入其他 CER references",
+    "goal_boundary": "Goal 不提供 CER 的唯一 writer、C／E／R 身份或 authority owner",
+    "cer_boundary": "選 CER-gated Goal/E1 時才在升格點完整讀取本檔及 `roadmap.md`",
+    "decision_basis": "路線按下一步的後果、不確定性、可回復性及 owner 清晰度裁決",
+    "source_evidence_boundary": "source count、schema、hash 或 receipt 都不能代替 authority evidence",
+    "goal_route": "終點、驗證 loop、可停止條件和已知權威來源清楚",
+    "cer_gated_promotion": "formal data、model input、report paragraph、decision gate、handoff truth、release／readiness claim、public／external claim",
+    "blocked_boundary": "Goal 能力且無安全 fallback",
+    "bounded_reconciliation": "則不因觸及持久狀態而自動升 CER-gated",
+    "cost_boundary": "成本永遠不能繞過安全、權威、持久化、外部授權、Reviewer 或目標 release owner",
+    "recheck_boundaries": "只在四個實質邊界重判：使用者要求、權威或後果改變；階段邊界；result disposition 改變承接、進度或權威效力；外部、公開、不可逆或其他高後果操作前",
+    "no_step_recheck": "不得在每個小步重判；token 壓力本身不是升降理由",
+    "existing_owners": "R 是否建立仍由既有 Reviewer owner 按風險決定，release assurance 仍由目標專案既有 release owner 決定",
+    "safe_step_down": "沒有 active batch，E1 已停止寫入，結果已讀回並完成 result disposition，必要持久化已回寫讀回，而且沒有 truth conflict",
+    "not_stop_close": "這是路線轉換，不是 `/CER-stop` 或 `/CER-close`",
+    "safe_step_up": "其草稿、診斷、Goal 輸出或普通 subagent 輸出預設只作 working material",
+    "baseline_readback": "E1 在首次寫入前重讀 workspace baseline",
+    "conditional_checkpoint": "只有轉換會跨 task、session 或 context，或會承接實質 artifact、裁決或風險時，才保存一個短、非權威的 route-transition checkpoint",
+    "no_new_structure": "不建新檔、schema、YAML 或 registry",
+    "checkpoint_block": "必要讀回缺失或互相矛盾時，下一次寫入或派工保持 blocked",
+}
+
+EXECUTION_PROFILE_UAT_REQUIREMENTS = {
+    "ordinary_route": "權威清楚、單一 writer、可回復、無外部副作用且既有驗收足夠的低風險任務",
+    "single_read_bundle": "以同一次有界讀取取得，不增加 selector 專用讀取往返",
+    "ordinary_subagent": "該 subagent 不取得正式 E／R 身份、ready/result 或 Reviewer 效力",
+    "bounded_reconciliation": "只剩同一 workspace、單一 writer、本地可回復的 metadata 對帳",
+    "bounded_reconciliation_limit": "不得把未解決的真相衝突改名為「機械修正」以降級",
+    "goal_route": "終點、驗證 loop、可停止條件和已知權威來源清楚",
+    "goal_no_promotion": "尚未要求把成果升格為正式資料、模型輸入、報告、decision gate、handoff truth、release／readiness claim 或 public／external claim",
+    "goal_vague": "不直接進 Goal",
+    "cer_route": "只在 acceptance／promotion point 輸出一行 `路線：CER-gated Goal/E1 — <升格點與 gate 理由>`",
+    "blocked_route": "輸出一行 `路線：blocked — <缺少的權威／安全／驗收條件>`",
+    "small_high_consequence": "只有一行文字但涉及刪除、發布、權威升格或高後果決策時，必須選 CER-gated Goal/E1 或 blocked",
+    "false_evidence": "source count、schema、hash 或 receipt 當成 authority evidence",
+    "no_09_runtime": "`CER_docs/09` 被引用為 runtime routing authority",
+    "mixed_promotion": "只有後續升格點才 CER-gated",
+    "goal_unavailable_fallback": "Goal 不可用但 bounded ordinary 可安全完成時，不自動 blocked",
+    "external_background": "external claim 只作背景引用且不作正式聲稱時，不自動 CER-gated",
+    "start_unchanged": "明示 `/CER-start` 不經自適應降級",
+    "remote_unsupported": "Remote `/CER-auto` 在首版必須停下並報 unsupported",
+    "bounded_recheck": "普通小步和 token 壓力不觸發重判",
+    "owner_boundary": "自適應閘門不能固定建立、固定省略或取代兩者",
+    "safe_step_down": "沒有 active batch、E1 停止寫入、結果讀回及 result disposition、必要持久化讀回和無 truth conflict 全部成立",
+    "safe_step_up": "普通草稿、診斷、Goal 輸出和 subagent 輸出只作 working material",
+    "startup_order": "合格 E1 零寫入 `ready` 尚未 direct-push 及讀回前，不顯示成功啟動卡、不派正式批次",
+    "conditional_checkpoint": "同一 task 且沒有實質 artifact、裁決或風險承接的路線轉換不建立 checkpoint",
+    "checkpoint_block": "必要讀回缺失或衝突時，下一次寫入或派工保持 blocked",
+}
+
+EXECUTION_PROFILE_FORBIDDEN = {
+    "start_downgrade": "`/CER-start` 可自動降為 ordinary execution",
+    "pre_identity": "`/CER-auto` 路線裁決前就是 C",
+    "remote_supported": "Remote `/CER-auto` 已支援",
+    "file_count": "檔案數多就必須選 CER-gated Goal/E1",
+    "token_bypass": "為了節省 token 可略過安全或權威 owner",
+    "fixed_reviewer": "`/CER-auto` 每次都建立 Reviewer",
+    "unsafe_step_down": "active batch 尚未結束也可降回 ordinary execution",
+    "draft_authority": "ordinary 草稿自動成為 authoritative_input",
+    "goal_authority": "Goal 自動成為 CER authority owner",
+    "false_evidence": "source count、schema、hash 或 receipt 足以證明權威",
+    "cite_09_runtime": "`CER_docs/09` 可作 `/CER-auto` runtime routing authority",
+    "whole_phase_cer": "後面有升格點所以整段任務都必須 CER",
+    "goal_unavailable_block": "Goal 不可用時必須 blocked，即使 bounded ordinary 可以安全完成",
+    "background_claim_gate": "external claim 只作背景引用也必須 CER-gated",
+    "fixed_checkpoint": "每次路線切換都建立固定 YAML checkpoint",
+    "persistent_file_always_cer": "持久狀態檔案一律建立 C／E／R",
+    "unsafe_read_bundle": "即使權限或範圍不同也必須合併讀取",
 }
 
 REVIEWER_PROPORTIONALITY_COUNTEREXAMPLES = {
@@ -186,6 +276,16 @@ TRUTH_SOURCE_INTAKE_UAT_REQUIREMENTS = {
     "missing_blocks": "C 答不到真源攝取四問任一項",
     "missing_still_dispatches": "非簡單正式實作批次未回答誰擁有、誰實際使用、如何生效、甚麼反例能推翻，C 仍建立／復用 E1 或派實作批次",
     "overwide_gate": "C 把真源攝取門檻擴成預設全文讀取、全 repo 審查、固定 Full Audit、第二份規則 owner 或固定表格流程",
+}
+
+CONTROLLER_CHALLENGE_UAT_REQUIREMENTS = {
+    "section": "## Controller 長任務挑戰情景",
+    "measurable_endpoint": "欠缺可量度或可讀回的終點",
+    "authority_boundary": "必要權威、允許邊界或反例證據不足時",
+    "adjacent_mainline": "合理但相鄰的要求、流程改善或替代交付",
+    "defensive_expansion": "不得成為防禦性擴建理由",
+    "changed_contract": "依賴舊條件的候選不可沿用舊接納身份",
+    "no_thrashing": "不得造成 ordinary／CER 震盪",
 }
 
 TRUTH_SOURCE_INTAKE_FORBIDDEN = {
@@ -410,6 +510,10 @@ RESULT_DISPOSITION_REQUIREMENTS = {
     "review_scope_limited": "C 不得擴大 R 原本審閱範圍",
     "terminal_candidate": "只有 `outcome_anchor` 本身要求草稿、候選或樣稿作終點時",
     "persistence_blocks_next": "持久真源互相矛盾、尚未同步或 artifact 角色未能判定時，`next_dispatch` 必須是 `blocked`",
+    "terminal_persistence_blocks_acceptance": "即使沒有下一批，C 亦不得把結果接納為 `terminal_deliverable`、報告進度或宣稱完成",
+    "terminal_artifact_set_consistency": "C 還須讀回每個被列為 `terminal_deliverable` 的最終狀態聲稱",
+    "closed_vocabulary": "`accepted_as`、`authority_effect`、`progress_effect` 及 `prior_result_use` 均為封閉詞彙",
+    "validate_before_persistence": "適當 writer 持久化前必須按本節合法值驗證",
 }
 
 RESULT_DISPOSITION_UAT_REQUIREMENTS = {
@@ -423,6 +527,11 @@ RESULT_DISPOSITION_UAT_REQUIREMENTS = {
     "authority_out_of_scope": "`authority_promotion_verdict` 是 `out_of_scope`",
     "truth_conflict_blocks": "Handoff、計劃、進度或其他目標專案真源",
     "persistence_change_classes": "結果改變當前階段、artifact 角色、下一產品路線、權威來源、progress claim 或後續批次輸入之一",
+    "terminal_stale_state": "最後一批已產生正確交付物，但目標專案 current-state owner 仍寫着舊階段、沒有 terminal deliverable 或舊下一步時",
+    "terminal_artifact_set_conflict": "被列作 `terminal_deliverable` 的 `RUN_RESULT` 仍聲稱 persistence pending、未接納或舊階段時",
+    "accepted_as_synonym_rejected": "`accepted_as=terminal_outcome`",
+    "phase1_legal_disposition": "Phase 1 候選只完成非終端 checkpoint 時",
+    "progress_effect_synonym_rejected": "`progress_effect=accepted_outcome_delta_for_phase1_only`",
     "draft_terminal_deliverable": "使用者終點本身就是草稿、候選或樣稿",
 }
 
@@ -433,6 +542,8 @@ RESULT_DISPOSITION_FORBIDDEN = {
     "authority_without_promotion_fields": "`authority_input` 可缺 `promotion_evidence` 或 `project_owner_anchor`",
     "out_of_scope_pass": "`out_of_scope` 算 PASS",
     "unpersisted_next_dispatch": "未持久化仍可派下一批",
+    "unpersisted_terminal_acceptance": "最後一批可在持久真源過期時直接接納為 `terminal_deliverable` 並宣稱完成",
+    "contradictory_terminal_artifact_accepted": "終點集合可包含仍聲稱持久化待完成的 artifact 並照常接納",
 }
 
 
@@ -555,6 +666,16 @@ def trigger_matrix_findings(texts: dict[str, str]) -> list[str]:
         findings,
     )
     for label, source in (
+        ("SKILL.md /CER-auto row", command_table_row(skill, "/CER-auto")),
+        ("core-runtime.md /CER-auto row", command_table_row(core, "/CER-auto")),
+    ):
+        assert_snippets_present(
+            source,
+            ZH_TRIGGER_MATRIX_EXPECTATIONS["auto_row"],
+            label,
+            findings,
+        )
+    for label, source in (
         ("SKILL.md /CER-start row", command_table_row(skill, "/CER-start")),
         ("core-runtime.md /CER-start row", command_table_row(core, "/CER-start")),
     ):
@@ -589,6 +710,12 @@ def trigger_matrix_findings(texts: dict[str, str]) -> list[str]:
     install = markdown_section(uat, "## 安裝情景")
     assert_snippets_present(
         install,
+        ZH_TRIGGER_MATRIX_EXPECTATIONS["uat_install_auto"],
+        "uat.md installation auto matrix",
+        findings,
+    )
+    assert_snippets_present(
+        install,
         ZH_TRIGGER_MATRIX_EXPECTATIONS["uat_install_start"],
         "uat.md installation start matrix",
         findings,
@@ -603,6 +730,12 @@ def trigger_matrix_findings(texts: dict[str, str]) -> list[str]:
         markdown_section(uat, "## 失敗條件"),
         ZH_TRIGGER_MATRIX_EXPECTATIONS["uat_failure"],
         "uat.md failure-condition matrix",
+        findings,
+    )
+    assert_snippets_present(
+        markdown_section(uat, "## 失敗條件"),
+        ZH_TRIGGER_MATRIX_EXPECTATIONS["uat_failure_auto"],
+        "uat.md auto failure-condition matrix",
         findings,
     )
     return findings
@@ -655,7 +788,7 @@ def validate_texts(root: Path, texts: dict[str, str]) -> list[str]:
         for match in re.finditer(r"^\|\s*`(/CER-[a-z]+)(?:\s+[^`]*)?`", texts["SKILL.md"], re.MULTILINE)
     }
     if skill_commands != FORMAL_COMMANDS:
-        findings.append(f"slash commands must remain exactly five: {sorted(skill_commands)}")
+        findings.append(f"slash commands must remain exactly six: {sorted(skill_commands)}")
 
     all_markdown = "\n".join(
         texts[relative] for relative in sorted(texts) if relative.endswith(".md")
@@ -681,6 +814,10 @@ def validate_texts(root: Path, texts: dict[str, str]) -> list[str]:
         findings.append("result disposition owner marker must occur exactly once")
     if RESULT_DISPOSITION_OWNER_MARKER not in texts["references/core-runtime.md"]:
         findings.append("result disposition owner marker is not in core-runtime.md")
+    if all_markdown.count(EXECUTION_PROFILE_OWNER_MARKER) != 1:
+        findings.append("execution profile owner marker must occur exactly once")
+    if EXECUTION_PROFILE_OWNER_MARKER not in texts["references/core-runtime.md"]:
+        findings.append("execution profile owner marker is not in core-runtime.md")
 
     owner = re.sub(r"\s+", " ", texts["references/parallel-producers.md"])
     for label, required in OWNER_REQUIREMENTS.items():
@@ -694,6 +831,22 @@ def validate_texts(root: Path, texts: dict[str, str]) -> list[str]:
     uat = re.sub(r"\s+", " ", texts["references/uat.md"])
     roadmap = re.sub(r"\s+", " ", texts["references/roadmap.md"])
     core_normalized = re.sub(r"\s+", " ", core)
+    execution_profile_match = re.search(
+        r"^## 執行強度閘門[ \t]*\n([\s\S]*?)(?=^## |\Z)",
+        core,
+        re.MULTILINE,
+    )
+    if not execution_profile_match:
+        findings.append("core-runtime.md lacks the execution profile gate owner section")
+    else:
+        execution_profile_owner = re.sub(
+            r"\s+", " ", execution_profile_match.group(1)
+        )
+        if EXECUTION_PROFILE_OWNER_MARKER not in execution_profile_owner:
+            findings.append("execution profile marker is outside its owner section")
+        for label, required in EXECUTION_PROFILE_REQUIREMENTS.items():
+            if required not in execution_profile_owner:
+                findings.append(f"execution profile owner missing {label}")
     preflight_match = re.search(
         r"^## Controller preflight[ \t]*\n([\s\S]*?)(?=^## 啟動|\Z)",
         core,
@@ -799,10 +952,17 @@ def validate_texts(root: Path, texts: dict[str, str]) -> list[str]:
     for label, forbidden in RESULT_DISPOSITION_FORBIDDEN.items():
         if forbidden in normalized_markdown:
             findings.append(f"result-disposition fixed contradiction present {label}")
+    for label, forbidden in EXECUTION_PROFILE_FORBIDDEN.items():
+        if forbidden in normalized_markdown:
+            findings.append(f"execution-profile fixed contradiction present {label}")
     if "[parallel-producers.md](references/parallel-producers.md)" not in skill:
         findings.append("SKILL.md lacks direct progressive-disclosure route")
     if "長任務防失焦檢查點只由" not in skill:
         findings.append("SKILL.md lacks drift-checkpoint owner pointer")
+    if "`/CER-auto` 的路線選擇、重判及安全切換只由" not in skill:
+        findings.append("SKILL.md lacks execution-profile owner pointer")
+    if "按該 owner 的單次有界讀取要求載入" not in re.sub(r"\s+", " ", skill):
+        findings.append("SKILL.md lacks the selector single-read owner pointer")
     if "[平行候選生產者](parallel-producers.md)" not in core:
         findings.append("core-runtime role summary lacks owner pointer")
     if "CER 正式角色只有 C、E1、R、E2" not in core:
@@ -833,6 +993,9 @@ def validate_texts(root: Path, texts: dict[str, str]) -> list[str]:
     for label, required in TRUTH_SOURCE_INTAKE_UAT_REQUIREMENTS.items():
         if required not in uat:
             findings.append(f"uat.md missing truth-source intake counterexample {label}")
+    for label, required in CONTROLLER_CHALLENGE_UAT_REQUIREMENTS.items():
+        if required not in texts["references/uat.md"]:
+            findings.append(f"uat.md missing Controller long-task challenge {label}")
     if "## 成果錨定與進展情景" not in texts["references/uat.md"]:
         findings.append("uat.md lacks outcome-anchor progress scenarios")
     for label, required in OUTCOME_ANCHOR_UAT_REQUIREMENTS.items():
@@ -844,6 +1007,11 @@ def validate_texts(root: Path, texts: dict[str, str]) -> list[str]:
     for label, required in RESULT_DISPOSITION_UAT_REQUIREMENTS.items():
         if required not in uat:
             findings.append(f"uat.md missing result-disposition counterexample {label}")
+    if "## 自適應執行強度情景" not in texts["references/uat.md"]:
+        findings.append("uat.md lacks adaptive execution profile scenarios")
+    for label, required in EXECUTION_PROFILE_UAT_REQUIREMENTS.items():
+        if required not in uat:
+            findings.append(f"uat.md missing execution-profile scenario {label}")
     unexpected_failure_uat_match = re.search(
         r"^## 未預期失敗與範圍例外情景[ \t]*\n([\s\S]*?)(?=^## |\Z)",
         texts["references/uat.md"],
@@ -891,7 +1059,13 @@ def validate(root: Path) -> list[str]:
     unexpected = sorted(actual_files - EXPECTED_FILES)
     if unexpected:
         return [f"unexpected package files: {unexpected}"]
-    return validate_texts(root, read_texts(root))
+    findings = validate_texts(root, read_texts(root))
+    router_bytes = len((root / "SKILL.md").read_bytes())
+    if router_bytes > MAX_ROUTER_BYTES:
+        findings.append(
+            f"SKILL.md concise-router budget exceeded: {router_bytes} > {MAX_ROUTER_BYTES} bytes"
+        )
+    return findings
 
 
 def mutation_matrix(root: Path) -> tuple[int, list[str]]:
@@ -1029,6 +1203,33 @@ def mutation_matrix(root: Path) -> tuple[int, list[str]]:
     cases.append(("result_disposition_owner_marker_wrong_section", result_disposition_wrong_section))
     cases.append(
         (
+            "execution_profile_owner_marker_duplicate",
+            mutated(
+                "SKILL.md",
+                "# CER 工作法",
+                f"# CER 工作法\n{EXECUTION_PROFILE_OWNER_MARKER}",
+            ),
+        )
+    )
+    cases.append(
+        (
+            "execution_profile_owner_marker_missing",
+            mutated("references/core-runtime.md", EXECUTION_PROFILE_OWNER_MARKER),
+        )
+    )
+    execution_profile_wrong_section = mutated(
+        "references/core-runtime.md", EXECUTION_PROFILE_OWNER_MARKER
+    )
+    execution_profile_wrong_section["references/core-runtime.md"] = execution_profile_wrong_section[
+        "references/core-runtime.md"
+    ].replace(
+        "## YAGNI 與停止",
+        f"{EXECUTION_PROFILE_OWNER_MARKER}\n## YAGNI 與停止",
+        1,
+    )
+    cases.append(("execution_profile_owner_marker_wrong_section", execution_profile_wrong_section))
+    cases.append(
+        (
             "implicit_invocation_true",
             mutated("agents/openai.yaml", "allow_implicit_invocation: false", "allow_implicit_invocation: true"),
         )
@@ -1072,6 +1273,36 @@ def mutation_matrix(root: Path) -> tuple[int, list[str]]:
                 "SKILL.md",
                 "單獨「開工／收工」不是 CER 觸發",
                 "單獨「開工／收工」會觸發 CER close",
+            ),
+        )
+    )
+    cases.append(
+        (
+            "trigger_skill_auto_row_reversed",
+            mutated(
+                "SKILL.md",
+                "路線裁決前不成立 C",
+                "路線裁決前已成立 C",
+            ),
+        )
+    )
+    cases.append(
+        (
+            "trigger_core_auto_row_reversed",
+            mutated(
+                "references/core-runtime.md",
+                "路線裁決前不成立 C",
+                "路線裁決前已成立 C",
+            ),
+        )
+    )
+    cases.append(
+        (
+            "trigger_uat_install_auto_reversed",
+            mutated(
+                "references/uat.md",
+                "路線裁決前不成立 C",
+                "路線裁決前已成立 C",
             ),
         )
     )
@@ -1234,6 +1465,13 @@ def mutation_matrix(root: Path) -> tuple[int, list[str]]:
                 mutated_fragment("references/core-runtime.md", fragment),
             )
         )
+    for label, fragment in EXECUTION_PROFILE_REQUIREMENTS.items():
+        cases.append(
+            (
+                f"execution_profile_owner_missing_{label}",
+                mutated_fragment("references/core-runtime.md", fragment),
+            )
+        )
     for label, fragment in SENDABLE_PACKET_REQUIREMENTS.items():
         cases.append(
             (
@@ -1304,6 +1542,13 @@ def mutation_matrix(root: Path) -> tuple[int, list[str]]:
                 mutated_fragment("references/uat.md", fragment),
             )
         )
+    for label, fragment in CONTROLLER_CHALLENGE_UAT_REQUIREMENTS.items():
+        cases.append(
+            (
+                f"controller_challenge_uat_missing_{label}",
+                mutated_fragment("references/uat.md", fragment),
+            )
+        )
     for label, fragment in OUTCOME_ANCHOR_UAT_REQUIREMENTS.items():
         cases.append(
             (
@@ -1322,6 +1567,13 @@ def mutation_matrix(root: Path) -> tuple[int, list[str]]:
         cases.append(
             (
                 f"result_disposition_uat_missing_{label}",
+                mutated_fragment("references/uat.md", fragment),
+            )
+        )
+    for label, fragment in EXECUTION_PROFILE_UAT_REQUIREMENTS.items():
+        cases.append(
+            (
+                f"execution_profile_uat_missing_{label}",
                 mutated_fragment("references/uat.md", fragment),
             )
         )
@@ -1417,6 +1669,17 @@ def mutation_matrix(root: Path) -> tuple[int, list[str]]:
                     "references/core-runtime.md",
                     "## 成果錨定與進展閘",
                     f"## 成果錨定與進展閘\n\n{contradiction}。",
+                ),
+            )
+        )
+    for label, contradiction in EXECUTION_PROFILE_FORBIDDEN.items():
+        cases.append(
+            (
+                f"execution_profile_contradiction_{label}",
+                mutated(
+                    "references/core-runtime.md",
+                    "## 執行強度閘門",
+                    f"## 執行強度閘門\n\n{contradiction}。",
                 ),
             )
         )

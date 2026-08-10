@@ -8,7 +8,26 @@ CER is a workflow skill for Codex. It does not replace ordinary chat, and it doe
 
 In plain language: when you discover halfway through that the direction, constraints, or risk has changed, CER brings that change back to you before assigning the next batch of work. It is for tasks where the human and the AI need to make decisions together. It is not worth using for every small task.
 
+If you do not want to choose between ordinary chat, Goal, and CER up front, use `/CER-auto <task>` after installation. It first selects the minimum sufficient route: ordinary execution, Goal, CER-gated Goal/E1, or blocked because authority, safety, or acceptance conditions are missing.
+
 ![Goal vs CER: 10 practical differences, with G/C badges showing which side is usually more suitable for workplace AI users](assets/goal-vs-cer-infographic.en.png)
+
+## If You Are Not Sure Which Mode To Use
+
+Use:
+
+```text
+/CER-auto <goal, constraints, priorities>
+```
+
+Codex first replies with one route:
+
+- `ordinary execution`: the task is small, clear, reversible, and ordinary chat is enough.
+- `Goal`: the task is longer, and the endpoint plus verification loop are clear.
+- `CER-gated Goal/E1`: the result is about to become formal data, a report, model input, handoff truth, release/readiness evidence, or a public/external claim, so CER handles the gate.
+- `blocked`: authority, safety, acceptance conditions, permissions, or external-action authorization are missing, so Codex must not pretend the task passed.
+
+New users should start with `/CER-auto`. If you already know you need the full CER workflow, use `/CER-start` directly; it has not been replaced and remains available for explicitly full CER work.
 
 ## What You See When CER Starts
 
@@ -17,6 +36,8 @@ When CER starts, the Controller first shows a small bear startup card and a road
 ![CER startup screen: small bear card, inline roadmap, and sidebar C / E1 / R task names](assets/cer_start_screen_1.en.png)
 
 ## Choose First
+
+If you are not sure, start with `/CER-auto`; this is a simple guide for choosing manually. The Skill still decides the actual route from the task's consequences, authority, and acceptance conditions.
 
 Use an ordinary chat when:
 
@@ -33,7 +54,7 @@ Use Goal when:
 Use CER when:
 
 - The direction is not fully settled, and the tradeoffs only become clear during the work.
-- The work affects public content, workflow design, long-running tasks, or areas where the AI can easily drift from your intent.
+- The work affects public content, workflow design, drift-prone areas, or long-running work that needs mid-work decisions, authority promotion, or independent review.
 - You need mid-work decisions, clear role boundaries, or independent review on important or risky work.
 
 Examples:
@@ -115,16 +136,22 @@ Use the skills CLI to install or upgrade the English CER Skill for Codex: skills
 
 ## Start CER
 
-After installation, use an explicit CER command:
+After installation, new users should start with:
 
 ```text
-Start CER: <goal, constraints, priorities>
+/CER-auto <goal, constraints, priorities>
 ```
 
-or:
+If you already know you need the full CER workflow, use:
 
 ```text
 /CER-start <goal, constraints, priorities>
+```
+
+A natural-language start command also works:
+
+```text
+Start CER: <goal, constraints, priorities>
 ```
 
 A plain start/work message does not start CER. It remains available for your usual way of working.
@@ -133,6 +160,7 @@ A plain start/work message does not start CER. It remains available for your usu
 
 | Command | Natural language | Use |
 |---|---|---|
+| `/CER-auto <task, constraints, priorities>` | `Run CER adaptively: ...` | Select the minimum sufficient route first: ordinary execution, Goal, CER-gated Goal/E1, or blocked. |
 | `/CER-start <task, constraints, priorities>` | `Start CER: ...` | Start CER, with the Controller coordinating the work. |
 | `/CER-stop` | `Stop CER and continue in one ordinary conversation.` | Stop using CER and stop assigning new Executor or Reviewer work; this does not mean the task is complete. |
 | `/CER-close` | `Close CER.` | Formally end this CER cycle; summarize the result, risks, and remaining work. |

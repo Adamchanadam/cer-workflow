@@ -5,6 +5,35 @@ has not entered an authorized release flow is explicitly marked as a candidate. 
 aborted, the affected content must be marked as candidate again or removed. Runtime authority
 remains the Skill references bundled with the version the user has installed.
 
+## v0.3.11
+
+This release adds the local `/CER-auto` entrypoint. Users can state the task first, and the Skill
+selects the minimum sufficient execution strength: clear small tasks stay outside CER, clear long
+tasks go to Goal, and CER gates are reserved for authority promotion, public claims,
+release/readiness evidence, handoff truth, or external/irreversible effects.
+
+- `/CER-auto <task, constraints, priorities>` first returns one route: ordinary execution, Goal,
+  CER-gated Goal/E1, or blocked
+- `ordinary execution` does not create C/E/R identities, show a bear card, or load other CER
+  references
+- `Goal` carries clear long-running work and its verification loop, but it does not own CER's sole
+  writer, role identities, or authority owner
+- `CER-gated Goal/E1` starts only when a result is about to become formal data, model input, a
+  report paragraph, a decision gate, handoff truth, a release/readiness claim, or a public/external
+  claim
+- When authority sources, safety boundaries, acceptance conditions, root/permission, Goal
+  capability, or external-action authorization are missing, the route must be blocked; hash,
+  receipt, source count, schema, or AI confidence cannot replace authority evidence
+- `/CER-start` is not replaced; it remains the direct entrypoint when the user already knows full
+  CER is needed
+- The public README now explains `/CER-auto <task>` for new users; the `/CER-help` command table
+  shows `/CER-auto` in this Skill version
+- The bilingual runtime, UAT, and Skill validators add fixed counterexamples for Goal-aware
+  routing, authority promotion, blocked routes, and illegal shortcuts; each package has 411
+  mutation cases
+- Release-readiness completed full static review and two AI real workflow UAT cycles before
+  publication. Post-release user manual UAT remains a separate follow-up
+
 ## v0.3.10
 
 This release closes the result-disposition loop after batch results return, so candidates,

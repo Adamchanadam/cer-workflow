@@ -3,6 +3,7 @@
 ## Contents
 
 - [Installation Scenario](#installation-scenario)
+- [Adaptive Execution Profile Scenarios](#adaptive-execution-profile-scenarios)
 - [Full Flow](#full-flow)
 - [Remote Controller Scenarios](#remote-controller-scenarios)
 - [Cross-Cycle Isolation Scenarios](#cross-cycle-isolation-scenarios)
@@ -12,6 +13,7 @@
 - [Parallel Candidate Producer Counterexamples](#parallel-candidate-producer-counterexamples)
 - [Review Convergence Scenarios](#review-convergence-scenarios)
 - [Controller Preflight QC Scenarios](#controller-preflight-qc-scenarios)
+- [Controller Long-Task Challenge Scenarios](#controller-long-task-challenge-scenarios)
 - [Outcome Anchor And Progress Scenarios](#outcome-anchor-and-progress-scenarios)
 - [Unexpected Failure And Scope-Exception Scenarios](#unexpected-failure-and-scope-exception-scenarios)
 - [Acceptance Validity Scenarios](#acceptance-validity-scenarios)
@@ -82,8 +84,33 @@ cycle label or guess a number.
 - A new C can start from only the Skill and the user's overall task.
 - The default prompt says to create a fresh Reviewer in proportion to risk; it does not force a
   Reviewer for simple work.
+- `/CER-auto` and `Run CER adaptively` trigger the local execution profile gate; no C exists before the route decision.
 - `/CER-start` and `Start CER` trigger CER; a plain start/work message does not.
 - `/CER-close` and `Close CER` trigger CER close; a plain close/finish message does not close CER and does not map to `/CER-stop`.
+
+## Adaptive Execution Profile Scenarios
+
+- For local `/CER-auto`, a low-risk task with clear authority, one writer, reversible changes, no external side effect, and sufficient existing acceptance outputs one `Route: ordinary execution — <reason>` line, creates no C/E/R identity, shows no bear card, and stops loading other CER references.
+- When the execution-profile gate and decision sources have known paths, share one safe read boundary, and have no permission or scope difference, obtain them in one bounded read with no selector-only read roundtrip. Keep them separate when safety or boundaries differ; speed does not permit broader or unauthorized reading.
+- Ordinary execution may use an ordinary subagent under target-project rules, but that subagent receives no formal E/R identity, ready/result lifecycle, or Reviewer effect.
+- When an existing current-state owner has already decided the target state and only local, reversible metadata reconciliation by one writer remains in the same workspace, with no authority promotion, model recalculation, or external consequence and direct readback is sufficient to disprove error, `/CER-auto` may remain ordinary execution. A persistent-state file alone must not create C/E/R.
+- For local `/CER-auto`, a longer, multi-step, or closed-loop task whose endpoint, verification loop, stop condition, and known authority sources are clear, and that does not yet promote the result into formal data, model input, a report paragraph, a decision gate, handoff truth, a release/readiness claim, or a public/external claim, outputs one `Route: Goal — <clear endpoint and verification loop>` line. Goal receives no C/E/R identity, sole writer, Reviewer effect, or authority owner.
+- If the endpoint, acceptance loop, stop condition, or authority source is still vague, use ordinary diagnostic/narrowing or `Route: blocked — <missing authority/safety/acceptance condition>` instead of entering Goal directly.
+- For local `/CER-auto`, when a Goal or E1 output is about to be accepted as formal data, model input, a report paragraph, a decision gate, handoff truth, a release/readiness claim, a public/external claim, or would cause an external/irreversible/permission/paid effect, output one `Route: CER-gated Goal/E1 — <promotion point and gate reason>` line only at that acceptance/promotion point, then load the runtime/roadmap in full and perform the current CER gate startup.
+- If authority sources, safety boundaries, acceptance conditions, root/permission, Goal capability with no safe fallback, reversibility, or authorization for an external/irreversible operation are missing, output one `Route: blocked — <missing authority/safety/acceptance condition>` line and do not present process completion as outcome completion.
+- If metadata reconciliation still decides the owner, artifact role, accepted outcome, authority promotion, model result, or external consequence, ordinary execution cannot reliably disprove the risk and must select CER-gated Goal/E1 or block. An unresolved truth conflict must not be relabeled as a mechanical correction to step down.
+- Multiple files, long text, or a long-task label with low consequence and reversible work do not independently select CER-gated Goal/E1. A one-line task involving deletion, release, authority promotion, or a high-consequence decision selects CER-gated Goal/E1 or blocks. Token pressure does not override safety or an owner.
+- Treating source count, schema, hash, or receipt as authority evidence must fail. Citing `CER_docs/09` as runtime routing authority must also fail because runtime ownership stays in `core-runtime.md`.
+- If one task contains a low-risk source map followed later by formal model/report/handoff acceptance, the source-map stage remains ordinary or Goal and only the later promotion point is CER-gated; do not promote the entire task to CER just because a later gate exists. If Goal is unavailable but bounded ordinary execution can safely finish, do not automatically block. If an external claim is only background context and not a formal claim, do not automatically CER-gate.
+- Explicit `/CER-start` is never adaptively downgraded. It still enters full CER with the existing unique-C, start-card, E1, Reviewer, result-disposition, stop, and close semantics.
+- Remote `/CER-auto` must stop as unsupported in the first version and must not create or guess a Remote C. Explicit Remote `/CER-start` still follows the existing Remote Controller scenarios.
+- Adaptive recheck occurs only when user requirements/authority/consequences change, at a phase boundary, when result disposition changes carry-forward/progress/authority effect, or before an external/public/irreversible/high-consequence operation. Ordinary small steps and token pressure do not trigger a recheck.
+- Existing Reviewer ownership still decides whether R is required, and the target project's existing release owner still decides release assurance. The adaptive gate cannot force, skip, or replace either owner, and Goal cannot replace the Reviewer, release owner, or authority-promotion owner.
+- Before a CER gate entered through `/CER-auto` steps down to ordinary execution or Goal, there is no active batch, E1 has stopped writing, results and result disposition are read back, required persistence is read back, and no truth conflict remains. The transition does not impersonate `/CER-stop` or `/CER-close` and shows no stop/close card.
+- Before ordinary execution or Goal steps up to a CER gate, stop and read back the ordinary/Goal writer. Ordinary drafts, diagnostics, Goal output, and subagent output remain working material. Only a source explicitly accepted by an existing target-project owner retains authority, and E1 rereads the workspace baseline before its first write.
+- After `/CER-auto` selects CER-gated Goal/E1, it still follows the existing startup order in full: before a valid zero-write E1 `ready` is direct-pushed and read back, it shows no successful startup card and dispatches no formal batch.
+- A transition in the same task with no material artifact, adjudication, or risk carry-forward creates no checkpoint. A cross-task/session/context transition or material carry-forward puts the checkpoint only in an existing handoff/current-state owner or the next self-contained dispatch; it creates no new file, fixed YAML, schema, or registry.
+- A required checkpoint reads back the direction and reason, current objective and outcome owner, unfinished condition and next observable delta, latest result disposition, accepted facts versus working material and forbidden carry-forward, writer/persistence/baseline readback, and open risk plus next allowed action. It does not rewrite an owner. Missing or conflicting required readback keeps the next write or dispatch blocked.
 
 ## Full Flow
 
@@ -310,6 +337,17 @@ cycle label or guess a number.
 - If C cannot answer any truth-source intake question, or if an answer depends on an unread required source, that completion condition is `critical missing`. C does not dispatch a formal implementation batch and only performs necessary read-only diagnosis, narrows the acceptance scope, or stops for user decision.
 - A formal packet for long-running, multi-batch, high-risk, or non-simple formal implementation work includes compact `pre_dispatch_evidence` that reads back the `outcome_anchor` pointer, target unfinished condition, expected outcome difference, truth-source intake four-question summary with source anchors, required-source read/unknown disposition, work-lane classification, and drift checkpoint conclusion or no-trigger reason; if it is missing, E1/R only returns a zero-write `BATCH_BLOCKED_MISSING_PRE_DISPATCH_EVIDENCE`.
 
+## Controller Long-Task Challenge Scenarios
+
+This section composes the existing preflight, `outcome_anchor`, drift, YAGNI, and result-disposition owners for QA. It adds no runtime field or new workflow:
+
+- When the user's task lacks a measurable or readable endpoint and materially different completions are plausible, C performs only necessary diagnosis, narrows the next observable acceptance point, or stops for questions; it does not dispatch a production batch and invent the specification afterward.
+- When required authority, allowed boundaries, or counterexample evidence is insufficient, C does not promote an ordinary draft, search output, or its own inference. A safely bounded diagnostic may remain ordinary; otherwise the route blocks.
+- When a plausible adjacent request, process improvement, or substitute deliverable appears mid-task, C first decides whether it serves an unfinished `outcome_anchor` condition. It must not replace the mainline or contaminate mainline progress.
+- Missing specification, risk, or acceptance uncertainty is not a reason for defensive expansion. C does not invent a registry, governance document, whole-repo review, fixed Reviewer, Full Audit, or more roles instead of narrowing the problem.
+- After the user changes a requirement, boundary, or acceptance condition that affects the outcome, C updates the living brief and current batch freeze first. A candidate that depends on the old condition cannot retain its old acceptance identity.
+- The same long task rechecks only at the defined material boundaries. Small steps, one test result, token pressure, or demonstrating the process must not cause ordinary/CER route thrashing.
+
 ## Outcome Anchor And Progress Scenarios
 
 - Long multi-batch work fixes `outcome_anchor` before the first batch, preserving the user's final outcome, source pointers for completion conditions, unacceptable substitute outcomes, and exclusions. E1 or R cannot rewrite it in later batches.
@@ -328,10 +366,13 @@ cycle label or guess a number.
 - When a `derived_output` is listed by the next batch as `authority_input` without an explicit user decision, target-project owner anchor, or promotion readback, C must stay at `dispatch_blocked`; if E1/R receives an unclassified prior result as authority input, it returns only a zero-write blocker.
 - When `prior_result_use: authority_input` is missing `promotion_evidence` or `project_owner_anchor`, C must not hand the prior result to the next batch; `prior_result_use: working_material` permits only editing, comparison, review, or refinement, not decision authority.
 - When a candidate is used only as refinement working material, C may set `prior_result_use` to `working_material` and continue, while `authority_effect` and `progress_effect` remain `none`.
+- When a Phase 1 candidate completes only a non-terminal checkpoint, the legal disposition is `accepted_as=working_candidate`, `authority_effect=none`, and `progress_effect=none`; put phase and Phase-2-only use limits in the existing `phase`/`status` and `permitted_next_use`.
 - When Reviewer technical PASS has outcome FAIL, or authority promotion was not reviewed, C must not report mainline progress or authority promotion.
 - When Reviewer provides only `content_verdict: pass` or `implementation_verdict: pass`, while `outcome_verdict` is `fail`/`not_reviewed` or `authority_promotion_verdict` is `out_of_scope`, C may adjudicate only the reviewed dimensions and must not expand that into outcome PASS or authority-promotion PASS.
 - When handoff, plan, progress, or another target-project source of truth conflicts about artifact role, next action, or authority source, the next batch is not dispatched until the existing owner synchronizes and C reads it back.
 - When result disposition changes current phase, artifact role, next product route, authoritative source, progress claim, or later batch input, but target-project persistence has not been updated and read back under existing rules, `next_dispatch` must be `blocked`.
+- When the final batch produced a correct deliverable but the target-project current-state owner still records the old phase, no terminal deliverable, or a stale next action, C must not accept a `terminal_deliverable`, report progress, or claim completion even though there is no next batch.
+- When the model, report, and current-state owner in one terminal set are synchronized but a `RUN_RESULT` classified as a `terminal_deliverable` still says persistence pending, unaccepted, or an old phase, C must not accept the set; it must demote that file to `evidence_only` / exclude it, or correct and revalidate it under the original acceptance. If it was explicitly classified from the start as pre-persistence `evidence_only` outside the terminal set, its historical state may remain unchanged.
 - When the user's endpoint itself is a draft, candidate, or sample, the candidate may validly become `terminal_deliverable`; without a separate owner basis, it still must not become an authoritative source.
 
 ## Unexpected Failure And Scope-Exception Scenarios
@@ -441,6 +482,14 @@ These scenarios only test the unexpected-failure gate in
   setting failure shows a fake label or guessed number instead of keeping the shortest role title
   and reporting a real `title sync warning`.
 - A plain start/work message starts CER, or a plain close/finish message triggers CER close/stop.
+- `/CER-auto` claims C before the route decision, preloads all CER references, or shows a CER bear card on ordinary execution.
+- After `/CER-auto` selects CER, it shows a successful startup card or dispatches a formal batch before a valid zero-write E1 `ready` is direct-pushed and read back.
+- Explicit `/CER-start` is automatically downgraded to ordinary execution, or Remote `/CER-auto` is treated as supported and creates a Remote C.
+- File count, word count, a long-task label, or token pressure alone changes the route; or token saving bypasses safety, authority, persistence, external authorization, the Reviewer owner, or the release owner.
+- The route steps down to ordinary execution while an active batch/writer, incomplete result disposition, unread required persistence, or a truth conflict remains.
+- An ordinary draft, diagnostic, or ordinary-subagent output becomes authoritative input when stepping up to CER, or E1 writes before rereading the workspace baseline.
+- Every small step or same-task transition with no material carry-forward is forced to create a checkpoint, or a cross-task/session/context material carry-forward lacks the required checkpoint.
+- A route-transition checkpoint creates a new file, fixed YAML/schema/registry, rewrites an outcome/authority owner, or allows the next write or dispatch while required readback is missing or conflicting.
 - C rewrites a Kit full-closeout or governance-bridge procedure, file list, maintenance decision,
   or tests into the E1 dispatch.
 - C reruns a Kit procedure or check after the same E1 has returned verifiable authoritative Kit
@@ -477,6 +526,10 @@ These scenarios only test the unexpected-failure gate in
 - A candidate/draft/diagnostic/derived_output/review_only result is listed by a later batch as `authoritative_input` without promotion evidence.
 - R gives only content or technical PASS, and C derives outcome PASS, authority promotion PASS, or `accepted_outcome_delta`.
 - A result that changes phase, artifact role, next route, authoritative source, progress claim, or later batch input has not been persisted and read back under target-project rules, but C still dispatches the next batch.
+- Because the final batch has no next batch, C accepts a `terminal_deliverable`, reports progress, or claims completion while the current-state owner is still contradictory or stale.
+- C includes an artifact that still says persistence pending, unaccepted, an old phase, or an old next action in the accepted terminal artifact set, then claims completion because the other files and current-state owner are synchronized.
+- C uses an out-of-contract synonym in an actual result disposition, such as `accepted_as=terminal_outcome`, instead of one of the four existing `accepted_as` values, while Reviewer or the current-state owner still treats it as a valid terminal adjudication.
+- C or the writer synthesizes Phase 1 scope as `progress_effect=accepted_outcome_delta_for_phase1_only` or another out-of-contract value and writes it to persistent truth instead of blocking before persistence.
 - E1 treats a test failure as new modification authority, or treats an allowed file as authority to
   change every meaning in that file.
 - E1 continues writing while causality is unknown or repair would widen an owner, authoritative

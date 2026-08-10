@@ -3,6 +3,7 @@
 ## 目錄
 
 - [安裝情景](#安裝情景)
+- [自適應執行強度情景](#自適應執行強度情景)
 - [完整流程](#完整流程)
 - [Remote Controller 情景](#remote-controller-情景)
 - [跨輪隔離情景](#跨輪隔離情景)
@@ -12,6 +13,7 @@
 - [平行候選生產者反證情景](#平行候選生產者反證情景)
 - [審閱收斂情景](#審閱收斂情景)
 - [Controller preflight QC 情景](#controller-preflight-qc-情景)
+- [Controller 長任務挑戰情景](#controller-長任務挑戰情景)
 - [成果錨定與進展情景](#成果錨定與進展情景)
 - [未預期失敗與範圍例外情景](#未預期失敗與範圍例外情景)
 - [驗收有效性情景](#驗收有效性情景)
@@ -72,8 +74,33 @@ numbering 規則生效前已開始且無法可靠回推原 cycle number。cycle 
   `version unverified`；不得原樣顯示佔位文字。
 - 新 C 能只靠 Skill 和使用者總任務啟動。
 - 預設提示使用「按風險建立 fresh Reviewer」；簡單任務不會因預設提示而強制建立 Reviewer。
+- `/CER-auto`、`CER 自適應` 正常觸發本地執行強度閘門；路線裁決前不成立 C。
 - `/CER-start`、`CER 啟動`、`CER 開始`、`CER 開工` 正常觸發 CER；單獨 `開工` 不觸發 CER。
 - `/CER-close`、`CER 收工`、`CER 關閉`、`關閉 CER` 正常觸發 CER close；單獨 `收工` 不觸發 CER close，也不映射為 `/CER-stop`。
+
+## 自適應執行強度情景
+
+- 本地 `/CER-auto` 面對權威清楚、單一 writer、可回復、無外部副作用且既有驗收足夠的低風險任務時，輸出一行 `路線：ordinary execution — <理由>`，不建立 C／E／R、不顯示小熊卡，並停止載入其他 CER references。
+- 執行強度閘門與裁決真源路徑已知、同一讀取邊界安全且沒有權限／範圍差異時，以同一次有界讀取取得，不增加 selector 專用讀取往返；安全或邊界不同時仍分開，不得為省時擴讀或越權。
+- ordinary execution 可按目標專案既有規則使用普通 subagent，但該 subagent 不取得正式 E／R 身份、ready/result 或 Reviewer 效力。
+- 既有 current-state owner 已明確裁定目標狀態，只剩同一 workspace、單一 writer、本地可回復的 metadata 對帳，沒有權威升格、模型重算或外部後果，而且直接讀回足以反證時，`/CER-auto` 可保持 ordinary execution；不得只因檔案屬於持久狀態便自動建立 C／E／R。
+- 本地 `/CER-auto` 面對較長、多步或需要閉環推進，但終點、驗證 loop、可停止條件和已知權威來源清楚，而且尚未要求把成果升格為正式資料、模型輸入、報告、decision gate、handoff truth、release／readiness claim 或 public／external claim 的任務時，輸出一行 `路線：Goal — <清楚終點與驗證 loop>`；Goal 不取得 C／E／R 身份、唯一 writer、Reviewer 效力或 authority owner。
+- 若終點、驗收 loop、可停止條件或權威來源仍模糊，先 ordinary diagnostic／收窄或 `路線：blocked — <缺少的權威／安全／驗收條件>`，不直接進 Goal。
+- 本地 `/CER-auto` 面對 Goal 或 E1 產物準備被接受為 formal data、model input、report paragraph、decision gate、handoff truth、release／readiness claim、public／external claim，或會造成外部／不可逆／權限／付費後果時，只在 acceptance／promotion point 輸出一行 `路線：CER-gated Goal/E1 — <升格點與 gate 理由>`，然後才完整載入 runtime／roadmap 及執行現行 CER gate 啟動。
+- 若缺少權威來源、安全邊界、驗收條件、root／permission、Goal 能力且無安全 fallback、可回復性，或外部／不可逆操作未獲授權，輸出一行 `路線：blocked — <缺少的權威／安全／驗收條件>`，不得用流程完成冒充成果完成。
+- 若 metadata 對帳仍會決定 owner、artifact 角色、accepted outcome、權威升格、模型結果或外部後果，ordinary route 不足以反證，必須選 CER-gated Goal/E1 或 blocked；不得把未解決的真相衝突改名為「機械修正」以降級。
+- 多檔、長文字或長任務標籤但低後果且可回復的工作不會單獨觸發 CER-gated Goal/E1；只有一行文字但涉及刪除、發布、權威升格或高後果決策時，必須選 CER-gated Goal/E1 或 blocked。token 壓力不得覆蓋安全或 owner。
+- source count、schema、hash 或 receipt 當成 authority evidence 時必須失敗；`CER_docs/09` 被引用為 runtime routing authority 時也必須失敗，因為 runtime owner 只在 `core-runtime.md`。
+- 同一任務含低風險 source map 加後續正式 model/report/handoff acceptance 時，source map 階段保持 ordinary 或 Goal，只有後續升格點才 CER-gated；不得因後面有升格點就整段任務升 CER。Goal 不可用但 bounded ordinary 可安全完成時，不自動 blocked。external claim 只作背景引用且不作正式聲稱時，不自動 CER-gated。
+- 明示 `/CER-start` 不經自適應降級，仍完整進入 CER 並保持既有唯一 C、啟動卡、E1、Reviewer、result disposition、stop 及 close 語義。
+- Remote `/CER-auto` 在首版必須停下並報 unsupported；不得建立或猜測 Remote C。明確 Remote `/CER-start` 仍依既有 Remote Controller 情景處理。
+- 自適應重判只發生在使用者要求／權威／後果改變、階段邊界、result disposition 改變承接／進度／權威效力，或外部／公開／不可逆／高後果操作前；普通小步和 token 壓力不觸發重判。
+- 是否建立 R 仍由既有 Reviewer owner 裁決，release assurance 仍由目標專案既有 release owner 裁決；自適應閘門不能固定建立、固定省略或取代兩者，Goal 也不能取代 Reviewer、release owner 或 authority promotion owner。
+- 由 `/CER-auto` 啟動的 CER gate 降回 ordinary execution 或 Goal 前，沒有 active batch、E1 停止寫入、結果讀回及 result disposition、必要持久化讀回和無 truth conflict 全部成立；轉換不冒充 `/CER-stop`／`/CER-close`，也不顯示停用／收尾卡。
+- ordinary execution 或 Goal 升到 CER gate 前先停止並讀回 ordinary／Goal writer；普通草稿、診斷、Goal 輸出和 subagent 輸出只作 working material。只有目標專案既有 owner 已明確接納的來源才可保留權威效力；CER 成立後 E1 在首次寫入前重讀 workspace baseline。
+- `/CER-auto` 選 CER-gated Goal/E1 後仍完整服從現行啟動次序：合格 E1 零寫入 `ready` 尚未 direct-push 及讀回前，不顯示成功啟動卡、不派正式批次。
+- 同一 task 且沒有實質 artifact、裁決或風險承接的路線轉換不建立 checkpoint。跨 task／session／context 或有實質承接時，checkpoint 只寫入既有 handoff／current-state owner 或下一個自足派工，不建立新檔、固定 YAML、schema 或 registry。
+- 必要 checkpoint 能讀回轉換方向與原因、目前目標和 outcome owner、未完成條件與下一個可觀察差異、最新 result disposition、accepted facts 與 working material／禁止承接、writer／持久化／baseline 讀回，以及 open risk 與下一個允許動作；它不改寫 owner。必要讀回缺失或衝突時，下一次寫入或派工保持 blocked。
 
 ## 完整流程
 
@@ -253,6 +280,17 @@ numbering 規則生效前已開始且無法可靠回推原 cycle number。cycle 
 - C 答不到真源攝取四問任一項，或答案依賴未讀必要真源時，該完成條件是 `關鍵缺失`；C 不派正式實作批次，只做必要唯讀診斷、收窄驗收範圍或停問使用者。
 - 長期、多批、高風險或非簡單正式實作批次的正式派工包含短小 `pre_dispatch_evidence`，可讀回 `outcome_anchor` 指向、目標未完成條件、成功後成果差異、真源攝取四問摘要及來源錨點、必要真源已讀／缺失處置、工作線分類，以及 drift checkpoint 結論或未觸發理由；缺失時 E1／R 只回傳零寫入 `BATCH_BLOCKED_MISSING_PRE_DISPATCH_EVIDENCE`。
 
+## Controller 長任務挑戰情景
+
+本節只組合既有 preflight、`outcome_anchor`、drift、YAGNI 及結果處置 owner 作 QA，不增加 runtime 欄位或新流程：
+
+- 使用者任務欠缺可量度或可讀回的終點，而且不同補法會實質改變成果時，C 只做必要診斷、收窄下一個可驗收停點或停問，不得派 production 批次後自行補成規格。
+- 必要權威、允許邊界或反例證據不足時，C 不把普通草稿、搜尋結果或自身推論升格；能安全完成的診斷可留 ordinary，否則阻塞。
+- 中途出現合理但相鄰的要求、流程改善或替代交付時，C 先判斷它是否服務尚未完成的 `outcome_anchor`；不能取代原主線或污染主線進度。
+- 欠規格、風險或驗收不確定性不得成為防禦性擴建理由；C 不自行新增 registry、治理文件、全 repo 審查、固定 Reviewer、Full Audit 或更多角色來代替收窄問題。
+- 使用者改變會影響成果的要求、邊界或驗收後，C 先更新活簡報及本批凍結；依賴舊條件的候選不可沿用舊接納身份。
+- 同一長任務只在規定的實質邊界重判；小步、單次測試、token 壓力或為了展示流程不得造成 ordinary／CER 震盪。
+
 ## 成果錨定與進展情景
 
 - 長期多批任務在首批前固定 `outcome_anchor`，保留使用者最終成果、完成條件真源指向、不可接受替代成果及排除範圍；E1 或 R 在後續批次不能自行改寫它。
@@ -271,10 +309,13 @@ numbering 規則生效前已開始且無法可靠回推原 cycle number。cycle 
 - `derived_output` 被下一批列作 `authority_input` 但缺使用者明示、目標專案 owner 錨點或升格讀回時，C 必須停在 `dispatch_blocked`；E1／R 收到未分類的上一批 authority 輸入時只回零寫入 blocker。
 - `prior_result_use: authority_input` 缺 `promotion_evidence` 或 `project_owner_anchor` 時，C 不得把上一批結果交給下一批；`prior_result_use: working_material` 只允許修改、比較、審閱或 refine，不得作決策權威。
 - 候選只作 refinement 工作材料時，C 可把 `prior_result_use` 標為 `working_material` 並繼續，但 `authority_effect` 與 `progress_effect` 仍為 `none`。
+- Phase 1 候選只完成非終端 checkpoint 時，合法處置是 `accepted_as=working_candidate`、`authority_effect=none`、`progress_effect=none`；階段及只供 Phase 2 使用的限制寫入既有 `phase`／`status` 與 `permitted_next_use`。
 - Reviewer 技術 PASS 但 outcome FAIL 或未審 authority promotion 時，C 不得把它報成主線進度或權威升格。
 - Reviewer 只提供 `content_verdict: pass` 或 `implementation_verdict: pass`，但 `outcome_verdict` 是 `fail`／`not_reviewed` 或 `authority_promotion_verdict` 是 `out_of_scope` 時，C 只能按已審維度裁決，不得擴大成 outcome PASS 或 authority promotion PASS。
 - Handoff、計劃、進度或其他目標專案真源對 artifact 角色、下一步或權威來源互相矛盾時，下一批不得派出，直到既有 owner 完成同步並讀回。
 - 結果改變當前階段、artifact 角色、下一產品路線、權威來源、progress claim 或後續批次輸入之一，但尚未按目標專案既有持久化規則回寫並讀回時，`next_dispatch` 必須是 `blocked`。
+- 最後一批已產生正確交付物，但目標專案 current-state owner 仍寫着舊階段、沒有 terminal deliverable 或舊下一步時，即使沒有下一批，C 也不得接納 `terminal_deliverable`、報告進度或宣稱完成。
+- 同一終點集合的模型、報告和 current-state owner 已同步，但被列作 `terminal_deliverable` 的 `RUN_RESULT` 仍聲稱 persistence pending、未接納或舊階段時，C 不得接納整組；須把該檔降為 `evidence_only`／排除，或修正後按原驗收重驗。若它一開始已明示只作 pre-persistence `evidence_only` 且不屬終點集合，則可保留原始歷史狀態。
 - 使用者終點本身就是草稿、候選或樣稿時，候選可合法成為 `terminal_deliverable`；但除非另有 owner 依據，仍不得升格為權威來源。
 
 ## 未預期失敗與範圍例外情景
@@ -362,6 +403,14 @@ numbering 規則生效前已開始且無法可靠回推原 cycle number。cycle 
 - cycle 編號被當作 lock、run ID、唯一 C 證據或 thread 身份；漏列 threadId 仍通過。
 - 新 cycle 使用 `00`；任何可見問號 cycle title；無法可靠枚舉或設定 title 時顯示假標籤或猜測數字，而不是保留最短 role title 並報真實 `title sync warning`。
 - 單獨 `開工` 啟動 CER，或單獨 `收工` 觸發 CER close／stop。
+- `/CER-auto` 在路線裁決前自稱 C、預先完整載入全部 CER references，或在 ordinary execution 顯示 CER 小熊卡。
+- `/CER-auto` 選 CER 後，在合格 E1 零寫入 `ready` direct-push 及讀回前顯示成功啟動卡或派正式批次。
+- 明示 `/CER-start` 被自動降成 ordinary execution，或 Remote `/CER-auto` 被當成已支援並建立 Remote C。
+- 只按檔案數、字數、長任務標籤或 token 壓力升降；或以省 token 為由繞過安全、權威、持久化、外部授權、Reviewer 或 release owner。
+- active batch／writer、未完成 result disposition、必要持久化未讀回或 truth conflict 仍存在時降回 ordinary execution。
+- ordinary 草稿、診斷或普通 subagent 輸出在升回 CER 時被直接當成權威輸入，或 E1 未重讀 workspace baseline 便首次寫入。
+- 每次小步或同一 task 無實質承接的切換都強制建立 checkpoint；或跨 task／session／context 的實質承接沒有必要 checkpoint。
+- route-transition checkpoint 建立新檔、固定 YAML／schema／registry、改寫 outcome／authority owner，或在必要讀回缺失／衝突時仍准許下一次寫入或派工。
 - C 把 Kit full closeout 或 governance bridge 的權威程序、檔案清單、
   maintenance 判斷或測試重寫進 E1 派工。
 - Kit full closeout 尚未有權威成功終態，C 已宣稱 `writer closed`、同步 title
@@ -397,6 +446,10 @@ numbering 規則生效前已開始且無法可靠回推原 cycle number。cycle 
 - candidate／draft／diagnostic／derived_output／review_only 未有升格依據便被下一批列為 `authoritative_input`。
 - R 只給內容或技術 PASS，C 便推導出 outcome PASS、authority promotion PASS 或 `accepted_outcome_delta`。
 - 會改變階段、artifact 角色、下一路線、權威來源、progress claim 或後續批次輸入的結果尚未按目標專案既有規則持久化及讀回，C 仍派下一批。
+- 最後一批沒有下一批，C 因而在 current-state owner 仍矛盾或過期時接納 `terminal_deliverable`、報告進度或宣稱完成。
+- C 把仍聲稱 persistence pending、未接納、舊階段或舊下一步的 artifact 列入 accepted terminal artifact set，並因其他檔案及 current-state owner 已同步而照常宣稱完成。
+- C 在實際 result disposition 使用規格外近義詞（例如 `accepted_as=terminal_outcome`）取代既有 `accepted_as` 四值之一，Reviewer 或 current-state owner 仍把它當成合法終點裁決。
+- C 或 writer 把 Phase 1 範圍合成 `progress_effect=accepted_outcome_delta_for_phase1_only` 或其他規格外值並寫入持久真源，而不是在持久化前阻塞。
 - E1 把測試失敗當成新增修改權，或把允許檔案當成可改該檔案所有語意。
 - 未預期失敗因果不明，或修正需要擴大 owner、權威來源、fallback、准入條件時，
   E1 仍繼續寫入或以測試變綠冒充正確。

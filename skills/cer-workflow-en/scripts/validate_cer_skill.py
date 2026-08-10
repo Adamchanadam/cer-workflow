@@ -27,23 +27,28 @@ UNEXPECTED_FAILURE_OWNER_MARKER = "<!-- cer-unexpected-failure-gate-owner -->"
 TRUTH_SOURCE_INTAKE_OWNER_MARKER = "<!-- cer-truth-source-intake-gate-owner -->"
 DRIFT_CHECKPOINT_OWNER_MARKER = "<!-- cer-controller-drift-checkpoint-owner -->"
 RESULT_DISPOSITION_OWNER_MARKER = "<!-- cer-result-disposition-gate-owner -->"
+EXECUTION_PROFILE_OWNER_MARKER = "<!-- cer-execution-profile-gate-owner -->"
 EXPECTED_DEFAULT_PROMPT = (
     "Use $cer-workflow-en with one writer for this work; create a fresh Reviewer in "
     "proportion to risk, and accelerate internally when useful without extra setup."
 )
 FORMAL_COMMANDS = {
+    "/CER-auto",
     "/CER-start",
     "/CER-stop",
     "/CER-close",
     "/CER-status",
     "/CER-help",
 }
+MAX_ROUTER_BYTES = 6500
 
 EN_TRIGGER_MATRIX_EXPECTATIONS = {
     "frontmatter": (
         "Use only for explicit CER-qualified commands or equivalent meaning",
+        "/CER-auto",
         "Plain start/work or close/finish messages are not CER triggers",
     ),
+    "auto_row": ("no C exists before the route decision", "Remote is unsupported in this first version"),
     "start_row": ("Plain start/work messages do not start CER",),
     "close_row": ("Plain close/finish messages do not close CER",),
     "startup_owner": ("Plain start/work messages belong to the target workspace's existing governance and are not CER triggers",),
@@ -52,11 +57,96 @@ EN_TRIGGER_MATRIX_EXPECTATIONS = {
         "`/CER-start` and `Start CER` trigger CER",
         "a plain start/work message does not",
     ),
+    "uat_install_auto": (
+        "`/CER-auto` and `Run CER adaptively` trigger the local execution profile gate",
+        "no C exists before the route decision",
+    ),
     "uat_install_close": (
         "`/CER-close` and `Close CER` trigger CER close",
         "a plain close/finish message does not close CER and does not map to `/CER-stop`",
     ),
     "uat_failure": ("A plain start/work message starts CER, or a plain close/finish message triggers CER close/stop",),
+    "uat_failure_auto": ("`/CER-auto` claims C before the route decision",),
+}
+
+EXECUTION_PROFILE_REQUIREMENTS = {
+    "sole_owner": "This section is the sole runtime owner for `/CER-auto`",
+    "local_only": "The first version supports only a local user task. Remote `/CER-auto` is unsupported",
+    "pre_identity": "The entry task is not C before the route decision",
+    "start_unchanged": "Explicit `/CER-start` keeps its existing meaning",
+    "selective_read": "first read only this section plus the user request and target-project sources needed for the decision",
+    "single_read_bundle": "obtain them in one bounded read instead of adding a selector-only read roundtrip",
+    "minimum_strength": "Select the minimum sufficient collaboration strength between ordinary execution, Goal, CER-gated Goal/E1, or blocked",
+    "route_lines": "Route: CER-gated Goal/E1 — <promotion point and gate reason>",
+    "blocked_route_line": "Route: blocked — <missing authority/safety/acceptance condition>",
+    "ordinary_boundary": "Ordinary execution does not start CER, claim C/E/R identity, show a bear card, or load other CER references",
+    "goal_boundary": "Goal does not provide CER's sole writer, C/E/R identity, or authority owner",
+    "cer_boundary": "Only after selecting CER-gated Goal/E1, and only at the promotion point, does the task read this file and `roadmap.md` in full",
+    "decision_basis": "Judge the route by the next step's consequence, uncertainty, reversibility, and owner clarity",
+    "source_evidence_boundary": "source count, schema, hash, or receipt cannot replace authority evidence",
+    "goal_route": "the endpoint, verification loop, stop condition, and known authority sources are clear",
+    "cer_gated_promotion": "formal data, model input, a report paragraph, a decision gate, handoff truth, a release/readiness claim, a public/external claim",
+    "blocked_boundary": "Goal capability with no safe fallback",
+    "bounded_reconciliation": "touching persistent state does not by itself select CER-gated",
+    "cost_boundary": "Cost never bypasses safety, authority, persistence, external authorization, the Reviewer owner, or the target release owner",
+    "recheck_boundaries": "Recheck only at four material boundaries: a user-requirement, authority, or consequence change; a phase boundary; a result disposition that changes carry-forward, progress, or authority effect; and immediately before an external, public, irreversible, or other high-consequence operation",
+    "no_step_recheck": "Do not recheck every small step; token pressure by itself is not an upgrade or downgrade reason",
+    "existing_owners": "Existing Reviewer ownership still decides whether R is required, and the target project's existing release owner still decides release assurance",
+    "safe_step_down": "there is no active batch, E1 has stopped writing, results have been read back and dispositioned, required persistence has been written and read back, and no truth conflict remains",
+    "not_stop_close": "This is a route transition, not `/CER-stop` or `/CER-close`",
+    "safe_step_up": "Its drafts, diagnostics, Goal outputs, and ordinary-subagent outputs default to working material",
+    "baseline_readback": "E1 rereads the workspace baseline before its first write",
+    "conditional_checkpoint": "Persist one short, non-authoritative route-transition checkpoint only when a transition crosses a task, session, or context, or carries a material artifact, adjudication, or risk",
+    "no_new_structure": "Do not create a new file, schema, YAML object, or registry",
+    "checkpoint_block": "Missing or contradictory required readback keeps the next write or dispatch blocked",
+}
+
+EXECUTION_PROFILE_UAT_REQUIREMENTS = {
+    "ordinary_route": "clear authority, one writer, reversible changes, no external side effect, and sufficient existing acceptance",
+    "single_read_bundle": "obtain them in one bounded read with no selector-only read roundtrip",
+    "ordinary_subagent": "that subagent receives no formal E/R identity, ready/result lifecycle, or Reviewer effect",
+    "bounded_reconciliation": "only local, reversible metadata reconciliation by one writer remains in the same workspace",
+    "bounded_reconciliation_limit": "An unresolved truth conflict must not be relabeled as a mechanical correction to step down",
+    "goal_route": "endpoint, verification loop, stop condition, and known authority sources are clear",
+    "goal_no_promotion": "does not yet promote the result into formal data, model input, a report paragraph, a decision gate, handoff truth, a release/readiness claim, or a public/external claim",
+    "goal_vague": "instead of entering Goal directly",
+    "cer_route": "output one `Route: CER-gated Goal/E1 — <promotion point and gate reason>` line only at that acceptance/promotion point",
+    "blocked_route": "output one `Route: blocked — <missing authority/safety/acceptance condition>` line",
+    "small_high_consequence": "A one-line task involving deletion, release, authority promotion, or a high-consequence decision selects CER-gated Goal/E1 or blocks",
+    "false_evidence": "source count, schema, hash, or receipt as authority evidence",
+    "no_09_runtime": "Citing `CER_docs/09` as runtime routing authority",
+    "mixed_promotion": "only the later promotion point is CER-gated",
+    "goal_unavailable_fallback": "If Goal is unavailable but bounded ordinary execution can safely finish, do not automatically block",
+    "external_background": "If an external claim is only background context and not a formal claim, do not automatically CER-gate",
+    "start_unchanged": "Explicit `/CER-start` is never adaptively downgraded",
+    "remote_unsupported": "Remote `/CER-auto` must stop as unsupported in the first version",
+    "bounded_recheck": "Ordinary small steps and token pressure do not trigger a recheck",
+    "owner_boundary": "The adaptive gate cannot force, skip, or replace either owner",
+    "safe_step_down": "there is no active batch, E1 has stopped writing, results and result disposition are read back, required persistence is read back, and no truth conflict remains",
+    "safe_step_up": "Ordinary drafts, diagnostics, Goal output, and subagent output remain working material",
+    "startup_order": "before a valid zero-write E1 `ready` is direct-pushed and read back, it shows no successful startup card and dispatches no formal batch",
+    "conditional_checkpoint": "A transition in the same task with no material artifact, adjudication, or risk carry-forward creates no checkpoint",
+    "checkpoint_block": "Missing or conflicting required readback keeps the next write or dispatch blocked",
+}
+
+EXECUTION_PROFILE_FORBIDDEN = {
+    "start_downgrade": "`/CER-start` may automatically downgrade to ordinary execution",
+    "pre_identity": "`/CER-auto` is C before the route decision",
+    "remote_supported": "Remote `/CER-auto` is supported",
+    "file_count": "Many files always require CER-gated Goal/E1",
+    "token_bypass": "Saving tokens may bypass safety or an authority owner",
+    "fixed_reviewer": "`/CER-auto` always creates a Reviewer",
+    "unsafe_step_down": "An active batch may step down to ordinary execution",
+    "draft_authority": "An ordinary draft automatically becomes authoritative_input",
+    "goal_authority": "Goal automatically becomes the CER authority owner",
+    "false_evidence": "Source count, schema, hash, or receipt is enough to prove authority",
+    "cite_09_runtime": "`CER_docs/09` may be `/CER-auto` runtime routing authority",
+    "whole_phase_cer": "A later promotion point means the whole task must be CER",
+    "goal_unavailable_block": "Goal unavailable means blocked even when bounded ordinary execution can safely finish",
+    "background_claim_gate": "An external claim used only as background must still be CER-gated",
+    "fixed_checkpoint": "Every route transition creates a fixed YAML checkpoint",
+    "persistent_file_always_cer": "Every persistent-state file creates C/E/R",
+    "unsafe_read_bundle": "Even different permissions or scope must be combined into one read",
 }
 
 REVIEWER_PROPORTIONALITY_COUNTEREXAMPLES = {
@@ -186,6 +276,16 @@ TRUTH_SOURCE_INTAKE_UAT_REQUIREMENTS = {
     "missing_blocks": "If C cannot answer any truth-source intake question",
     "missing_still_dispatches": "A non-simple formal implementation batch has not answered who owns it, who actually uses it, how it takes effect, and what counterexample can disprove it, but C still creates/reuses E1 or dispatches the implementation batch",
     "overwide_gate": "C expands the truth-source intake gate into default full-text ingestion, whole-repo review, fixed Full Audit, a second rule owner, or a fixed form workflow",
+}
+
+CONTROLLER_CHALLENGE_UAT_REQUIREMENTS = {
+    "section": "## Controller Long-Task Challenge Scenarios",
+    "measurable_endpoint": "lacks a measurable or readable endpoint",
+    "authority_boundary": "required authority, allowed boundaries, or counterexample evidence is insufficient",
+    "adjacent_mainline": "plausible adjacent request, process improvement, or substitute deliverable",
+    "defensive_expansion": "is not a reason for defensive expansion",
+    "changed_contract": "cannot retain its old acceptance identity",
+    "no_thrashing": "must not cause ordinary/CER route thrashing",
 }
 
 TRUTH_SOURCE_INTAKE_FORBIDDEN = {
@@ -410,6 +510,10 @@ RESULT_DISPOSITION_REQUIREMENTS = {
     "review_scope_limited": "C must not expand R's original review scope",
     "terminal_candidate": "Only when the `outcome_anchor` itself asks for a draft, candidate, or sample as the endpoint",
     "persistence_blocks_next": "persistent truths conflict, are not synchronized, or the artifact role cannot be determined, `next_dispatch` must be `blocked`",
+    "terminal_persistence_blocks_acceptance": "even when there is no next batch, C must not accept the result as a `terminal_deliverable`, report progress, or claim completion",
+    "terminal_artifact_set_consistency": "C must also read back the final-state claim of every artifact classified as a `terminal_deliverable`",
+    "closed_vocabulary": "`accepted_as`, `authority_effect`, `progress_effect`, and `prior_result_use` values above are closed vocabularies",
+    "validate_before_persistence": "Before persistence, the proper writer must validate these fields against this section",
 }
 
 RESULT_DISPOSITION_UAT_REQUIREMENTS = {
@@ -423,6 +527,11 @@ RESULT_DISPOSITION_UAT_REQUIREMENTS = {
     "authority_out_of_scope": "`authority_promotion_verdict` is `out_of_scope`",
     "truth_conflict_blocks": "handoff, plan, progress, or another target-project source of truth",
     "persistence_change_classes": "result disposition changes current phase, artifact role, next product route, authoritative source, progress claim, or later batch input",
+    "terminal_stale_state": "the final batch produced a correct deliverable but the target-project current-state owner still records the old phase, no terminal deliverable, or a stale next action",
+    "terminal_artifact_set_conflict": "a `RUN_RESULT` classified as a `terminal_deliverable` still says persistence pending, unaccepted, or an old phase",
+    "accepted_as_synonym_rejected": "`accepted_as=terminal_outcome`",
+    "phase1_legal_disposition": "When a Phase 1 candidate completes only a non-terminal checkpoint",
+    "progress_effect_synonym_rejected": "`progress_effect=accepted_outcome_delta_for_phase1_only`",
     "draft_terminal_deliverable": "user's endpoint itself is a draft, candidate, or sample",
 }
 
@@ -433,6 +542,8 @@ RESULT_DISPOSITION_FORBIDDEN = {
     "authority_without_promotion_fields": "`authority_input` may omit `promotion_evidence` or `project_owner_anchor`",
     "out_of_scope_pass": "`out_of_scope` counts as PASS",
     "unpersisted_next_dispatch": "C may dispatch the next batch before persistence",
+    "unpersisted_terminal_acceptance": "The final batch may be accepted as a `terminal_deliverable` and completion claimed while persistent truth is stale",
+    "contradictory_terminal_artifact_accepted": "A terminal set may include an artifact that still says persistence pending and still be accepted",
 }
 
 
@@ -555,6 +666,16 @@ def trigger_matrix_findings(texts: dict[str, str]) -> list[str]:
         findings,
     )
     for label, source in (
+        ("SKILL.md /CER-auto row", command_table_row(skill, "/CER-auto")),
+        ("core-runtime.md /CER-auto row", command_table_row(core, "/CER-auto")),
+    ):
+        assert_snippets_present(
+            source,
+            EN_TRIGGER_MATRIX_EXPECTATIONS["auto_row"],
+            label,
+            findings,
+        )
+    for label, source in (
         ("SKILL.md /CER-start row", command_table_row(skill, "/CER-start")),
         ("core-runtime.md /CER-start row", command_table_row(core, "/CER-start")),
     ):
@@ -589,6 +710,12 @@ def trigger_matrix_findings(texts: dict[str, str]) -> list[str]:
     install = markdown_section(uat, "## Installation Scenario")
     assert_snippets_present(
         install,
+        EN_TRIGGER_MATRIX_EXPECTATIONS["uat_install_auto"],
+        "uat.md installation auto matrix",
+        findings,
+    )
+    assert_snippets_present(
+        install,
         EN_TRIGGER_MATRIX_EXPECTATIONS["uat_install_start"],
         "uat.md installation start matrix",
         findings,
@@ -603,6 +730,12 @@ def trigger_matrix_findings(texts: dict[str, str]) -> list[str]:
         markdown_section(uat, "## Failure Conditions"),
         EN_TRIGGER_MATRIX_EXPECTATIONS["uat_failure"],
         "uat.md failure-condition matrix",
+        findings,
+    )
+    assert_snippets_present(
+        markdown_section(uat, "## Failure Conditions"),
+        EN_TRIGGER_MATRIX_EXPECTATIONS["uat_failure_auto"],
+        "uat.md auto failure-condition matrix",
         findings,
     )
     return findings
@@ -655,7 +788,7 @@ def validate_texts(root: Path, texts: dict[str, str]) -> list[str]:
         for match in re.finditer(r"^\|\s*`(/CER-[a-z]+)(?:\s+[^`]*)?`", texts["SKILL.md"], re.MULTILINE)
     }
     if skill_commands != FORMAL_COMMANDS:
-        findings.append(f"slash commands must remain exactly five: {sorted(skill_commands)}")
+        findings.append(f"slash commands must remain exactly six: {sorted(skill_commands)}")
 
     all_markdown = "\n".join(
         texts[relative] for relative in sorted(texts) if relative.endswith(".md")
@@ -681,6 +814,10 @@ def validate_texts(root: Path, texts: dict[str, str]) -> list[str]:
         findings.append("result disposition owner marker must occur exactly once")
     if RESULT_DISPOSITION_OWNER_MARKER not in texts["references/core-runtime.md"]:
         findings.append("result disposition owner marker is not in core-runtime.md")
+    if all_markdown.count(EXECUTION_PROFILE_OWNER_MARKER) != 1:
+        findings.append("execution profile owner marker must occur exactly once")
+    if EXECUTION_PROFILE_OWNER_MARKER not in texts["references/core-runtime.md"]:
+        findings.append("execution profile owner marker is not in core-runtime.md")
 
     owner = re.sub(r"\s+", " ", texts["references/parallel-producers.md"])
     for label, required in OWNER_REQUIREMENTS.items():
@@ -694,6 +831,22 @@ def validate_texts(root: Path, texts: dict[str, str]) -> list[str]:
     uat = re.sub(r"\s+", " ", texts["references/uat.md"])
     roadmap = re.sub(r"\s+", " ", texts["references/roadmap.md"])
     core_normalized = re.sub(r"\s+", " ", core)
+    execution_profile_match = re.search(
+        r"^## Execution Profile Gate[ \t]*\n([\s\S]*?)(?=^## |\Z)",
+        core,
+        re.MULTILINE,
+    )
+    if not execution_profile_match:
+        findings.append("core-runtime.md lacks the execution profile gate owner section")
+    else:
+        execution_profile_owner = re.sub(
+            r"\s+", " ", execution_profile_match.group(1)
+        )
+        if EXECUTION_PROFILE_OWNER_MARKER not in execution_profile_owner:
+            findings.append("execution profile marker is outside its owner section")
+        for label, required in EXECUTION_PROFILE_REQUIREMENTS.items():
+            if required not in execution_profile_owner:
+                findings.append(f"execution profile owner missing {label}")
     preflight_match = re.search(
         r"^## Controller Preflight[ \t]*\n([\s\S]*?)(?=^## Startup|\Z)",
         core,
@@ -801,10 +954,17 @@ def validate_texts(root: Path, texts: dict[str, str]) -> list[str]:
     for label, forbidden in RESULT_DISPOSITION_FORBIDDEN.items():
         if forbidden in normalized_markdown:
             findings.append(f"result-disposition fixed contradiction present {label}")
+    for label, forbidden in EXECUTION_PROFILE_FORBIDDEN.items():
+        if forbidden in normalized_markdown:
+            findings.append(f"execution-profile fixed contradiction present {label}")
     if "[parallel-producers.md](references/parallel-producers.md)" not in skill:
         findings.append("SKILL.md lacks direct progressive-disclosure route")
     if "The long-task drift checkpoint is owned only" not in skill:
         findings.append("SKILL.md lacks drift-checkpoint owner pointer")
+    if "`/CER-auto` route selection, recheck, and safe transition are owned only by" not in skill:
+        findings.append("SKILL.md lacks execution-profile owner pointer")
+    if "that owner's single bounded-read requirement" not in re.sub(r"\s+", " ", skill):
+        findings.append("SKILL.md lacks the selector single-read owner pointer")
     if "[Parallel Candidate Producers](parallel-producers.md)" not in core:
         findings.append("core-runtime role summary lacks owner pointer")
     if "CER has only the formal roles C, E1, R, and E2" not in core:
@@ -835,6 +995,9 @@ def validate_texts(root: Path, texts: dict[str, str]) -> list[str]:
     for label, required in TRUTH_SOURCE_INTAKE_UAT_REQUIREMENTS.items():
         if required not in uat:
             findings.append(f"uat.md missing truth-source intake counterexample {label}")
+    for label, required in CONTROLLER_CHALLENGE_UAT_REQUIREMENTS.items():
+        if required not in texts["references/uat.md"]:
+            findings.append(f"uat.md missing Controller long-task challenge {label}")
     if "## Outcome Anchor And Progress Scenarios" not in texts["references/uat.md"]:
         findings.append("uat.md lacks outcome-anchor progress scenarios")
     for label, required in OUTCOME_ANCHOR_UAT_REQUIREMENTS.items():
@@ -846,6 +1009,11 @@ def validate_texts(root: Path, texts: dict[str, str]) -> list[str]:
     for label, required in RESULT_DISPOSITION_UAT_REQUIREMENTS.items():
         if required not in uat:
             findings.append(f"uat.md missing result-disposition counterexample {label}")
+    if "## Adaptive Execution Profile Scenarios" not in texts["references/uat.md"]:
+        findings.append("uat.md lacks adaptive execution profile scenarios")
+    for label, required in EXECUTION_PROFILE_UAT_REQUIREMENTS.items():
+        if required not in uat:
+            findings.append(f"uat.md missing execution-profile scenario {label}")
     unexpected_failure_uat_match = re.search(
         r"^## Unexpected Failure And Scope-Exception Scenarios[ \t]*\n([\s\S]*?)(?=^## |\Z)",
         texts["references/uat.md"],
@@ -893,7 +1061,13 @@ def validate(root: Path) -> list[str]:
     unexpected = sorted(actual_files - EXPECTED_FILES)
     if unexpected:
         return [f"unexpected package files: {unexpected}"]
-    return validate_texts(root, read_texts(root))
+    findings = validate_texts(root, read_texts(root))
+    router_bytes = len((root / "SKILL.md").read_bytes())
+    if router_bytes > MAX_ROUTER_BYTES:
+        findings.append(
+            f"SKILL.md concise-router budget exceeded: {router_bytes} > {MAX_ROUTER_BYTES} bytes"
+        )
+    return findings
 
 
 def mutation_matrix(root: Path) -> tuple[int, list[str]]:
@@ -1031,6 +1205,33 @@ def mutation_matrix(root: Path) -> tuple[int, list[str]]:
     cases.append(("result_disposition_owner_marker_wrong_section", result_disposition_wrong_section))
     cases.append(
         (
+            "execution_profile_owner_marker_duplicate",
+            mutated(
+                "SKILL.md",
+                "# CER Workflow",
+                f"# CER Workflow\n{EXECUTION_PROFILE_OWNER_MARKER}",
+            ),
+        )
+    )
+    cases.append(
+        (
+            "execution_profile_owner_marker_missing",
+            mutated("references/core-runtime.md", EXECUTION_PROFILE_OWNER_MARKER),
+        )
+    )
+    execution_profile_wrong_section = mutated(
+        "references/core-runtime.md", EXECUTION_PROFILE_OWNER_MARKER
+    )
+    execution_profile_wrong_section["references/core-runtime.md"] = execution_profile_wrong_section[
+        "references/core-runtime.md"
+    ].replace(
+        "## YAGNI And Stop",
+        f"{EXECUTION_PROFILE_OWNER_MARKER}\n## YAGNI And Stop",
+        1,
+    )
+    cases.append(("execution_profile_owner_marker_wrong_section", execution_profile_wrong_section))
+    cases.append(
+        (
             "implicit_invocation_true",
             mutated("agents/openai.yaml", "allow_implicit_invocation: false", "allow_implicit_invocation: true"),
         )
@@ -1074,6 +1275,36 @@ def mutation_matrix(root: Path) -> tuple[int, list[str]]:
                 "SKILL.md",
                 "Plain start/work or close/finish messages are not CER triggers",
                 "Plain close/finish messages are CER close triggers",
+            ),
+        )
+    )
+    cases.append(
+        (
+            "trigger_skill_auto_row_reversed",
+            mutated(
+                "SKILL.md",
+                "no C exists before the route decision",
+                "C exists before the route decision",
+            ),
+        )
+    )
+    cases.append(
+        (
+            "trigger_core_auto_row_reversed",
+            mutated(
+                "references/core-runtime.md",
+                "no C exists before the route decision",
+                "C exists before the route decision",
+            ),
+        )
+    )
+    cases.append(
+        (
+            "trigger_uat_install_auto_reversed",
+            mutated(
+                "references/uat.md",
+                "no C exists before the route decision",
+                "C exists before the route decision",
             ),
         )
     )
@@ -1236,6 +1467,13 @@ def mutation_matrix(root: Path) -> tuple[int, list[str]]:
                 mutated_fragment("references/core-runtime.md", fragment),
             )
         )
+    for label, fragment in EXECUTION_PROFILE_REQUIREMENTS.items():
+        cases.append(
+            (
+                f"execution_profile_owner_missing_{label}",
+                mutated_fragment("references/core-runtime.md", fragment),
+            )
+        )
     for label, fragment in SENDABLE_PACKET_REQUIREMENTS.items():
         cases.append(
             (
@@ -1306,6 +1544,13 @@ def mutation_matrix(root: Path) -> tuple[int, list[str]]:
                 mutated_fragment("references/uat.md", fragment),
             )
         )
+    for label, fragment in CONTROLLER_CHALLENGE_UAT_REQUIREMENTS.items():
+        cases.append(
+            (
+                f"controller_challenge_uat_missing_{label}",
+                mutated_fragment("references/uat.md", fragment),
+            )
+        )
     for label, fragment in OUTCOME_ANCHOR_UAT_REQUIREMENTS.items():
         cases.append(
             (
@@ -1324,6 +1569,13 @@ def mutation_matrix(root: Path) -> tuple[int, list[str]]:
         cases.append(
             (
                 f"result_disposition_uat_missing_{label}",
+                mutated_fragment("references/uat.md", fragment),
+            )
+        )
+    for label, fragment in EXECUTION_PROFILE_UAT_REQUIREMENTS.items():
+        cases.append(
+            (
+                f"execution_profile_uat_missing_{label}",
                 mutated_fragment("references/uat.md", fragment),
             )
         )
@@ -1419,6 +1671,17 @@ def mutation_matrix(root: Path) -> tuple[int, list[str]]:
                     "references/core-runtime.md",
                     "## Outcome Anchor And Progress Gate",
                     f"## Outcome Anchor And Progress Gate\n\n{contradiction}.",
+                ),
+            )
+        )
+    for label, contradiction in EXECUTION_PROFILE_FORBIDDEN.items():
+        cases.append(
+            (
+                f"execution_profile_contradiction_{label}",
+                mutated(
+                    "references/core-runtime.md",
+                    "## Execution Profile Gate",
+                    f"## Execution Profile Gate\n\n{contradiction}.",
                 ),
             )
         )

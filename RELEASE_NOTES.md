@@ -4,6 +4,31 @@
 flow 的未發布內容會明確標示為候選。若 release 中止，對應內容必須改回候選或移除。
 實際執行規則以使用者已安裝版本隨附的 Skill references 為準。
 
+## v0.3.11
+
+本版加入本地 `/CER-auto` 入口，讓使用者只提出任務，由 Skill 先選最低足夠執行
+強度；清楚小任務不啟動 CER，清楚長任務交給 Goal，只有權威升格、公開聲稱、
+release/readiness、交接真源或外部／不可逆後果才進入 CER gate。
+
+- `/CER-auto <任務、限制、優先序>` 會先回一行路線：ordinary execution、Goal、
+  CER-gated Goal/E1 或 blocked
+- `ordinary execution` 不建立 C／E／R 身份、不顯示小熊卡，也不載入其他 CER
+  references
+- `Goal` 承擔清楚長任務的閉環推進與驗證 loop，但不擁有 CER 的唯一 writer、角色
+  身份或 authority owner
+- `CER-gated Goal/E1` 只在成果準備升格為正式資料、模型輸入、報告段落、decision
+  gate、handoff truth、release/readiness claim 或 public/external claim 時啟動
+- 權威來源、安全邊界、驗收條件、root／permission、Goal 能力或外部操作授權不足時，
+  路線必須是 blocked，不能以 hash、receipt、source count、schema 或 AI confidence
+  代替權威證據
+- `/CER-start` 沒有被取代；它仍是使用者已確定需要完整 CER 流程時的直接入口
+- 公開 README 補上 `/CER-auto <任務>` 的新手用法；`/CER-help` 的指令表會隨本版
+  Skill 顯示 `/CER-auto`
+- 中英文 runtime、UAT 與 Skill validators 加入 Goal-aware routing、authority
+  promotion、blocked route 及 illegal shortcut 的固定反例；套件各有 411 個 mutation cases
+- Release-readiness 已完成全文靜態審核及兩輪 AI 真實流程 UAT；發布後使用者手動 UAT
+  仍需另行回報
+
 ## v0.3.10
 
 本版補上結果回來後的處置閉環，避免候選、診斷、衍生輸出或 Reviewer PASS 被錯誤

@@ -1,101 +1,63 @@
 ---
 name: cer-workflow-en
-description: "Run the standalone CER multi-agent workflow in English for long-running, multi-batch, or interruption-prone work that needs a Controller, one persistent Executor, risk-based fresh Reviewers, self-contained cross-task delegation, direct return, checkpoints, staged delivery, and on-demand parallel candidate analysis. Use only for explicit CER-qualified commands or equivalent meaning, such as /CER-start, Start CER, /CER-stop, /CER-close, Close CER, or explicit CER roles and closed-loop execution. Plain start/work or close/finish messages are not CER triggers. This Skill does not prescribe project documents."
+description: "Run standalone CER, or use local /CER-auto to select the minimum sufficient ordinary, Goal, CER-gated, or blocked route. Use only for explicit CER-qualified commands or equivalent meaning; use it for long-running, multi-batch, interruption-prone work needing one writer, fresh Reviewers, self-contained dispatch, persistence, and on-demand parallel candidate analysis. Plain start/work or close/finish messages are not CER triggers. This Skill does not prescribe project documents."
 ---
 
 # CER Workflow
 
-CER Core v1 is a standalone workflow for Codex only. Claude Code requires a separate Skill
-that has not been provided. Do not claim that this Skill or repository currently supports
-Claude Code.
+CER Core v1 is for Codex only. Claude Code requires a separate Skill that has not been provided. Do
+not claim that this Skill or repository currently supports Claude Code.
 
-## Start
+## Entry Routing
 
-When the user explicitly says `/CER-start <overall task, constraints, priorities>`, `Start CER: ...`, or an equivalent CER-qualified start:
-
-1. Before accepting `/CER-start`, read [core-runtime.md](references/core-runtime.md) and
+1. For local `/CER-auto`, before any CER identity exists, read only "Execution Profile Gate" in
+   [core-runtime.md](references/core-runtime.md), plus the user request and target-project truth needed
+   for routing; when their paths are known, load them under that owner's single bounded-read
+   requirement. If ordinary execution or Goal is selected, stop loading CER references. If
+   CER-gated Goal/E1 is selected, read `core-runtime.md` and
+   [roadmap.md](references/roadmap.md) in full only at the promotion point and use the current
+   CER gate startup. A blocked route reports the missing condition and stops. Remote `/CER-auto` is unsupported in this first version.
+2. Before accepting `/CER-start`, read [core-runtime.md](references/core-runtime.md) and
    [roadmap.md](references/roadmap.md) in full.
-2. For `/CER-close`, read only "Roles", "Bear-Card Package Version", and "Standalone
-   Persistence And Closeout" in `core-runtime.md`, plus "Fixed Lifecycle Cards" in
-   `roadmap.md`.
-3. For `/CER-stop`, read only "Roles", "Bear-Card Package Version", and "Stop CER" in
-   `core-runtime.md`, plus "Fixed Lifecycle Cards" in `roadmap.md`. For another bear-card
-   checkpoint, read only the relevant `roadmap.md` section.
-4. Expand reading only when role coordinates or terminal-state evidence are incomplete or
-   contradictory, or when target-project rules require it. Do not reread all references merely
-   because the command is stop or close.
-5. After CER is active, when the target `AGENTS.md` clearly routes Kit full-closeout or
-   governance-bridge intent, read only the matching rule in "Self-Contained Dispatch" and do not
-   redesign the Kit procedure.
-6. Read [uat.md](references/uat.md) in full only for installation acceptance or fresh UAT.
-7. Before C evaluates or uses parallel candidate producers, read
-   [parallel-producers.md](references/parallel-producers.md) in full. It is the sole complete
-   rule owner for this capability.
+3. For `/CER-close`, read only "Roles", "Bear-Card Package Version", and "Standalone
+   Persistence And Closeout" in `core-runtime.md`, plus "Fixed Lifecycle Cards" in `roadmap.md`.
+4. For `/CER-stop`, read only "Roles", "Bear-Card Package Version", and "Stop CER" in
+   `core-runtime.md`, plus "Fixed Lifecycle Cards" in `roadmap.md`; read only the relevant roadmap
+   section for another checkpoint.
+5. Expand reading only when role coordinates or terminal-state evidence are incomplete or contradictory, or target-project rules require it. Do not reread all references merely because the command is stop or close.
+6. After CER is active, if target `AGENTS.md` routes Kit full closeout or governance bridge intent,
+   read only the matching rule in "Self-Contained Dispatch" and do not redesign the Kit procedure.
+7. Read [uat.md](references/uat.md) in full only for installation acceptance or fresh UAT.
+8. Before C evaluates or uses parallel candidate producers, read
+   [parallel-producers.md](references/parallel-producers.md) in full; it is the sole complete owner.
 
 ## Commands
 
-Slash commands are stable text aliases. Register them in a slash-command, snippet, Snap, or searchable command interface when the platform supports one. Otherwise, the user can paste the same text.
+Slash commands are text aliases. If the platform has no command UI, pasting the same text still works.
 
 | Command | Natural language | Effect |
 |---|---|---|
-| `/CER-start <task, constraints, priorities>` | `Start CER: ...` | Start CER v1; a local task or explicit remote receiver task may become the only C. Plain start/work messages do not start CER. |
-| `/CER-stop` | `Stop CER and continue in a single thread.` | Stop CER and send no new E1/R work. If E1 is writing, first bring the writer to a verifiable state. |
-| `/CER-close` | `Close CER.` | Close CER. The same E1 updates only required existing sources of truth and marks `writer closed`. Plain close/finish messages do not close CER. |
-| `/CER-status` | `Show CER status.` | Report only C's known state, role coordinates, next checkpoint, and blockers. Do not poll. |
-| `/CER-help` | `Show CER commands.` | Show this command table. |
+| `/CER-auto <task, constraints, priorities>` | `Run CER adaptively: ...` | In a local task, select ordinary execution, Goal, CER-gated Goal/E1, or blocked first; no C exists before the route decision. Remote is unsupported in this first version. |
+| `/CER-start <task, constraints, priorities>` | `Start CER: ...` | Start CER; a local task or explicit Remote receiver may become the only C. Plain start/work messages do not start CER. |
+| `/CER-stop` | `Stop CER and continue in one thread.` | Stop CER after the runtime brings any active writer to a verifiable state. |
+| `/CER-close` | `Close CER.` | Close CER and prove writer closed under the runtime. Plain close/finish messages do not close CER. |
+| `/CER-status` | `Show CER status.` | Report only C's known state, coordinates, checkpoint, and blockers; do not poll. |
+| `/CER-help` | `Show CER commands.` | Show this table. |
 
-## Invariants
+## Entry Boundaries
 
-- A local task or explicit remote receiver task must pass the complete unique-C startup gate in [core-runtime.md](references/core-runtime.md). Candidate `C_READY` plus sender readback is still insufficient; the receiver becomes the active Controller (C) only after actually receiving `C_ACCEPTED`.
-- Every successfully accepted `CER-start` first shows the fixed open-eye start card from
-  [roadmap.md](references/roadmap.md), including simple single-batch work. Before showing any
-  bear card, read `VERSION` from this Skill root. The card must be output as the standalone
-  fenced `text` code block in the roadmap. A blocked start shows the open-eye red blocker card and
-  never a closed-eye success card.
-- Formal E/R roles must be independent new tasks/threads in the same Codex project sidebar,
-  created through the official `create_thread` tool. Do not downgrade to an inline sub-agent,
-  fork, or delegate.
-- Every `CER-start` cycle creates a brand-new E1. Later batches in the same cycle keep reusing
-  that same E1 as the only writer. E2 is created as another new task only after takeover
-  conditions are met.
-- Create Reviewer (R) only for high risk or when C cannot reliably disprove a claim. Every R
-  must be a fresh new task, read-only and bounded; do not reuse an old R.
-- C may use inline parallel candidate producers on demand under
-  [parallel-producers.md](references/parallel-producers.md). They are not formal roles and must
-  not become shared-workspace writers, replace E/R, communicate directly with E1/R, or produce
-  formal ready/result. When parallel work is not suitable, producer count is zero and C analyzes
-  serially.
-- Make every cross-task batch self-contained. E1 and R do not automatically inherit C's conversation.
-- When creating or identifying tasks or threads, the Controller uses a visible title or equivalent first-line label in the form `🚀 C:01｜...`. E1/R/E2 still use `E1:01｜...`, `R1:01｜...`, `R2:01｜...`, or `E2:01｜...` without the rocket. Tasks in the same cycle share the same short cycle number; a later cycle uses a new number. `00` may identify only a legacy/migration cycle that started before cycle numbering and cannot be reliably reconstructed; new cycles use `01` or higher and never show a question-mark cycle label. The cycle number is sidebar display only, not uniqueness evidence; the full threadId remains authoritative. Every return target must include a verifiable threadId or platform-equivalent coordinate; sessionId is recorded only when the active tool schema/receipt explicitly requires or provides it, and never substitutes for threadId or derives hostId.
-- Before creating a task or starting validation, use real tools to prove the identity source, required parameters, send path, recipient, threadId or platform-equivalent coordinates, and adjudication point. If any link is missing, stop that delegation architecture. Document review, after-the-fact thread reads, and assumptions do not replace communication proof.
-- When create/send reports failure, timeout, or a partial result, mark it `outcome_unknown` instead of treating it as definite failure and retrying immediately. C performs one bounded authoritative reconciliation. Duplicate roles receive no formal work until one task is selected and every other task is proven stopped with zero writes. If any duplicate writer may have worked or written, block and recover a one-writer state first.
-- Every formal batch uses a stable `batchId`, monotonic `batchSeq`, and immutable `payloadDigest`; every control, receipt, and result message uses a stable `messageId`. The recipient deduplicates and recovers by registered, running, result-ready, result-accepted, or unknown state. The same identity with different content always blocks, and no revision starts before the old batch is canceled, terminated, or recovered.
-- Adaptive batch acceleration is the default scheduling strategy, not a Turbo mode or another slash command. It operates only while communication, batch lifecycle, single-writer state, evidence validity, and the task contract are known; uncertainty disables it automatically without weakening safety, independent review, or acceptance.
-- E1 and R direct-push results. After dispatch, task creation, or send, C enters `POST_DISPATCH_PARKED` and must not automatically use `wait_threads` or `read_thread` to wait, wake itself, track progress, read commentary, or discover results. C may read the related task only for a one-time check explicitly requested by the user in the same turn, or for one bounded readback/adjudication after a direct-push has been received. Without a direct-push, a wait snapshot, completion state, commentary, child final, or passive read cannot advance state, trigger the next batch, or become ready/result evidence.
-- C does not write the workspace. E1's output remains a candidate until C reads it back and adjudicates it.
-- Respect the target project's existing sources of truth, plans, and progress. CER does not create a fixed document set or present its role state as the project plan.
-- The truth-source intake gate is owned only by Controller preflight in [core-runtime.md](references/core-runtime.md); this entry summary does not restate that rule.
-- The long-task drift checkpoint is owned only by the Outcome Anchor And Progress Gate in [core-runtime.md](references/core-runtime.md); this entry summary does not restate that rule.
-- For complex medical, legal, financial, investment, policy, academic, commercial, design, operational, or other knowledge-heavy work, C first defines the required knowledge foundation. E1 works only within that scope, and R independently tests claims against the same scope.
-- Stop in the user's main task when a material direction, deliverable shape, or cost is undecided. After execution, deliver observable results at sensible stages.
-- Scale roles, batches, Reviewers, checkpoints, and acceptance to risk. Do not substitute more agents, documents, reviews, or ceremony for a clear target and testable acceptance. Only [core-runtime.md](references/core-runtime.md)'s "YAGNI And Stop" section owns the necessity and consolidation decision for added E/R work or task branches.
-- Choose model and effort from capability, cost, and user limits. They are not fixed CER version blockers.
-- After one `/CER-close` completes in a workspace, that cycle's C/E/R tasks remain history
-  only and the whole set must not receive work for a later cycle. A later cycle must use a
-  new task that passes the unique-C gate, create a brand-new E1, and use only fresh
-  Reviewers. It must not reuse any E/R coordinate from the closed cycle.
-- On successful `/CER-close`, first prove `writer closed` and required readback, then use the
-  official title tool to append `✓` to the cycle number in every verifiable C/E/R title and read
-  it back. Rename failure only reports `title sync warning`; it must not be claimed as renamed.
-  Only after that does C show the closed-eye close card.
+- The complete unique-C startup gate is owned by `core-runtime.md`: Candidate `C_READY` plus sender readback is still insufficient; the receiver becomes the active Controller (C) only after actually receiving `C_ACCEPTED`.
+- Formal E/R tasks must be visible in the same Codex project sidebar and created through the official `create_thread`. Do not downgrade to an inline sub-agent, fork, or delegate. Every `CER-start` cycle creates a brand-new E1; Later batches in the same cycle keep reusing that E1. Every R is a fresh new task. Full topology, writer, Reviewer, batch, direct-push, result-disposition, authority-promotion, persistence, and close rules are defined only in `core-runtime.md`.
+- Display labels are only identifiers: `🚀 C:01｜...`, `E1:01｜...`, `R1:01｜...`, `R2:01｜...`, and
+  `E2:01｜...`. `00` may identify only an unreconstructable legacy cycle; new cycles use `01` or higher
+  and never show a question-mark cycle label. The cycle number is sidebar display only; the full threadId remains authoritative. A close rename failure is only a `title sync warning`. Card text and VERSION
+  loading are owned by `roadmap.md` and `core-runtime.md`.
+- Truth-source intake is owned only by Controller preflight in `core-runtime.md`. `/CER-auto` route selection, recheck, and safe transition are owned only by its "Execution Profile Gate". The long-task drift checkpoint is owned only by its outcome-anchor and progress gate. This entry does not restate profile, Reviewer, YAGNI, or stop rules.
 
-## Version Boundary
+## Version And Blueprint Boundary
 
-This Skill contains Codex-only CER Core v1; `v1` is the workflow generation, not the currently
-installed package version. Bear-card package versions come only from this Skill's `VERSION`.
-Every release or upgrade must update `VERSION` first. After the `skills` CLI updates the whole
-Skill, cards naturally read the new version.
-
-Root `01_CER_Workflow_Human_Overview.en.md` and `02_CER_Workflow_AI_Protocol.en.md` are internal requirements and acceptance blueprints for this source project, maintained separately from this Skill's execution surface. Skill references are the actual operating procedure. The two layers align through requirements and acceptance, but neither owns the other.
-
-When the user needs to turn a fuzzy idea into a blueprint, requirements, R&D, a plan, and progress, `$project-context-workflow` may be used separately. It is not a CER prerequisite. CER reads only its accepted sources of truth and does not create a second document set or duplicate consensus gate.
+`v1` is the workflow generation, not the package version; package version comes only from `VERSION`
+beside `SKILL.md`. Root `01_CER_Workflow_Human_Overview.en.md` and
+`02_CER_Workflow_AI_Protocol.en.md` are internal requirements and acceptance blueprints; Skill
+references are operating procedures. They align but do not own each other, and runtime rules are not
+copied into this entry router.
