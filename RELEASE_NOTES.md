@@ -4,6 +4,18 @@
 flow 的未發布內容會明確標示為候選。若 release 中止，對應內容必須改回候選或移除。
 實際執行規則以使用者已安裝版本隨附的 Skill references 為準。
 
+## v0.3.13
+
+本版修正 `/CER-auto` 的公開字眼，避免 `CER 工作法` 路線被誤讀成只派執行線、沒有
+Controller 或 Reviewer。
+
+- 公開 README、`/CER-help`、runtime／UAT 說法統一使用 `CER 工作法`
+- README 補明：ordinary execution／Goal 不建立 C／E1／R；選到 CER 工作法才進完整
+  CER，R 仍按風險需要才出現
+- 三組 README 視覺圖同步同一字眼；舊圖保留為 backup，不刪除
+- 中英文 Skill packages 均為 VERSION `0.3.13`，各 8 files，411 mutation cases 通過
+- 發布後使用者手動 UAT 仍需另行回報
+
 ## v0.3.12
 
 本版把 `/CER-auto` 的新手入口和 README 視覺說明整理成可公開版本。重點是讓新用戶
@@ -11,7 +23,7 @@ flow 的未發布內容會明確標示為候選。若 release 中止，對應內
 full CER 的工作。
 
 - README 首屏改用 `/CER-auto` 四路線選擇圖，說明 ordinary execution、Goal、
-  CER-gated Goal/E1 和 blocked
+  CER 工作法和 blocked
 - README 補上 `/CER-auto <任務>` 的任務寫法：目標、限制／不可做、成功驗收、
   權威來源／授權邊界
 - `cer-workflow-infographic.png` 和 `cer-exploration-helper-architecture.png`
@@ -24,16 +36,16 @@ full CER 的工作。
 ## v0.3.11
 
 本版加入本地 `/CER-auto` 入口，讓使用者只提出任務，由 Skill 先選最低足夠執行
-強度；清楚小任務不啟動 CER，清楚長任務交給 Goal，只有權威升格、公開聲稱、
-release/readiness、交接真源或外部／不可逆後果才進入 CER gate。
+強度；清楚小任務不啟動 CER，清楚長任務交給 Goal，只有正式採用、公開聲稱、
+release/readiness、交接真源或外部／不可逆後果才進入 CER 工作法。
 
 - `/CER-auto <任務、限制、優先序>` 會先回一行路線：ordinary execution、Goal、
-  CER-gated Goal/E1 或 blocked
+  CER 工作法或 blocked
 - `ordinary execution` 不建立 C／E／R 身份、不顯示小熊卡，也不載入其他 CER
   references
 - `Goal` 承擔清楚長任務的閉環推進與驗證 loop，但不擁有 CER 的唯一 writer、角色
   身份或 authority owner
-- `CER-gated Goal/E1` 只在成果準備升格為正式資料、模型輸入、報告段落、decision
+- `CER 工作法` 只在成果要用作正式資料、模型輸入、報告段落、decision
   gate、handoff truth、release/readiness claim 或 public/external claim 時啟動
 - 權威來源、安全邊界、驗收條件、root／permission、Goal 能力或外部操作授權不足時，
   路線必須是 blocked，不能以 hash、receipt、source count、schema 或 AI confidence
@@ -53,7 +65,7 @@ release/readiness、交接真源或外部／不可逆後果才進入 CER gate。
 
 - C 接納結果時必須明示 `accepted_as`、`authority_effect`、`progress_effect`、
   `permitted_next_use`、`forbidden_next_use`，以及是否需要目標專案既有持久化
-- 裸 `RESULT_ACCEPTED` 只代表該批次已裁決及通訊去重，不代表權威升格、主線進度，
+- 裸 `RESULT_ACCEPTED` 只代表該批次已裁決及通訊去重，不代表正式採用、主線進度，
   也不代表下一批可把結果當權威輸入
 - 候選、草稿、診斷、衍生輸出及純審閱結果預設只可作 `working_material`；要升格為
   `authoritative_input`，必須有使用者明示或目標專案既有 owner 讀回、升格依據及
@@ -63,7 +75,7 @@ release/readiness、交接真源或外部／不可逆後果才進入 CER gate。
   `promotion_evidence` 與 `project_owner_anchor`
 - Reviewer verdict 分成 `content_verdict`、`implementation_verdict`、
   `outcome_verdict`、`authority_promotion_verdict`；內容或技術 PASS 不會自動變成
-  outcome PASS、authority promotion PASS 或主線進度，`out_of_scope` 也不是 PASS
+  outcome PASS、正式採用 PASS 或主線進度，`out_of_scope` 也不是 PASS
 - 如果結果會改變當前階段、artifact 角色、下一產品路線、權威來源、progress claim
   或後續批次輸入，C 必須先按目標專案既有持久化規則回寫並讀回；未同步或互相矛盾
   時，下一批停在 `dispatch_blocked`

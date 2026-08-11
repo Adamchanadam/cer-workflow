@@ -8,9 +8,9 @@ CER is a workflow skill for Codex. It does not replace ordinary chat, and it doe
 
 In plain language: when you discover halfway through that the direction, constraints, or risk has changed, CER brings that change back to you before assigning the next batch of work. It is for tasks where the human and the AI need to make decisions together. It is not worth using for every small task.
 
-If you do not want to choose between ordinary chat, Goal, and CER up front, use `/CER-auto <task>` after installation. It first selects the minimum sufficient route: ordinary execution, Goal, CER-gated Goal/E1, or blocked because authority, safety, or acceptance conditions are missing.
+If you do not want to choose between ordinary chat, Goal, and CER up front, use `/CER-auto <task>` after installation. It first selects the minimum sufficient route: ordinary execution, Goal, CER Workflow, or blocked because authority, safety, or acceptance conditions are missing.
 
-![CER-auto route selector: ordinary execution, Goal, CER-gated Goal/E1, and blocked](assets/cer-auto-routing-infographic.en.png)
+![CER-auto route selector: ordinary execution, Goal, CER Workflow, and blocked](assets/cer-auto-routing-infographic.en.png)
 
 ## If You Are Not Sure Which Mode To Use
 
@@ -23,17 +23,17 @@ Use:
 A stronger task shape is: `goal + constraints/do-not-do + acceptance + authority/source/authorization boundary`. Examples do not need to use a fixed domain; Codex should adapt the wording to your background, material, and current work.
 
 ```text
-/CER-auto help me compare/organize/fix <my material or problem>; do not <forbidden action>; success means <verifiable output>; before a formal decision, payment, publication, or external commitment, stop for a CER gate.
+/CER-auto help me compare/organize/fix <my material or problem>; do not <forbidden action>; success means <verifiable output>; before a formal decision, payment, publication, or external commitment, stop and use CER Workflow.
 ```
 
 Codex first replies with one route:
 
 - `ordinary execution`: the task is small, clear, reversible, and ordinary chat is enough.
 - `Goal`: the task is longer, and the endpoint plus verification loop are clear.
-- `CER-gated Goal/E1`: the result is about to become formal data, a report, model input, handoff truth, release/readiness evidence, or a public/external claim, so CER handles the gate.
+- `CER Workflow`: the result will be used as official data, report text, model input, handoff truth, release/readiness evidence, or a public/external claim, so full CER handles the acceptance.
 - `blocked`: authority, safety, acceptance conditions, permissions, or external-action authorization are missing, so Codex must not pretend the task passed.
 
-New users should start with `/CER-auto`. If you already know you need the full CER workflow, use `/CER-start` directly; it has not been replaced and remains available for explicitly full CER work.
+New users should start with `/CER-auto`. If it returns ordinary execution or Goal, there is no C/E1/R. If it returns CER Workflow, it enters full CER, with R only when risk requires it. If you already know you need the full CER workflow, use `/CER-start` directly; it has not been replaced and remains available for explicitly full CER work.
 
 ## What You See When CER Starts
 
@@ -60,7 +60,7 @@ Use Goal when:
 Use CER when:
 
 - The direction is not fully settled, and the tradeoffs only become clear during the work.
-- The work affects public content, workflow design, drift-prone areas, or long-running work that needs mid-work decisions, authority promotion, or independent review.
+- The work affects public content, workflow design, drift-prone areas, or long-running work that needs mid-work decisions, official acceptance, or independent review.
 - You need mid-work decisions, clear role boundaries, or independent review on important or risky work.
 
 Examples:
@@ -124,13 +124,15 @@ Sidebar labels such as `C:01`, `E1:01`, and `R1:01` mark the roles in the same C
 
 ## Advanced: Exploration Helpers
 
+This section applies only after CER has started, or after `/CER-auto` has selected CER Workflow. Ordinary execution and Goal do not start CER Exploration Helpers.
+
 Exploration Helpers are not a fourth formal role. The formal roles remain Controller, Executor, and Reviewer.
 
 Medium and large tasks sometimes need several kinds of preparation at once: finding information, comparing options, sketching interface directions, or spotting likely risks. If the Controller handles all of that one item at a time, the early analysis can slow down the workflow. When it is useful, the Controller may start a small number of Exploration Helpers to organize candidate information before the Controller checks, deduplicates, and decides.
 
 Exploration Helpers only produce candidate material. They do not modify the project, replace the Executor or Reviewer, or declare the work complete. The Controller decides whether to start them based on task size, source clarity, and whether parallel preparation is actually useful. The complete conditions live in the [complete Exploration Helper rules](skills/cer-workflow-en/references/parallel-producers.md#activation-eligibility).
 
-![CER Exploration Helpers decision tree: C decides first, small tasks stay with C, medium-large tasks may use Exploration Helpers, candidates return to C, E1 writes, and R reviews read-only only when risk requires](assets/cer-exploration-helper-architecture.en.png)
+![CER Exploration Helpers architecture: /CER-auto selects a route first; only CER Workflow or /CER-start enters C; C may start helpers by risk, E1 writes, and R reviews read-only only when needed](assets/cer-exploration-helper-architecture.en.png)
 
 ## Install Or Upgrade
 
@@ -166,12 +168,12 @@ A plain start/work message does not start CER. It remains available for your usu
 
 | Command | Natural language | Use |
 |---|---|---|
-| `/CER-auto <task, constraints, priorities>` | `Run CER adaptively: ...` | Select the minimum sufficient route first: ordinary execution, Goal, CER-gated Goal/E1, or blocked. |
+| `/CER-auto <task, constraints, priorities>` | `Run CER adaptively: ...` | Select the minimum sufficient route first: ordinary execution, Goal, CER Workflow, or blocked; CER Workflow enters full C/E/R, with R only when risk requires it. |
 | `/CER-start <task, constraints, priorities>` | `Start CER: ...` | Start CER, with the Controller coordinating the work. |
 | `/CER-stop` | `Stop CER and continue in one ordinary conversation.` | Stop using CER and stop assigning new Executor or Reviewer work; this does not mean the task is complete. |
 | `/CER-close` | `Close CER.` | Formally end this CER cycle; summarize the result, risks, and remaining work. |
 | `/CER-status` | `Show CER status.` | Show current progress, the next stopping point, and known issues. |
-| `/CER-help` | `Show CER commands.` | Show the available commands. |
+| `/CER-help` | `Show CER commands.` | Show the commands and `/CER-auto` task shape. |
 
 A plain close/finish message does not close CER and is not treated as `/CER-stop`.
 

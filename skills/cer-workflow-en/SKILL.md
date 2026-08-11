@@ -1,6 +1,6 @@
 ---
 name: cer-workflow-en
-description: "Run standalone CER, or use local /CER-auto to select the minimum sufficient ordinary, Goal, CER-gated, or blocked route. Use only for explicit CER-qualified commands or equivalent meaning; use it for long-running, multi-batch, interruption-prone work needing one writer, fresh Reviewers, self-contained dispatch, persistence, and on-demand parallel candidate analysis. Plain start/work or close/finish messages are not CER triggers. This Skill does not prescribe project documents."
+description: "Run standalone CER, or use local /CER-auto to select the minimum sufficient ordinary, Goal, CER Workflow, or blocked route. Use only for explicit CER-qualified commands or equivalent meaning; use it for long-running, multi-batch, interruption-prone work needing one writer, fresh Reviewers, self-contained dispatch, persistence, and on-demand parallel candidate analysis. Plain start/work or close/finish messages are not CER triggers. This Skill does not prescribe project documents."
 ---
 
 # CER Workflow
@@ -14,9 +14,11 @@ not claim that this Skill or repository currently supports Claude Code.
    [core-runtime.md](references/core-runtime.md), plus the user request and target-project truth needed
    for routing; when their paths are known, load them under that owner's single bounded-read
    requirement. If ordinary execution or Goal is selected, stop loading CER references. If
-   CER-gated Goal/E1 is selected, read `core-runtime.md` and
-   [roadmap.md](references/roadmap.md) in full only at the promotion point and use the current
-   CER gate startup. A blocked route reports the missing condition and stops. Remote `/CER-auto` is unsupported in this first version.
+   CER Workflow is selected, read `core-runtime.md` and
+   [roadmap.md](references/roadmap.md) in full only at the point that needs CER and use the current
+   full CER startup. C/E1 exist only after full CER startup; R is still created only when the
+   existing Reviewer owner requires it by risk. A blocked route reports the missing condition and
+   stops. Remote `/CER-auto` is unsupported in this first version.
 2. Before accepting `/CER-start`, read [core-runtime.md](references/core-runtime.md) and
    [roadmap.md](references/roadmap.md) in full.
 3. For `/CER-close`, read only "Roles", "Bear-Card Package Version", and "Standalone
@@ -37,19 +39,19 @@ Slash commands are text aliases. If the platform has no command UI, pasting the 
 
 | Command | Natural language | Effect |
 |---|---|---|
-| `/CER-auto <task, constraints, priorities>` | `Run CER adaptively: ...` | In a local task, select ordinary execution, Goal, CER-gated Goal/E1, or blocked first; no C exists before the route decision. Remote is unsupported in this first version. |
+| `/CER-auto <task, constraints, priorities>` | `Run CER adaptively: ...` | In a local task, select ordinary execution, Goal, CER Workflow, or blocked first; no C exists before the route decision; CER Workflow enters full C/E/R, with R only when risk requires it. Remote is unsupported in this first version. |
 | `/CER-start <task, constraints, priorities>` | `Start CER: ...` | Start CER; a local task or explicit Remote receiver may become the only C. Plain start/work messages do not start CER. |
 | `/CER-stop` | `Stop CER and continue in one thread.` | Stop CER after the runtime brings any active writer to a verifiable state. |
 | `/CER-close` | `Close CER.` | Close CER and prove writer closed under the runtime. Plain close/finish messages do not close CER. |
 | `/CER-status` | `Show CER status.` | Report only C's known state, coordinates, checkpoint, and blockers; do not poll. |
-| `/CER-help` | `Show CER commands.` | Show this table. |
+| `/CER-help` | `Show CER commands.` | Show this table and the `/CER-auto` task shape. |
 
-`/CER-auto` task shape: use `goal + constraints/do-not-do + acceptance + authority/source/authorization boundary`. When an example is needed, adapt it to the user's context rather than a fixed domain: `/CER-auto help me compare/organize/fix <my material or problem>; do not <forbidden action>; success means <verifiable output>; before a formal decision, payment, publication, or external commitment, stop for a CER gate.`
+`/CER-auto` task shape: use `goal + constraints/do-not-do + acceptance + authority/source/authorization boundary`. When an example is needed, adapt it to the user's context rather than a fixed domain: `/CER-auto help me compare/organize/fix <my material or problem>; do not <forbidden action>; success means <verifiable output>; before a formal decision, payment, publication, or external commitment, stop and use CER Workflow.`
 
 ## Entry Boundaries
 
 - The complete unique-C startup gate is owned by `core-runtime.md`: Candidate `C_READY` plus sender readback is still insufficient; the receiver becomes the active Controller (C) only after actually receiving `C_ACCEPTED`.
-- Formal E/R tasks must be visible in the same Codex project sidebar and created through the official `create_thread`. Do not downgrade to an inline sub-agent, fork, or delegate. Every `CER-start` cycle creates a brand-new E1; Later batches in the same cycle keep reusing that E1. Every R is a fresh new task. Full topology, writer, Reviewer, batch, direct-push, result-disposition, authority-promotion, persistence, and close rules are defined only in `core-runtime.md`.
+- Formal E/R tasks must be visible in the same Codex project sidebar and created through the official `create_thread`. Do not downgrade to an inline sub-agent, fork, or delegate. Every `CER-start` cycle creates a brand-new E1; Later batches in the same cycle keep reusing that E1. Every R is a fresh new task. Full topology, writer, Reviewer, batch, direct-push, result-disposition, official-acceptance, persistence, and close rules are defined only in `core-runtime.md`.
 - Display labels are only identifiers: `🚀 C:01｜...`, `E1:01｜...`, `R1:01｜...`, `R2:01｜...`, and
   `E2:01｜...`. `00` may identify only an unreconstructable legacy cycle; new cycles use `01` or higher
   and never show a question-mark cycle label. The cycle number is sidebar display only; the full threadId remains authoritative. A close rename failure is only a `title sync warning`. Card text and VERSION

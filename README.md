@@ -8,9 +8,9 @@ CER 是給 Codex 用的工作法 Skill。它不取代普通對話，也不取代
 
 簡單說：如果做到一半才發現方向、限制或風險變了，CER 會先把這件事放到你面前決定，再安排下一批工作。它適合人和 AI 一起做判斷的任務，不適合每件小事都開一套流程。
 
-如果你不想一開始就判斷該用普通對話、Goal 還是 CER，安裝後可先用 `/CER-auto <任務>`。它會先選最低足夠路線：普通執行、Goal、CER-gated Goal/E1，或因缺少權威／安全／驗收條件而 blocked。
+如果你不想一開始就判斷該用普通對話、Goal 還是 CER，安裝後可先用 `/CER-auto <任務>`。它會先選最低足夠路線：ordinary execution、Goal、CER 工作法，或因缺少權威／安全／驗收條件而 blocked。
 
-![CER-auto 四路線選擇圖：ordinary execution、Goal、CER-gated Goal/E1 和 blocked](assets/cer-auto-routing-infographic.png)
+![CER-auto 四路線選擇圖：ordinary execution、Goal、CER 工作法和 blocked](assets/cer-auto-routing-infographic.png)
 
 ## 不確定用哪一種時
 
@@ -23,17 +23,17 @@ CER 是給 Codex 用的工作法 Skill。它不取代普通對話，也不取代
 較好的任務寫法是：`目標＋限制／不可做＋成功驗收＋權威來源／授權邊界`。例子不需要固定行業；Codex 會按你的背景、資料和當前工作生成合適寫法。
 
 ```text
-/CER-auto 幫我比較/整理/修補 <我的資料或問題>；不要 <不可做的事>；成功條件是 <可驗收成果>；如要作正式決策、付款、發布或外部承諾，先停下做 CER gate。
+/CER-auto 幫我比較/整理/修補 <我的資料或問題>；不要 <不可做的事>；成功條件是 <可驗收成果>；如要作正式決策、付款、發布或外部承諾，先停下改用 CER 工作法。
 ```
 
 Codex 會先回一行路線：
 
 - `ordinary execution`：任務小、清楚、可回復，普通對話即可。
 - `Goal`：任務較長、終點和驗證方式清楚，由 Goal 承擔閉環推進。
-- `CER-gated Goal/E1`：成果準備升格為正式資料、報告、模型輸入、交接真源、release/readiness 或公開／外部聲稱時，才開 CER gate。
+- `CER 工作法`：成果要用於正式資料、報告、模型輸入、交接真源、release/readiness 或公開／外部聲稱時，才進 CER 工作法。
 - `blocked`：缺少權威來源、安全邊界、驗收條件、權限或外部操作授權，不能假裝通過。
 
-新用戶建議先用 `/CER-auto`。已確定要完整 CER 流程時，仍可直接用 `/CER-start`；它沒有被取代，保留給明確需要 full CER 的工作。
+新用戶建議先用 `/CER-auto`。如果回 ordinary execution 或 Goal，就不會出現 C／E1／R；如果回 CER 工作法，才進入完整 CER，R 仍按風險需要才出現。已確定要完整 CER 流程時，仍可直接用 `/CER-start`；它沒有被取代，保留給明確需要 full CER 的工作。
 
 ## CER 啟動後看到什麼
 
@@ -60,7 +60,7 @@ CER 開始後，Controller 會先顯示小熊啟動卡和路線圖。左邊的�
 用 CER：
 
 - 方向未完全定型，做途中才知道取捨。
-- 公開內容、流程設計、容易做偏，或長任務中有中途裁決、權威升格或獨立驗收需要的工作。
+- 公開內容、流程設計、容易做偏，或長任務中有中途裁決、正式採用或獨立驗收需要的工作。
 - 需要中途裁決、清楚角色邊界，或高風險時要獨立驗收。
 
 例子：
@@ -124,13 +124,15 @@ Goal 部分依 OpenAI 官方的 [Long-running work](https://learn.chatgpt.com/do
 
 ## 進階：探索助手
 
+這一節只適用於已啟動 CER，或 `/CER-auto` 已選到 CER 工作法的情況。ordinary execution 和 Goal 不會啟動 CER 探索助手。
+
 探索助手不是第四個正式角色。正式角色仍然只有 Controller、Executor、Reviewer。
 
 中大型任務有時需要同時查資料、比較方案、整理介面方向或找出可能風險。這些工作如果全部由 Controller 逐項做，前期分析會慢。這時 Controller 可以按需要啟動少量探索助手，讓它們先整理候選資料，再由 Controller 核對、去重和裁決。
 
 探索助手只產生候選資料；它不修改專案、不代替 Executor 或 Reviewer，也不能宣布工作完成。是否啟動，由 Controller 按任務大小、資料來源是否清楚，以及分頭處理是否真的有用來判斷。完整條件由 [探索助手完整規則](skills/cer-workflow/references/parallel-producers.md#啟動資格) 維護。
 
-![CER 探索助手決策樹：C 先判斷，小任務由 C 自己分析，中大型任務才啟動探索助手；候選回到 C，由 E1 寫檔，需要時才由 R 只讀驗收](assets/cer-exploration-helper-architecture.png)
+![CER 探索助手架構：/CER-auto 先選路；只有 CER 工作法或 /CER-start 進入 C；C 可按風險啟動探索助手、E1 寫檔、R 按需要只讀驗收](assets/cer-exploration-helper-architecture.png)
 
 ## 安裝或升級
 
@@ -166,12 +168,12 @@ CER 啟動：<你想完成的事、限制、優先順序>
 
 | 指令 | 自然語言 | 用途 |
 |---|---|---|
-| `/CER-auto <任務、限制、優先順序>` | `CER 自適應：...` | 先選最低足夠路線：ordinary execution、Goal、CER-gated Goal/E1 或 blocked。 |
+| `/CER-auto <任務、限制、優先順序>` | `CER 自適應：...` | 先選最低足夠路線：ordinary execution、Goal、CER 工作法或 blocked；選到 CER 工作法才進完整 C／E／R，R 按風險決定。 |
 | `/CER-start <任務、限制、優先順序>` | `CER 啟動：...`／`CER 開始：...`／`CER 開工：...` | 啟動 CER，由 Controller 統籌後續工作。 |
 | `/CER-stop` | `停止 CER，改用普通單一對話繼續。` | 停用 CER，不再安排新的 Executor 或 Reviewer 工作；這不代表任務已完成。 |
 | `/CER-close` | `CER 收工。`／`CER 關閉。`／`關閉 CER。` | 正式結束本輪 CER；整理成果、風險和未完成事項。 |
 | `/CER-status` | `顯示 CER 狀態。` | 顯示目前進度、下一個停點和已知問題。 |
-| `/CER-help` | `顯示 CER 指令。` | 顯示可用指令。 |
+| `/CER-help` | `顯示 CER 指令。` | 顯示可用指令和 `/CER-auto` 任務寫法。 |
 
 單獨 `收工` 不會觸發 CER close，也不會被當成 `/CER-stop`。
 

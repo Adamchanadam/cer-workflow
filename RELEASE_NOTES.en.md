@@ -5,6 +5,19 @@ has not entered an authorized release flow is explicitly marked as a candidate. 
 aborted, the affected content must be marked as candidate again or removed. Runtime authority
 remains the Skill references bundled with the version the user has installed.
 
+## v0.3.13
+
+This release fixes public `/CER-auto` wording so `CER Workflow` is not misread as an E1-only shortcut,
+without Controller or Reviewer.
+
+- Public README, `/CER-help`, runtime, and UAT wording consistently use
+  `CER Workflow`
+- README now states that ordinary execution and Goal create no C/E1/R; CER Workflow enters full CER,
+  with R only when risk requires it
+- The three README visual groups use the same wording; old images are kept as backups
+- Both language Skill packages are VERSION `0.3.13`, 8 files each, with 411 mutation cases passing
+- Post-release user manual UAT remains a separate follow-up
+
 ## v0.3.12
 
 This release turns the `/CER-auto` onboarding entrypoint and README visuals into a public-ready
@@ -12,7 +25,7 @@ version. The main user-facing change is that new users can state the task first 
 choose the minimum sufficient route; full CER remains available for work that explicitly needs it.
 
 - The README first screen now uses a `/CER-auto` four-route selector image covering ordinary
-  execution, Goal, CER-gated Goal/E1, and blocked
+  execution, Goal, CER Workflow, and blocked
 - The README adds the `/CER-auto <task>` task shape: goal, constraints/do-not-do, acceptance, and
   authority/source/authorization boundary
 - `cer-workflow-infographic.png` and `cer-exploration-helper-architecture.png` are updated to
@@ -28,16 +41,16 @@ choose the minimum sufficient route; full CER remains available for work that ex
 
 This release adds the local `/CER-auto` entrypoint. Users can state the task first, and the Skill
 selects the minimum sufficient execution strength: clear small tasks stay outside CER, clear long
-tasks go to Goal, and CER gates are reserved for authority promotion, public claims,
+tasks go to Goal, and CER Workflow is reserved for official acceptance, public claims,
 release/readiness evidence, handoff truth, or external/irreversible effects.
 
 - `/CER-auto <task, constraints, priorities>` first returns one route: ordinary execution, Goal,
-  CER-gated Goal/E1, or blocked
+  CER Workflow, or blocked
 - `ordinary execution` does not create C/E/R identities, show a bear card, or load other CER
   references
 - `Goal` carries clear long-running work and its verification loop, but it does not own CER's sole
   writer, role identities, or authority owner
-- `CER-gated Goal/E1` starts only when a result is about to become formal data, model input, a
+- `CER Workflow` starts only when a result is about to be used as official data, model input, a
   report paragraph, a decision gate, handoff truth, a release/readiness claim, or a public/external
   claim
 - When authority sources, safety boundaries, acceptance conditions, root/permission, Goal
@@ -48,7 +61,7 @@ release/readiness evidence, handoff truth, or external/irreversible effects.
 - The public README now explains `/CER-auto <task>` for new users; the `/CER-help` command table
   shows `/CER-auto` in this Skill version
 - The bilingual runtime, UAT, and Skill validators add fixed counterexamples for Goal-aware
-  routing, authority promotion, blocked routes, and illegal shortcuts; each package has 411
+  routing, official acceptance, blocked routes, and illegal shortcuts; each package has 411
   mutation cases
 - Release-readiness completed full static review and two AI real workflow UAT cycles before
   publication. Post-release user manual UAT remains a separate follow-up
@@ -63,7 +76,7 @@ authoritative input, mainline progress, or next-batch decision sources.
   `progress_effect`, `permitted_next_use`, `forbidden_next_use`, and whether existing
   target-project persistence is required
 - Bare `RESULT_ACCEPTED` means only that the batch was adjudicated and communication can
-  deduplicate it; it is not authority promotion, mainline progress, or permission for the next
+  deduplicate it; it is not official acceptance, mainline progress, or permission for the next
   batch to use the result as authoritative input
 - Candidates, drafts, diagnostics, derived outputs, and review-only results default to
   `working_material` only; promotion to `authoritative_input` requires an explicit user decision
@@ -80,7 +93,7 @@ authoritative input, mainline progress, or next-batch decision sources.
   existing persistence; when persistence is unsynchronized or contradictory, the next batch stays
   at `dispatch_blocked`
 - The bilingual runtime, UAT, and Skill validators add fixed counterexamples for result
-  disposition, authority promotion, prior-result consumption, and
+  disposition, official acceptance, prior-result consumption, and
   persistence-before-next-dispatch; each package has 316 mutation cases
 - Release-readiness completed full static review and two AI real workflow UAT cycles before
   publication. Post-release user manual UAT remains a separate follow-up
