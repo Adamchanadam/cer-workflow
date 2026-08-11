@@ -5,6 +5,23 @@ has not entered an authorized release flow is explicitly marked as a candidate. 
 aborted, the affected content must be marked as candidate again or removed. Runtime authority
 remains the Skill references bundled with the version the user has installed.
 
+## v0.3.14
+
+This release fixes the CER Workflow internal return-channel boundary. When a task says not to
+write the project/source root or not to create external side effects, E1/R must not mistake the
+formal direct-push return to Controller for a prohibited operation.
+
+- `core-runtime.md` now states that the formal direct-push return channel is CER internal
+  communication, not a project/source-root write or an external side effect
+- If the user or platform makes even this internal return channel unavailable, Controller may
+  repair the dispatch packet once or stop at `delivery_unavailable` / `dispatch_blocked`
+- Child finals, passive reads, or user relays still cannot substitute for formal ready/blocker/result
+  return delivery
+- The bilingual UAT and validators add a fixed counterexample for packets that require direct-push
+  while forbidding the return channel that would perform it
+- Both language Skill packages are VERSION `0.3.14`, 8 files each, with 413 mutation cases passing
+- Post-release user manual UAT remains a separate follow-up
+
 ## v0.3.13
 
 This release fixes public `/CER-auto` wording so `CER Workflow` is not misread as an E1-only shortcut,

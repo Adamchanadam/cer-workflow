@@ -321,6 +321,7 @@ SENDABLE_PACKET_REQUIREMENTS = {
     "no_placeholders": "`sendable_packet` 不得保留 `<...>` 佔位符",
     "truth_intake_summary": "Controller preflight 已通過的真源攝取四問摘要：誰擁有、誰實際使用、如何生效、甚麼反例能推翻",
     "create_prompt_handshake_only": "新建 E1／R 的 `create_thread` 初始 prompt 不等於正式批次",
+    "internal_return_channel": "正式 direct-push 回傳通道是 CER 內部通訊，不屬於被禁止的 project／source-root 寫入或外部副作用",
     "create_prompt_no_full_payload": "不得在 create prompt 放入完整 source corpus、候選工作內容或正式批次 payload",
     "large_payload_once": "C 只在正式 `sendable_packet` 發送一次",
     "large_payload_split": "過長或跨風險邊界的輸入按語義／風險切成多個正式批次",
@@ -341,6 +342,7 @@ SENDABLE_PACKET_REQUIREMENTS = {
 SENDABLE_PACKET_UAT_REQUIREMENTS = {
     "placeholder_self_pass": "正式 `sendable_packet` 仍保留 `<...>` 佔位符",
     "create_prompt_payload": "新建 E1／R create prompt 包含完整 source corpus、候選工作內容或正式批次",
+    "internal_return_channel_forbidden": "派工包同時要求 direct-push，又把正式 direct-push 回傳通道當成被禁止外部",
     "double_large_payload": "同一完整大型輸入在 create prompt 和 formal `sendable_packet` 被重複發送",
     "relative_identity": "正式派工用 `同一 E1`／`上述 E1`／`下一個序號` 等相對說法",
     "hostid_hard_required": "Controller 仍硬性要求 `hostId`",

@@ -321,13 +321,21 @@ Each real E1 or R batch contains only what is needed:
 - a short result format.
 
 The initial `create_thread` prompt for a new E1/R is not a formal batch. It may carry only a
-zero-write ready handshake: role, cycle/title, target root, C return target, no-write and
-do-not-start-work instructions, and a request to report its own coordinates and source
-availability. Do not put the complete source corpus, candidate work content, or formal batch
-payload in the create prompt, and do not ask E1/R to process content before ready. If that has
-happened, C treats it as a pre-batch payload leak / batch lifecycle violation and stops or
-refreezes; C must not treat a later duplicate ack for the same digest as normal efficient
-communication. If the assignee cannot read the large input from an authorized source of truth,
+zero-write ready handshake: role, cycle/title, target root, C return target, permission to use the
+formal task messaging tool to direct-push ready/blocker/result to that return target, no
+project/source-root write or external side effect, do-not-start-work instructions, and a request to
+report its own coordinates and source availability. The formal direct-push return channel is CER
+internal communication, not a prohibited project/source-root write or external side effect; the
+forbidden actions remain unauthorized project/source-root writes, public/global sync, commit,
+release, install, deploy, email, permission/paid actions, or other external state changes. If the
+user or platform forbids even this internal return channel, or the dispatch packet both requires
+direct-push and forbids every tool message that could perform that return, C may repair the packet
+once or stop at `delivery_unavailable` / `dispatch_blocked`; child finals, passive reads, or user
+relays cannot substitute for ready/result. Do not put the complete source corpus, candidate work
+content, or formal batch payload in the create prompt, and do not ask E1/R to process content
+before ready. If that has happened, C treats it as a pre-batch payload leak / batch lifecycle
+violation and stops or refreezes; C must not treat a later duplicate ack for the same digest as
+normal efficient communication. If the assignee cannot read the large input from an authorized source of truth,
 C sends it exactly once in the formal `sendable_packet`; inputs that are too long or cross risk
 boundaries are split into multiple formal batches by semantic/risk unit. If the assignee can read
 from an authorized source of truth, the dispatch packet prefers source coordinates, digest,

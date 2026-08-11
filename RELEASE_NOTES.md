@@ -4,6 +4,21 @@
 flow 的未發布內容會明確標示為候選。若 release 中止，對應內容必須改回候選或移除。
 實際執行規則以使用者已安裝版本隨附的 Skill references 為準。
 
+## v0.3.14
+
+本版修正 CER 工作法的內部回傳通道邊界，避免任務要求「不要寫 project/source-root」
+或「不要做外部副作用」時，E1／R 把正式 direct-push 回傳給 Controller 的內部通訊
+也誤判為禁止事項。
+
+- `core-runtime.md` 明示正式 direct-push 回傳通道是 CER 內部通訊，不是
+  project/source-root 寫入，也不是外部副作用
+- 若使用者或平台連這條內部回傳通道也不可用，Controller 只可修正派工包一次或停在
+  `delivery_unavailable`／`dispatch_blocked`
+- 不得用 child final、被動讀取或使用者轉述代替正式 ready／blocker／result 回傳
+- 中英文 UAT 與 validators 加入「要求 direct-push 但同時把回傳通道禁掉」的固定反例
+- 中英文 Skill packages 均為 VERSION `0.3.14`，各 8 files，413 mutation cases 通過
+- 發布後使用者手動 UAT 仍需另行回報
+
 ## v0.3.13
 
 本版修正 `/CER-auto` 的公開字眼，避免 `CER 工作法` 路線被誤讀成只派執行線、沒有

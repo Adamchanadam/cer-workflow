@@ -269,8 +269,16 @@ C 將本輪工作線分類為 `mainline_outcome`、`diagnostic`、`mechanism_imp
 - 短回報要求。
 
 新建 E1／R 的 `create_thread` 初始 prompt 不等於正式批次。它只可承載零寫入
-ready handshake：角色、cycle／title、target root、C 回傳目標、禁止寫入、
-禁止開始實作，以及需要回報自身座標與來源可用性。不得在 create prompt 放入完整
+ready handshake：角色、cycle／title、target root、C 回傳目標、允許使用正式
+task 訊息工具對該回傳目標 direct-push ready／blocker／結果、禁止
+project／source-root 寫入及外部副作用、禁止開始實作，以及需要回報自身座標與來源
+可用性。正式 direct-push 回傳通道是 CER 內部通訊，不屬於被禁止的
+project／source-root 寫入或外部副作用；禁止的仍是未授權 project／source-root
+寫入、public／global sync、commit、release、install、deploy、email、權限／付費
+action 或其他對外狀態改變。若使用者或平台明示連這條內部回傳通道也不可用，或
+派工包同時要求 direct-push 又禁止所有可執行該回傳的工具訊息，C 只能修正派工包
+一次或停在 `delivery_unavailable`／`dispatch_blocked`，不得用 child final、
+passive read 或使用者轉述補成 ready／result。不得在 create prompt 放入完整
 source corpus、候選工作內容或正式批次 payload，也不得要求 E1／R 在 ready 前
 處理內容；若已發生，C 必須把它視為 pre-batch payload leak／batch lifecycle
 violation，停止或重凍結，不得把後續相同 digest 的 duplicate ack 當作正常高效

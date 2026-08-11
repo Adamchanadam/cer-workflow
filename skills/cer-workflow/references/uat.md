@@ -214,6 +214,9 @@ numbering 規則生效前已開始且無法可靠回推原 cycle number。cycle 
 - 新建 E1／R 的 create prompt 是零寫入 ready handshake；完整 corpus 或正式 batch
   payload 只在收到 ready 後的 formal `sendable_packet` 一次送出，或按語義／風險
   切成多個正式批次。
+- 任務禁止寫檔或外部副作用但仍使用 E1／R 時，create prompt 明示允許正式
+  direct-push 回傳通道；這是 CER 內部通訊，不是 project／source-root 寫入或外部
+  副作用。
 - 若 create prompt 已包含完整 corpus 並令 E1 在 ready 前處理內容，即使後續正式
   batch 使用相同 digest 且 E1 能去重，該 ready 仍不是合格零寫入；C 停止或重凍結，
   不把 duplicate ack 當成正常高效通訊。
@@ -481,6 +484,9 @@ numbering 規則生效前已開始且無法可靠回推原 cycle number。cycle 
   仍要求 Reviewer 審閱。
 - 新建 E1／R create prompt 包含完整 source corpus、候選工作內容或正式批次
   payload，令 E1／R 在 ready 前處理內容。
+- 派工包同時要求 direct-push，又把正式 direct-push 回傳通道當成被禁止外部
+  副作用；C 仍接受 E1／R blocker、child final、passive read 或使用者轉述為
+  合格 ready／result。
 - 同一完整大型輸入在 create prompt 和 formal `sendable_packet` 被重複發送，並被
   當成正常高效通訊。
 - 未證明送達鏈便開始工作。

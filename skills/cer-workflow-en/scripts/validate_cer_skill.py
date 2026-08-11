@@ -321,6 +321,7 @@ SENDABLE_PACKET_REQUIREMENTS = {
     "no_placeholders": "`sendable_packet` must not retain `<...>` placeholders",
     "truth_intake_summary": "summary of the truth-source intake four questions passed in Controller preflight: who owns it, who actually uses it, how it takes effect, and what counterexample can disprove it",
     "create_prompt_handshake_only": "The initial `create_thread` prompt for a new E1/R is not a formal batch",
+    "internal_return_channel": "The formal direct-push return channel is CER internal communication, not a prohibited project/source-root write or external side effect",
     "create_prompt_no_full_payload": "Do not put the complete source corpus, candidate work content, or formal batch payload in the create prompt",
     "large_payload_once": "C sends it exactly once in the formal `sendable_packet`",
     "large_payload_split": "inputs that are too long or cross risk boundaries are split into multiple formal batches by semantic/risk unit",
@@ -341,6 +342,7 @@ SENDABLE_PACKET_REQUIREMENTS = {
 SENDABLE_PACKET_UAT_REQUIREMENTS = {
     "placeholder_self_pass": "A formal `sendable_packet` still contains `<...>` placeholders",
     "create_prompt_payload": "A new E1/R create prompt contains the complete source corpus, candidate work content, or formal",
+    "internal_return_channel_forbidden": "A dispatch packet both requires direct-push and treats the formal direct-push return channel as a prohibited external side effect",
     "double_large_payload": "The same complete large input is sent in both the create prompt and formal `sendable_packet`",
     "relative_identity": "A formal dispatch uses relative wording such as `same E1`, `the E1 above`, or `next sequence`",
     "hostid_hard_required": "Controller still hard-requires `hostId`",

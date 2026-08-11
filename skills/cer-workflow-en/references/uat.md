@@ -256,6 +256,9 @@ cycle label or guess a number.
 - The create prompt for a new E1/R is a zero-write ready handshake; a complete corpus or formal
   batch payload is sent exactly once in the formal `sendable_packet` after ready, or split into
   multiple formal batches by semantic/risk unit.
+- When a task forbids file writes or external side effects but still uses E1/R, the create prompt
+  explicitly permits the formal direct-push return channel; this is CER internal communication, not
+  a project/source-root write or external side effect.
 - If the create prompt already contains the complete corpus and causes E1 to process content
   before ready, the ready is not qualifying zero-write even when the later formal batch uses the
   same digest and E1 can deduplicate it; C stops or refreezes, and does not treat the duplicate ack
@@ -568,6 +571,9 @@ These scenarios only test the unexpected-failure gate in
   but still asks the Reviewer to review.
 - A new E1/R create prompt contains the complete source corpus, candidate work content, or formal
   batch payload, causing E1/R to process content before ready.
+- A dispatch packet both requires direct-push and treats the formal direct-push return channel as a
+  prohibited external side effect; C still accepts an E1/R blocker, child final, passive read, or
+  user relay as qualifying ready/result.
 - The same complete large input is sent in both the create prompt and formal `sendable_packet`,
   and treated as normal efficient communication.
 - Work starts before the delivery chain is proven.
