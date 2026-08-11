@@ -5,6 +5,29 @@ has not entered an authorized release flow is explicitly marked as a candidate. 
 aborted, the affected content must be marked as candidate again or removed. Runtime authority
 remains the Skill references bundled with the version the user has installed.
 
+## v0.3.15
+
+This release hardens CER Workflow delivery and result carry-forward boundaries for long-running,
+multi-batch, cross-task work. It prevents "message sent" or "result accepted" from being mistaken
+for delivered, started, promoted, or next-batch-ready.
+
+- Formal message outcomes now distinguish `confirmed_delivered`, `not_delivered`, and
+  `delivery_unknown`
+- `send_message` success, task title, thread id, sender self-report, or passive readback cannot by
+  itself prove that the target received the message or started work
+- `delivery_unknown` allows only one bounded readback / same-message resend; if it remains unknown,
+  the state stays pending / blocked and cannot count as delivered
+- Result disposition now makes `unmet_conditions` and `persistence_readback` explicit; when required
+  readback is missing or unmet conditions are unclear, the next batch cannot treat the prior result
+  as authoritative input
+- `permitted_next_use` is the only next-use field; parallel synonyms such as `next_allowed_use`
+  cannot replace it
+- The bilingual runtime, UAT, and Skill validators add fixed counterexamples for unknown delivery,
+  wrong batch/digest receipts, missing disposition, false promotion, and invalid next-batch
+  carry-forward
+- Both language Skill packages are VERSION `0.3.15`, 8 files each, with 432 mutation cases passing
+- Post-release user manual UAT remains a separate follow-up
+
 ## v0.3.14
 
 This release fixes the CER Workflow internal return-channel boundary. When a task says not to

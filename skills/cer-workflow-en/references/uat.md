@@ -240,6 +240,13 @@ cycle label or guess a number.
   the sender first performs one bounded receipt/destination readback for the same `messageId`.
   If needed, only one controlled resend of the identical message is allowed; the receiver
   deduplicates and replays its prior confirmation.
+- When a send tool returns success but the target has no direct-push ack, has not started a new
+  turn, has not become the active assignee for that `batchId`/`payloadDigest`, and has no exact
+  `messageId` receipt, `delivery_state` remains `delivery_unknown`. After one bounded readback /
+  same-message resend, it stays pending / blocked and must not be treated as received.
+- When the target acknowledges the wrong `batchId`/`payloadDigest`, or a receipt points to the wrong
+  thread/target, that message is `not_delivered` or an invalid receipt and cannot accept ready,
+  result, or the next batch.
 - When E1 completed work but result push is ambiguous, C obtains the candidate through destination
   readback for the same `messageId` or a duplicate result, then returns the same
   `RESULT_ACCEPTED`. The flow neither waits forever nor accepts twice.
@@ -527,6 +534,11 @@ These scenarios only test the unexpected-failure gate in
 - Completion reporting lists only batch, task, Reviewer, or candidate counts without accepted outcome differences.
 - C sends bare `RESULT_ACCEPTED` and treats the candidate as mainline progress, authoritative input, or a source consumable by the next batch.
 - A candidate/draft/diagnostic/derived_output/review_only result is listed by a later batch as `authoritative_input` without promotion evidence.
+- Result disposition is missing `unmet_conditions` or `persistence_readback`, but C still promotes
+  the candidate to `authority_input` or dispatches the next batch.
+- C uses `next_allowed_use` instead of the only valid `permitted_next_use`, or the next batch does
+  not state whether it consumes accepted authority, working material, diagnostic evidence, or clean
+  baseline.
 - R gives only content or technical PASS, and C derives outcome PASS, authority promotion PASS, or `accepted_outcome_delta`.
 - A result that changes phase, artifact role, next route, authoritative source, progress claim, or later batch input has not been persisted and read back under target-project rules, but C still dispatches the next batch.
 - Because the final batch has no next batch, C accepts a `terminal_deliverable`, reports progress, or claims completion while the current-state owner is still contradictory or stale.
@@ -608,6 +620,13 @@ These scenarios only test the unexpected-failure gate in
   ignored before `RESULT_ACCEPTED`.
 - A ready, accept, stop, state, result, or result-acceptance message lacks stable `messageId`, or an
   ambiguous outcome causes blind resend or permanent waiting.
+- Send success, title, thread id existence, or the sender saying it sent the message is treated as
+  `confirmed_delivered`.
+- `delivery_unknown` is still treated as received after one bounded check / controlled resend, or is
+  used to dispatch the next batch.
+- When target host/thread/session context cannot be read back or is contradictory, C still
+  dispatches the next batch, writes directly into another workspace, creates a second writer,
+  creates a substitute reviewer, or promotes a result.
 - An ambiguous send uses a new `messageId` or `batchId` to bypass deduplication.
 - A `messageId` is merely placed in a prompt, dispatch packet, summary, or receipt-like text and
   treated as proof that a thread was created, a turn started, a tool was called, a write was

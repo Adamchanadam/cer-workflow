@@ -257,12 +257,20 @@ DELIVERY_REQUIREMENTS = {
     "no_push_no_progress": "沒有 direct-push 時，wait snapshot、完成狀態、commentary、摘要、child final",
     "no_push_no_advance": "不能把 `pending`／`delivery_incomplete`",
     "no_automatic_waiting": "禁止自動 waiting、反覆 waiting、polling、背景監聽",
+    "delivery_state_values": "`delivery_state` 記錄送達狀態，只用 `confirmed_delivered`、`not_delivered`、`delivery_unknown` 三值",
+    "confirmed_delivered_evidence": "`confirmed_delivered` 需要 target direct-push ack",
+    "send_success_not_delivery": "send 返回 success、title 變化、thread id 存在或 sender 自稱已送出都不足夠",
+    "delivery_unknown_retry": "`delivery_unknown` 只可按本節做一次有界讀回和同 `messageId` 受控重送",
+    "before_next_batch_delivery": "派下一批前，上一批結果必須同時有必要控制訊息的 `confirmed_delivered`",
 }
 
 DELIVERY_UAT_REQUIREMENTS = {
     "post_dispatch_parked_uat": "派工後停在 `POST_DISPATCH_PARKED`",
     "bounded_wakeup_wrapper_bad": "把等待包裝成有界喚醒",
     "no_push_next_batch_bad": "未收到 direct-push 仍推進狀態或派下一批",
+    "send_success_no_target": "send tool 回 success 但 target 無 direct-push ack",
+    "wrong_batch_digest": "target ack 錯誤 `batchId`／`payloadDigest`",
+    "delivery_unknown_bad": "`delivery_unknown` 經一次有界檢查／受控重送後仍被當成 received",
 }
 
 TRUTH_SOURCE_INTAKE_REQUIREMENTS = {
@@ -381,6 +389,7 @@ MESSAGE_ID_UAT_REQUIREMENTS = {
 MESSAGE_ID_FORBIDDEN = {
     "messageid_starts_operation": "單獨 `messageId` 可以建立 thread、開始 turn 或呼叫工具",
     "messageid_is_authority": "`messageId` 本身就是授權或 idempotency key",
+    "send_success_is_delivered": "send success 就是 `confirmed_delivered`",
 }
 
 LIVING_BRIEF_REQUIREMENTS = (
@@ -508,6 +517,8 @@ RESULT_DISPOSITION_REQUIREMENTS = {
     "sole_owner": "結果處置門檻屬於本節唯一 owner",
     "accepted_as": "`accepted_as` 為 `evidence_only`、`working_candidate`、`terminal_deliverable` 或 `authoritative_input`",
     "bare_result": "裸 `RESULT_ACCEPTED` 只表示 C 已完成該批次裁決及通訊去重",
+    "unmet_persistence_fields": "`unmet_conditions`、`persistence_readback`",
+    "permitted_next_use_only": "`permitted_next_use` 是唯一下一步允許用途欄位",
     "prior_result_use_enum": "`prior_result_use` 明確標為 `working_material` 或 `authority_input`",
     "authority_fields": "若標為 `authority_input`，必須列出 `promotion_evidence` 與 `project_owner_anchor`",
     "default_working_material": "候選、草稿、診斷、衍生輸出及純審閱結果預設只可作 `working_material`",
@@ -518,6 +529,8 @@ RESULT_DISPOSITION_REQUIREMENTS = {
     "review_scope_limited": "C 不得擴大 R 原本審閱範圍",
     "terminal_candidate": "只有 `outcome_anchor` 本身要求草稿、候選或樣稿作終點時",
     "persistence_blocks_next": "持久真源互相矛盾、尚未同步或 artifact 角色未能判定時，`next_dispatch` 必須是 `blocked`",
+    "missing_readback_blocks_authority": "`persistence_readback` 缺失、只說已保存但無 owner 讀回",
+    "unmet_conditions_blocks_authority": "`unmet_conditions` 尚未清零時，下一批只能消費為 `working_material`、診斷證據或保持 blocked",
     "terminal_persistence_blocks_acceptance": "即使沒有下一批，C 亦不得把結果接納為 `terminal_deliverable`、報告進度或宣稱完成",
     "terminal_artifact_set_consistency": "C 還須讀回每個被列為 `terminal_deliverable` 的最終狀態聲稱",
     "closed_vocabulary": "`accepted_as`、`authority_effect`、`progress_effect` 及 `prior_result_use` 均為封閉詞彙",
@@ -541,6 +554,9 @@ RESULT_DISPOSITION_UAT_REQUIREMENTS = {
     "phase1_legal_disposition": "Phase 1 候選只完成非終端 checkpoint 時",
     "progress_effect_synonym_rejected": "`progress_effect=accepted_outcome_delta_for_phase1_only`",
     "draft_terminal_deliverable": "使用者終點本身就是草稿、候選或樣稿",
+    "missing_unmet_readback": "result disposition 缺 `unmet_conditions` 或 `persistence_readback`",
+    "next_allowed_use_rejected": "C 使用 `next_allowed_use` 代替唯一合法的 `permitted_next_use`",
+    "next_batch_source_named": "下一批沒有說明消費 accepted authority、working material、diagnostic evidence 或 clean baseline",
 }
 
 RESULT_DISPOSITION_FORBIDDEN = {
@@ -552,6 +568,9 @@ RESULT_DISPOSITION_FORBIDDEN = {
     "unpersisted_next_dispatch": "未持久化仍可派下一批",
     "unpersisted_terminal_acceptance": "最後一批可在持久真源過期時直接接納為 `terminal_deliverable` 並宣稱完成",
     "contradictory_terminal_artifact_accepted": "終點集合可包含仍聲稱持久化待完成的 artifact 並照常接納",
+    "missing_readback_authority": "缺 `persistence_readback` 仍可作權威輸入",
+    "next_allowed_use_substitutes": "`next_allowed_use` 可代替 `permitted_next_use`",
+    "unmet_conditions_dispatch": "未清零 `unmet_conditions` 仍可派下一批",
 }
 
 

@@ -136,13 +136,13 @@ C 將本輪工作線分類為 `mainline_outcome`、`diagnostic`、`mechanism_imp
 活動不等於成果。候選建立、審閱完成、格式或結構通過、檔案一致、問題已記錄、設計已完成、版本改名或包裝更新，都不自動增加主線進度。只有 C 讀回並裁決某項使用者完成條件取得已接納差異時，才可回報為成果進展；最終回報優先列已接納成果，而不是批次、任務或審閱數量。
 
 <!-- cer-result-disposition-gate-owner -->
-結果處置門檻屬於本節唯一 owner。C 在接納候選、報告進度、更新目標專案真源，或把上一批結果交給下一批使用前，必須明示本次裁決的效果；低風險小批可用一句短摘要，高風險或多批承接須可讀回：`accepted_as` 為 `evidence_only`、`working_candidate`、`terminal_deliverable` 或 `authoritative_input`；`authority_effect` 為 `none` 或 `existing_authority_updated`；`progress_effect` 為 `none` 或 `accepted_outcome_delta`；以及 `permitted_next_use`、`forbidden_next_use`、是否需要目標專案既有持久化。上一批承接另須把 `prior_result_use` 明確標為 `working_material` 或 `authority_input`；若標為 `authority_input`，必須列出 `promotion_evidence` 與 `project_owner_anchor`。裸 `RESULT_ACCEPTED` 只表示 C 已完成該批次裁決及通訊去重，不代表全域正式採用、主線成果進度或下一批可作權威輸入。
+結果處置門檻屬於本節唯一 owner。C 在接納候選、報告進度、更新目標專案真源，或把上一批結果交給下一批使用前，必須明示本次裁決的效果；低風險小批可用一句短摘要，高風險或多批承接須可讀回：`accepted_as` 為 `evidence_only`、`working_candidate`、`terminal_deliverable` 或 `authoritative_input`；`authority_effect` 為 `none` 或 `existing_authority_updated`；`progress_effect` 為 `none` 或 `accepted_outcome_delta`；以及 `permitted_next_use`、`forbidden_next_use`、`unmet_conditions`、`persistence_readback`、是否需要目標專案既有持久化。`permitted_next_use` 是唯一下一步允許用途欄位，不另建 `next_allowed_use` 平行詞。上一批承接另須把 `prior_result_use` 明確標為 `working_material` 或 `authority_input`；若標為 `authority_input`，必須列出 `promotion_evidence` 與 `project_owner_anchor`。裸 `RESULT_ACCEPTED` 只表示 C 已完成該批次裁決及通訊去重，不代表全域正式採用、主線成果進度或下一批可作權威輸入。
 
 上述 `accepted_as`、`authority_effect`、`progress_effect` 及 `prior_result_use` 均為封閉詞彙。階段、用途或承接範圍只寫入目標專案既有 `phase`／`status`、`permitted_next_use` 或 `forbidden_next_use`，不得合成近義詞或加後綴的新值；適當 writer 持久化前必須按本節合法值驗證，任何規格外值均保持 persistence、next dispatch 及 progress claim blocked。
 
 候選、草稿、診斷、衍生輸出及純審閱結果預設只可作 `working_material`。要採納為 `authoritative_input`，C 必須有使用者明示或已讀目標專案既有 owner 的來源錨點、採納依據及讀回證據；找不到時，下一批停在 `dispatch_blocked`。Reviewer verdict 被 C 用作裁決依據時，須按 `content_verdict`、`implementation_verdict`、`outcome_verdict`、`authority_promotion_verdict` 分層；內容或技術 PASS 不會自動形成 outcome PASS、authority promotion PASS 或主線進度；R 未審的維度只能標為 `not_reviewed`／`out_of_scope`，`out_of_scope` 不是 PASS，C 不得擴大 R 原本審閱範圍。只有 `outcome_anchor` 本身要求草稿、候選或樣稿作終點時，`working_candidate` 才可成為合法 `terminal_deliverable`；這仍不等於更新權威來源。
 
-若結果會改變當前階段、artifact 角色、下一產品路線、權威來源、progress claim 或後續批次輸入，C 必須先按目標專案既有持久化規則由適當 writer 完成回寫並讀回。持久真源互相矛盾、尚未同步或 artifact 角色未能判定時，`next_dispatch` 必須是 `blocked`；即使沒有下一批，C 亦不得把結果接納為 `terminal_deliverable`、報告進度或宣稱完成。同一終點集合包含多個 artifact 時，C 還須讀回每個被列為 `terminal_deliverable` 的最終狀態聲稱；若其中任何 artifact 仍寫着未接納、持久化待完成、舊階段或舊下一步，整組仍屬矛盾，該 artifact 必須降為 `evidence_only`／排除，或按原驗收修正並重驗，之後才可終端接納。CER 不指定固定 handoff、docs、registry 或資料庫，只要求目標專案 owner 的同步終態可讀回。
+若結果會改變當前階段、artifact 角色、下一產品路線、權威來源、progress claim 或後續批次輸入，C 必須先按目標專案既有持久化規則由適當 writer 完成回寫並讀回。`persistence_readback` 缺失、只說已保存但無 owner 讀回，或 `unmet_conditions` 尚未清零時，下一批只能消費為 `working_material`、診斷證據或保持 blocked，不得轉成 `authority_input`。持久真源互相矛盾、尚未同步或 artifact 角色未能判定時，`next_dispatch` 必須是 `blocked`；即使沒有下一批，C 亦不得把結果接納為 `terminal_deliverable`、報告進度或宣稱完成。同一終點集合包含多個 artifact 時，C 還須讀回每個被列為 `terminal_deliverable` 的最終狀態聲稱；若其中任何 artifact 仍寫着未接納、持久化待完成、舊階段或舊下一步，整組仍屬矛盾，該 artifact 必須降為 `evidence_only`／排除，或按原驗收修正並重驗，之後才可終端接納。CER 不指定固定 handoff、docs、registry 或資料庫，只要求目標專案 owner 的同步終態可讀回。
 
 <!-- cer-controller-drift-checkpoint-owner -->
 長期任務防失焦檢查點屬於本節唯一 owner，不另建監察角色、背景程序或固定表格。長期、多批或容易受上下文污染的任務，在 resume／上下文轉換、連續兩批沒有已接納成果差異、同類失敗第二次、E1／R 提出相鄰改向或替代交付、使用者改方向或補限制，以及 close／release／重大交付前，C 做一次有界 drift checkpoint：下一批是否仍改善 `outcome_anchor` 的未完成條件；成功後有甚麼可讀回成果差異；E1／R 或相鄰改善是否正在取代主線成果。任一項答不到，C 不得派正式實作批次，只可改做診斷、收窄驗收、停問使用者、終止路線，或在 C 不能可靠反證且風險足夠時建立 fresh R。checkpoint、活的任務簡報或路線圖更新不計作成果進度；不得觸發背景 monitoring、polling、自動 `wait_threads`、固定 R、固定 Full Audit，或套用到簡單、單步、低風險且終點唯一的任務。
@@ -155,6 +155,7 @@ C 將本輪工作線分類為 `mainline_outcome`、`diagnostic`、`mechanism_imp
 批次狀態、結果與接納等控制訊息。C 對每次操作只使用
 `confirmed`、`pending`、`outcome_unknown`、`duplicate`、`blocked` 五種狀態；
 工具回報失敗、逾時、部分結果或非權威別名時，不得直接判定操作沒有發生。
+每條控制訊息另以 `delivery_state` 記錄送達狀態，只用 `confirmed_delivered`、`not_delivered`、`delivery_unknown` 三值；它不取代操作狀態，只回答該訊息是否到達指定目標。`confirmed_delivered` 需要 target direct-push ack、target 開始新 turn、target 成為該 `batchId`／`payloadDigest` 的 active assignee，或工具提供綁定 exact `messageId`／`batchId`／`payloadDigest` 的權威 delivery receipt。send 返回 success、title 變化、thread id 存在或 sender 自稱已送出都不足夠；官方 failure、錯目標或 batchId／payloadDigest 不匹配才可標 `not_delivered`，其餘不明一律 `delivery_unknown`。
 
 - 建立角色前，C 先對本輪實際參與 host、project、target root、cycle 與 role
   做一次有界建立前快照。快照只供本次對帳，不得演變成 lock、central registry
@@ -221,6 +222,7 @@ C 將本輪工作線分類為 `mainline_outcome`、`diagnostic`、`mechanism_imp
   此例外同時覆蓋送達段的「收到 push 後才讀回」及啟動段禁止以事後 read 冒充
   通訊驗證的限制，但只可證明該 `messageId` 的送達；它不能單獨證明整條 ready／
   accept 通訊鏈成立。
+- `delivery_unknown` 只可按本節做一次有界讀回和同 `messageId` 受控重送；仍未知時保持 `pending`／`blocked`，不得當成已收到、已開始、已接納或可派下一批。
 - C 收到並裁決結果後，以穩定 `messageId` 回 `RESULT_ACCEPTED`。結果送達或
   `RESULT_ACCEPTED` 結果不明時，重送與接收端均按相同訊息身份去重，避免結果遺失
   或接納兩次；不得建立無限 receipt-of-receipt 鏈。
@@ -312,6 +314,7 @@ Governance bridge 完成後只作一般成果讀回與裁決，CER 保持啟動�
 - E1／R 工作前以正式送訊工具 direct-push 零寫入 `ready`；收到正式批次後，再以該批 `batchId` 及 `payloadDigest` direct-push `BATCH_RECEIVED`，依批次生命週期開始或恢復工作。
 - `ready` 必須回傳自身角色、可見標題或首行標籤、threadId 或平台等價座標、收到的目標 root、回傳目標及是否具備必要來源。sessionId 只在當前工具 schema／receipt 明示需要／提供時附帶記錄，不可代替 threadId，也不可用來推導 hostId。所有訊息都帶穩定 `messageId`；`BATCH_RECEIVED` 還須回傳當前工具 schema／receipt 明示必需的路由座標及綁定核對結果。
 - 完成、受阻或未完成時，先 direct-push 短結果給 C，再停止；結果回執帶 `messageId`、`batchId`、`payloadDigest` 及 threadId 或平台等價座標，避免 C 將另一個 task、另一批或另一修訂的結果誤接納。C 裁決後回 `RESULT_ACCEPTED`。
+- 派下一批前，上一批結果必須同時有必要控制訊息的 `confirmed_delivered`、已解決 result disposition、以及明示下一批輸入是 `authority_input`、`working_material`、診斷證據或 clean baseline；缺任一項時不得派下一批，也不得建立平行 writer／reviewer 補償不明通訊。
 - 相同 `batchId` 重複送達時，接收者依 `RECEIVED_ZERO_WRITE`、`IN_PROGRESS`、`RESULT_READY`、`RESULT_ACCEPTED` 或 `STATE_UNKNOWN` 恢復，不得盲目重做；相同身份但不同 digest 立即阻塞。
 - 除非某參與者已觀察到明確 `outcome_unknown` 並依本節故障恢復規則讀取精確
   `messageId`，C 只有收到 push 後才做一次有界讀回及裁決。故障讀回只可核對

@@ -257,12 +257,20 @@ DELIVERY_REQUIREMENTS = {
     "no_push_no_progress": "Without a direct-push, a wait snapshot, completion state, commentary, summary, child final, task title, user relay, or passive read cannot advance `pending` / `delivery_incomplete`",
     "no_push_no_advance": "cannot advance `pending` / `delivery_incomplete`",
     "no_automatic_waiting": "forbids automatic waiting, repeated waiting, polling, background listening",
+    "delivery_state_values": "`delivery_state` using only `confirmed_delivered`, `not_delivered`, or `delivery_unknown`",
+    "confirmed_delivered_evidence": "`confirmed_delivered` requires target direct-push ack",
+    "send_success_not_delivery": "Send success, title changes, thread id existence, or the sender saying it sent the message are insufficient",
+    "delivery_unknown_retry": "`delivery_unknown` may use only this section's one bounded readback and same-`messageId` controlled resend",
+    "before_next_batch_delivery": "Before dispatching the next batch, the prior batch must have necessary control messages at `confirmed_delivered`",
 }
 
 DELIVERY_UAT_REQUIREMENTS = {
     "post_dispatch_parked_uat": "after dispatch it stays `POST_DISPATCH_PARKED`",
     "bounded_wakeup_wrapper_bad": "wraps waiting as a bounded wakeup",
     "no_push_next_batch_bad": "advances state or dispatches the next batch without direct-push",
+    "send_success_no_target": "send tool returns success but the target has no direct-push ack",
+    "wrong_batch_digest": "target acknowledges the wrong `batchId`/`payloadDigest`",
+    "delivery_unknown_bad": "`delivery_unknown` is still treated as received after one bounded check / controlled resend",
 }
 
 TRUTH_SOURCE_INTAKE_REQUIREMENTS = {
@@ -381,6 +389,7 @@ MESSAGE_ID_UAT_REQUIREMENTS = {
 MESSAGE_ID_FORBIDDEN = {
     "messageid_starts_operation": "A `messageId` alone can create a thread, start a turn, or call a tool",
     "messageid_is_authority": "A `messageId` itself is authorization or an idempotency key",
+    "send_success_is_delivered": "send success is `confirmed_delivered`",
 }
 
 LIVING_BRIEF_REQUIREMENTS = (
@@ -508,6 +517,8 @@ RESULT_DISPOSITION_REQUIREMENTS = {
     "sole_owner": "The result disposition gate is the sole owner in this section",
     "accepted_as": "`accepted_as` is `evidence_only`, `working_candidate`, `terminal_deliverable`, or `authoritative_input`",
     "bare_result": "Bare `RESULT_ACCEPTED` means only that C adjudicated this batch and that communication can deduplicate it",
+    "unmet_persistence_fields": "`unmet_conditions`, `persistence_readback`",
+    "permitted_next_use_only": "`permitted_next_use` is the only next-use permission field",
     "prior_result_use_enum": "classify `prior_result_use` as `working_material` or `authority_input`",
     "authority_fields": "if it is `authority_input`, C must list `promotion_evidence` and `project_owner_anchor`",
     "default_working_material": "Candidates, drafts, diagnostics, derived outputs, and review-only results default to `working_material` only",
@@ -518,6 +529,8 @@ RESULT_DISPOSITION_REQUIREMENTS = {
     "review_scope_limited": "C must not expand R's original review scope",
     "terminal_candidate": "Only when the `outcome_anchor` itself asks for a draft, candidate, or sample as the endpoint",
     "persistence_blocks_next": "persistent truths conflict, are not synchronized, or the artifact role cannot be determined, `next_dispatch` must be `blocked`",
+    "missing_readback_blocks_authority": "When `persistence_readback` is missing, persistence is only claimed without owner readback",
+    "unmet_conditions_blocks_authority": "`unmet_conditions` are not cleared, the next batch may consume the result only as `working_material` or diagnostic evidence, or remain blocked",
     "terminal_persistence_blocks_acceptance": "even when there is no next batch, C must not accept the result as a `terminal_deliverable`, report progress, or claim completion",
     "terminal_artifact_set_consistency": "C must also read back the final-state claim of every artifact classified as a `terminal_deliverable`",
     "closed_vocabulary": "`accepted_as`, `authority_effect`, `progress_effect`, and `prior_result_use` values above are closed vocabularies",
@@ -541,6 +554,9 @@ RESULT_DISPOSITION_UAT_REQUIREMENTS = {
     "phase1_legal_disposition": "When a Phase 1 candidate completes only a non-terminal checkpoint",
     "progress_effect_synonym_rejected": "`progress_effect=accepted_outcome_delta_for_phase1_only`",
     "draft_terminal_deliverable": "user's endpoint itself is a draft, candidate, or sample",
+    "missing_unmet_readback": "Result disposition is missing `unmet_conditions` or `persistence_readback`",
+    "next_allowed_use_rejected": "C uses `next_allowed_use` instead of the only valid `permitted_next_use`",
+    "next_batch_source_named": "the next batch does not state whether it consumes accepted authority, working material, diagnostic evidence, or clean baseline",
 }
 
 RESULT_DISPOSITION_FORBIDDEN = {
@@ -552,6 +568,9 @@ RESULT_DISPOSITION_FORBIDDEN = {
     "unpersisted_next_dispatch": "C may dispatch the next batch before persistence",
     "unpersisted_terminal_acceptance": "The final batch may be accepted as a `terminal_deliverable` and completion claimed while persistent truth is stale",
     "contradictory_terminal_artifact_accepted": "A terminal set may include an artifact that still says persistence pending and still be accepted",
+    "missing_readback_authority": "Missing `persistence_readback` may still be authoritative input",
+    "next_allowed_use_substitutes": "`next_allowed_use` may substitute for `permitted_next_use`",
+    "unmet_conditions_dispatch": "C may dispatch the next batch before `unmet_conditions` are cleared",
 }
 
 

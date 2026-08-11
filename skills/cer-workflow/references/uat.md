@@ -202,6 +202,12 @@ numbering 規則生效前已開始且無法可靠回推原 cycle number。cycle 
 - ready、`C_ACCEPTED`、stop、批次狀態、結果或 `RESULT_ACCEPTED` 任一 send
   回報不明時，sender 先以相同 `messageId` 作一次有界 receipt／目的地讀回；
   必要時只可受控重送同一訊息一次，receiver 去重並重播既有確認。
+- send tool 回 success 但 target 無 direct-push ack、沒有開始新 turn、沒有成為該
+  `batchId`／`payloadDigest` 的 active assignee，也沒有 exact `messageId` receipt 時，
+  `delivery_state` 仍是 `delivery_unknown`；一次有界讀回／同訊息重送後仍未知便
+  保持 pending／blocked，不可當成已收到。
+- target ack 錯誤 `batchId`／`payloadDigest`，或 receipt 指向錯 thread／target 時，
+  該訊息是 `not_delivered` 或 invalid receipt，不能用來接納 ready、result 或下一批。
 - E1 已完成但結果 push 回報不明時，C 可由同一 `messageId` 的目的地讀回或
   重複結果取得候選，裁決後回同一 `RESULT_ACCEPTED`；不永久等待，也不接納兩次。
 - 對精確 `messageId` 的故障讀回可在未收到 push 時執行，但只證明該訊息送達；
@@ -447,6 +453,10 @@ numbering 規則生效前已開始且無法可靠回推原 cycle number。cycle 
 - 完成回報只列批次、task、Reviewer 或候選數量，沒有列已接納成果差異。
 - C 只發裸 `RESULT_ACCEPTED` 便把候選當成主線進度、權威輸入或下一批可消費真源。
 - candidate／draft／diagnostic／derived_output／review_only 未有升格依據便被下一批列為 `authoritative_input`。
+- result disposition 缺 `unmet_conditions` 或 `persistence_readback`，但 C 仍把候選升為
+  `authority_input` 或派下一批。
+- C 使用 `next_allowed_use` 代替唯一合法的 `permitted_next_use`，或下一批沒有說明消費
+  accepted authority、working material、diagnostic evidence 或 clean baseline。
 - R 只給內容或技術 PASS，C 便推導出 outcome PASS、authority promotion PASS 或 `accepted_outcome_delta`。
 - 會改變階段、artifact 角色、下一路線、權威來源、progress claim 或後續批次輸入的結果尚未按目標專案既有規則持久化及讀回，C 仍派下一批。
 - 最後一批沒有下一批，C 因而在 current-state owner 仍矛盾或過期時接納 `terminal_deliverable`、報告進度或宣稱完成。
@@ -513,6 +523,9 @@ numbering 規則生效前已開始且無法可靠回推原 cycle number。cycle 
   忽略同一批次。
 - ready、accept、stop、狀態、結果或結果接納訊息沒有穩定 `messageId`，或
   outcome 不明時盲目重發／永久等待。
+- send success、title、thread id 存在或 sender 自稱已送出，被當成 `confirmed_delivered`。
+- `delivery_unknown` 經一次有界檢查／受控重送後仍被當成 received，或被用來派下一批。
+- target host／thread／session context 無法讀回或互相矛盾時，C 仍派下一批、直接寫入另一 workspace、建立第二 writer、建立替代 reviewer 或升格結果。
 - send 結果不明時改用新 `messageId` 或新 `batchId` 規避去重。
 - 只在 prompt、派工包、摘要或自稱回執中放入 `messageId`，就把它當成已建立
   thread、開始 turn、呼叫工具、觸發寫入或授權；或沒有實際工具呼叫及可核實工具

@@ -4,6 +4,26 @@
 flow 的未發布內容會明確標示為候選。若 release 中止，對應內容必須改回候選或移除。
 實際執行規則以使用者已安裝版本隨附的 Skill references 為準。
 
+## v0.3.15
+
+本版強化 CER 工作法在長任務、多批次和跨 task 協作時的送達與結果承接邊界，避免
+「訊息送出成功」或「結果已接納」被誤當成對方已收到、已開始、已升格或可開下一批。
+
+- 正式訊息送出後必須分清 `confirmed_delivered`、`not_delivered`、
+  `delivery_unknown`
+- `send_message` 成功、task title、thread id、sender 自述或被動讀取，都不能單獨
+  證明對方已收到或已開始處理
+- `delivery_unknown` 只可做一次有界讀回／同訊息重送；仍不明時停在 pending／blocked，
+  不得當成已送達
+- 結果處置補明 `unmet_conditions` 和 `persistence_readback`；缺必要讀回或未滿條件未
+  清楚時，下一批不可把上一批結果當成權威輸入
+- `permitted_next_use` 是唯一下一步用途欄位；不得用 `next_allowed_use` 等平行近義詞
+  代替
+- 中英文 runtime、UAT 與 Skill validators 加入送達不明、錯 batch/digest、缺
+  disposition、錯誤升格和下一批錯誤承接的固定反例
+- 中英文 Skill packages 均為 VERSION `0.3.15`，各 8 files，432 mutation cases 通過
+- 發布後使用者手動 UAT 仍需另行回報
+
 ## v0.3.14
 
 本版修正 CER 工作法的內部回傳通道邊界，避免任務要求「不要寫 project/source-root」
