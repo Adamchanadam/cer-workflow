@@ -87,6 +87,18 @@ The difference is the working style:
 - Goal: the AI adjusts the next step inside the same target.
 - CER: the workflow brings result-changing discoveries back for a decision before the next batch.
 
+## Long-Task Drift Protection: Keep The Endpoint, Do Not Chase Side Paths
+
+In long-running work, CER is not just "send work out and read the result back." The Controller keeps the original accepted outcome in view. When a new test result, new source, or Reviewer finding would change direction, it first separates an original acceptance defect, a necessary blocker, and an adjacent improvement. Only issues that affect safe acceptance of the original outcome enter the mainline. Other improvements are listed separately instead of becoming the next batch automatically. This is meant to stop long tasks from widening, moving the finish line, or spending tokens on side paths that do not change the delivered result.
+
+The full Skill currently has 12 related guardrails. The README only shows the 5 a user is most likely to notice:
+
+- Outcome anchor: keep the real endpoint in view.
+- Classify new discoveries first: separate acceptance defects, necessary blockers, and adjacent improvements.
+- Adjacent improvements do not automatically become the mainline: keep the task from widening.
+- Group same-cause fixes: avoid chasing review comments one sentence at a time.
+- Progress is not the same as activity: candidates, reviews, and passing format checks do not automatically count as completion.
+
 ## Goal And CER: 10 Practical Differences
 
 | # | Point of comparison | Goal | CER | How most users should read it |

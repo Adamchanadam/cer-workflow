@@ -5,6 +5,16 @@ has not entered an authorized release flow is explicitly marked as a candidate. 
 aborted, the affected content must be marked as candidate again or removed. Runtime authority
 remains the Skill references bundled with the version the user has installed.
 
+## v0.3.16
+
+This release improves the public README explanation of long-task drift protection. It makes clearer that CER is not only about dispatching work and reading results back: it keeps the original accepted outcome in view, classifies new discoveries first, and only then decides whether they belong in the mainline.
+
+- README adds "Long-Task Drift Protection: Keep The Endpoint, Do Not Chase Side Paths", explaining the split between original acceptance defects, necessary blockers, and adjacent improvements
+- The README shows only the 5 guardrails users are most likely to notice: outcome anchor, discovery classification, adjacent improvements not becoming the mainline automatically, same-cause fix grouping, and progress not equaling activity
+- This release does not change the CER runtime, UAT rules, Reviewer rules, or `/CER-auto` routing logic
+- Both language Skill packages are VERSION `0.3.16`, 8 files each, with 432 mutation cases passing
+- Post-release user manual UAT remains a separate follow-up
+
 ## v0.3.15
 
 This release hardens CER Workflow delivery and result carry-forward boundaries for long-running,
