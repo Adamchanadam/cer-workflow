@@ -5,6 +5,17 @@ has not entered an authorized release flow is explicitly marked as a candidate. 
 aborted, the affected content must be marked as candidate again or removed. Runtime authority
 remains the Skill references bundled with the version the user has installed.
 
+## v0.3.17
+
+This release ships the long-task closure guard and the public Skill runtime language boundary into the public version. The practical change is that the Controller has a clearer closure check at handoff or terminal points, keeping the original acceptable outcome in view instead of turning every adjacent discovery into the next mainline batch.
+
+- Result closure now uses a compact close bundle covering identity, delivery state, original endpoint, finding buckets, acceptance conditions, adjacent improvements, and permitted next use
+- New discoveries are separated into original acceptance defects, necessary blockers, and adjacent improvements; only issues that affect safe acceptance of the original outcome enter the mainline
+- Ordinary execution and Goal are not turned into CER by this close bundle, and `hostId` is not made mandatory or guessable
+- The Skill runtime maintenance boundary moves to an English canonical source while preserving Chinese commands, Chinese natural-language triggers, and Chinese replies
+- Both language Skill packages are VERSION `0.3.17`, 8 files each, with 486 mutation cases passing
+- Post-release user manual UAT remains a separate follow-up
+
 ## v0.3.16
 
 This release improves the public README explanation of long-task drift protection. It makes clearer that CER is not only about dispatching work and reading results back: it keeps the original accepted outcome in view, classifies new discoveries first, and only then decides whether they belong in the mainline.

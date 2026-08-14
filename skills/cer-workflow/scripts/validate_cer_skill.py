@@ -28,6 +28,7 @@ TRUTH_SOURCE_INTAKE_OWNER_MARKER = "<!-- cer-truth-source-intake-gate-owner -->"
 DRIFT_CHECKPOINT_OWNER_MARKER = "<!-- cer-controller-drift-checkpoint-owner -->"
 RESULT_DISPOSITION_OWNER_MARKER = "<!-- cer-result-disposition-gate-owner -->"
 EXECUTION_PROFILE_OWNER_MARKER = "<!-- cer-execution-profile-gate-owner -->"
+PUBLIC_RUNTIME_LANGUAGE_OWNER_MARKER = "<!-- cer-public-runtime-language-boundary-owner -->"
 EXPECTED_DEFAULT_PROMPT = (
     "使用 $cer-workflow 以唯一 writer 執行這項工作；按風險建立 fresh Reviewer，"
     "必要時在內部自動加速，無需額外設定。"
@@ -153,6 +154,40 @@ EXECUTION_PROFILE_FORBIDDEN = {
     "fixed_checkpoint": "每次路線切換都建立固定 YAML checkpoint",
     "persistent_file_always_cer": "持久狀態檔案一律建立 C／E／R",
     "unsafe_read_bundle": "即使權限或範圍不同也必須合併讀取",
+}
+
+PUBLIC_RUNTIME_LANGUAGE_REQUIREMENTS = {
+    "boundary_id": "`PUBLIC_SKILL_BOUNDARY_V1`",
+    "canonical_source": "英文 `cer-workflow-en` package 作 canonical authoring／validation source",
+    "compatibility_mirror": "相容入口與用戶語言鏡像",
+    "no_divergent_behavior": "不得另定或覆蓋 CER 行為",
+    "not_english_only": "英文 canonical runtime 不等於英文-only 操作",
+    "stable_commands": "`/CER-status`、`/CER-help` 保持穩定 ASCII 指令",
+    "chinese_triggers": "自然語意觸發仍須有效",
+    "reply_language": "面向使用者的回覆跟隨使用者或目標專案語言",
+    "readme_boundary": "`README.md`／`README.en.md` 只屬用戶展示與安裝說明",
+    "release_notes_order": "`RELEASE_NOTES.md` 維持現行先繁中後英文",
+    "maintainer_qa": "maintainer release-QA，不是 ordinary execution、Goal、CER 工作法或 `/CER-help` 的一般 runtime 步驟",
+    "external_auth": "另行授權、遷移驗收與讀回",
+}
+
+PUBLIC_RUNTIME_LANGUAGE_UAT_REQUIREMENTS = {
+    "no_divergent_zh": "不得在繁中 package 另定或覆蓋 CER 行為",
+    "chinese_triggers": "中文 `/CER-auto`、`/CER-start`、`CER 自適應`、`CER 啟動` 等觸發仍有效",
+    "reply_language": "回覆跟隨中文或目標專案語言",
+    "release_notes_order": "Release Notes 維持先繁中後英文",
+    "readme_not_owner": "兩者不能覆蓋 `core-runtime.md` 的 runtime owner",
+    "maintainer_qa": "只屬 maintainer release-QA",
+    "not_user_step": "不把它們列為一般用戶 runtime 步驟",
+    "not_retired_by_source_only": "source-only 規則改動本身不得聲稱已完成退役",
+}
+
+PUBLIC_RUNTIME_LANGUAGE_FORBIDDEN = {
+    "english_reply_default": "英文 canonical runtime 代表中文輸入預設用英文回答",
+    "readme_owner": "README 是 runtime owner",
+    "full_audit_user_step": "Full Audit 是一般用戶 runtime 步驟",
+    "delete_zh_without_validation": "可不經驗證刪除繁中 package",
+    "zh_diverges": "繁中 package 可另定 CER 行為",
 }
 
 REVIEWER_PROPORTIONALITY_COUNTEREXAMPLES = {
@@ -535,6 +570,20 @@ RESULT_DISPOSITION_REQUIREMENTS = {
     "terminal_artifact_set_consistency": "C 還須讀回每個被列為 `terminal_deliverable` 的最終狀態聲稱",
     "closed_vocabulary": "`accepted_as`、`authority_effect`、`progress_effect` 及 `prior_result_use` 均為封閉詞彙",
     "validate_before_persistence": "適當 writer 持久化前必須按本節合法值驗證",
+    "close_bundle_scope": "長期、多批、高風險或非簡單正式 CER 批次在關閉、接納為終端成果或交給下一批前",
+    "close_bundle_not_schema": "不是新 runtime owner、新 public command、KDL dependency 或平行 result-disposition schema",
+    "close_bundle_not_ordinary_goal": "普通 ordinary execution、Goal 草稿和低風險小批不強制使用",
+    "close_bundle_identity": "既有 `messageId`、`batchId`、`batchSeq`、`payloadDigest`",
+    "close_bundle_finish_line": "`pre_dispatch_evidence`／`outcome_anchor` 指向、本批未完成條件、成功後可讀回成果差異",
+    "close_bundle_buckets": "`acceptance_blockers`、`worker_regressions`、`adjacent_backlog`、`scope_change_requests`",
+    "close_bundle_identity_mismatch": "dispatch、result、ack 身份或 digest 不一致",
+    "close_bundle_delivery_blocks": "`delivery_state` 仍是 `delivery_unknown`／`not_delivered`",
+    "close_bundle_repair_buckets": "`acceptance_blockers` 和 `worker_regressions` 才可在 repair budget 未耗盡時導致有界修補",
+    "close_bundle_budget_no_reset": "ack 不得重置 attempt 或調高 max_attempts",
+    "close_bundle_adjacent_backlog": "`adjacent_backlog` 只可另列",
+    "close_bundle_scope_change": "`scope_change_requests` 只能 blocked 或停問使用者重定終點",
+    "close_bundle_close_clear": "`next_dispatch=close` 時不得殘留 acceptance blocker",
+    "close_bundle_pass_limited": "validator 或 closure PASS 只證明協調閉環一致",
 }
 
 RESULT_DISPOSITION_UAT_REQUIREMENTS = {
@@ -557,6 +606,14 @@ RESULT_DISPOSITION_UAT_REQUIREMENTS = {
     "missing_unmet_readback": "result disposition 缺 `unmet_conditions` 或 `persistence_readback`",
     "next_allowed_use_rejected": "C 使用 `next_allowed_use` 代替唯一合法的 `permitted_next_use`",
     "next_batch_source_named": "下一批沒有說明消費 accepted authority、working material、diagnostic evidence 或 clean baseline",
+    "close_bundle_scope": "長期、多批、高風險或非簡單正式 CER 批次關閉前",
+    "close_bundle_no_second_schema": "不建立第二套 result disposition schema",
+    "close_bundle_no_ordinary_goal": "不強制 ordinary execution、Goal 草稿或低風險小批使用",
+    "close_bundle_repair_budget": "ack 未重置 attempt／調高 max_attempts",
+    "close_bundle_adjacent_backlog": "`adjacent_backlog` 唯一有值",
+    "close_bundle_scope_change": "`scope_change_requests` 有值時",
+    "close_bundle_identity_delivery": "dispatch／result／ack 身份或 `payloadDigest` 不一致",
+    "close_bundle_pass_limited": "close-bundle validator PASS 只表示協調閉環一致",
 }
 
 RESULT_DISPOSITION_FORBIDDEN = {
@@ -571,6 +628,13 @@ RESULT_DISPOSITION_FORBIDDEN = {
     "missing_readback_authority": "缺 `persistence_readback` 仍可作權威輸入",
     "next_allowed_use_substitutes": "`next_allowed_use` 可代替 `permitted_next_use`",
     "unmet_conditions_dispatch": "未清零 `unmet_conditions` 仍可派下一批",
+    "close_bundle_forces_ordinary": "delegation close bundle 可強制 ordinary execution、Goal 草稿或低風險小批使用",
+    "close_bundle_synonym_schema": "close bundle 可另建 result-disposition 近義欄位並替代本節封閉詞彙",
+    "close_bundle_mismatch_close": "dispatch/result/ack 身份不一致時仍可 `RESULT_ACCEPTED`",
+    "close_bundle_adjacent_repair": "`adjacent_backlog` 可單獨觸發主線 repair",
+    "close_bundle_scope_repair": "`scope_change_requests` 可包裝成 `bounded_repair`",
+    "close_bundle_budget_reset": "ack 可重置 repair attempt 或調高 max_attempts",
+    "close_bundle_overclaim": "close-bundle validator PASS 可宣稱 outcome PASS、release-ready、npm-ready 或節省 token",
 }
 
 
@@ -851,6 +915,10 @@ def validate_texts(root: Path, texts: dict[str, str]) -> list[str]:
         findings.append("execution profile owner marker must occur exactly once")
     if EXECUTION_PROFILE_OWNER_MARKER not in texts["references/core-runtime.md"]:
         findings.append("execution profile owner marker is not in core-runtime.md")
+    if all_markdown.count(PUBLIC_RUNTIME_LANGUAGE_OWNER_MARKER) != 1:
+        findings.append("public runtime language owner marker must occur exactly once")
+    if PUBLIC_RUNTIME_LANGUAGE_OWNER_MARKER not in texts["references/core-runtime.md"]:
+        findings.append("public runtime language owner marker is not in core-runtime.md")
 
     owner = re.sub(r"\s+", " ", texts["references/parallel-producers.md"])
     for label, required in OWNER_REQUIREMENTS.items():
@@ -880,6 +948,20 @@ def validate_texts(root: Path, texts: dict[str, str]) -> list[str]:
         for label, required in EXECUTION_PROFILE_REQUIREMENTS.items():
             if required not in execution_profile_owner:
                 findings.append(f"execution profile owner missing {label}")
+    public_runtime_match = re.search(
+        r"^## 公開 runtime 語言邊界[ \t]*\n([\s\S]*?)(?=^## |\Z)",
+        core,
+        re.MULTILINE,
+    )
+    if not public_runtime_match:
+        findings.append("core-runtime.md lacks the public runtime language boundary owner section")
+    else:
+        public_runtime_owner = re.sub(r"\s+", " ", public_runtime_match.group(1))
+        if PUBLIC_RUNTIME_LANGUAGE_OWNER_MARKER not in public_runtime_owner:
+            findings.append("public runtime language marker is outside its owner section")
+        for label, required in PUBLIC_RUNTIME_LANGUAGE_REQUIREMENTS.items():
+            if required not in public_runtime_owner:
+                findings.append(f"public runtime language owner missing {label}")
     preflight_match = re.search(
         r"^## Controller preflight[ \t]*\n([\s\S]*?)(?=^## 啟動|\Z)",
         core,
@@ -988,6 +1070,9 @@ def validate_texts(root: Path, texts: dict[str, str]) -> list[str]:
     for label, forbidden in EXECUTION_PROFILE_FORBIDDEN.items():
         if forbidden in normalized_markdown:
             findings.append(f"execution-profile fixed contradiction present {label}")
+    for label, forbidden in PUBLIC_RUNTIME_LANGUAGE_FORBIDDEN.items():
+        if forbidden in normalized_markdown:
+            findings.append(f"public runtime language fixed contradiction present {label}")
     if "[parallel-producers.md](references/parallel-producers.md)" not in skill:
         findings.append("SKILL.md lacks direct progressive-disclosure route")
     if "長任務防失焦檢查點只由" not in skill:
@@ -1045,6 +1130,11 @@ def validate_texts(root: Path, texts: dict[str, str]) -> list[str]:
     for label, required in EXECUTION_PROFILE_UAT_REQUIREMENTS.items():
         if required not in uat:
             findings.append(f"uat.md missing execution-profile scenario {label}")
+    if "## 公開 runtime 語言邊界情景" not in texts["references/uat.md"]:
+        findings.append("uat.md lacks public runtime language boundary scenarios")
+    for label, required in PUBLIC_RUNTIME_LANGUAGE_UAT_REQUIREMENTS.items():
+        if required not in uat:
+            findings.append(f"uat.md missing public runtime language scenario {label}")
     unexpected_failure_uat_match = re.search(
         r"^## 未預期失敗與範圍例外情景[ \t]*\n([\s\S]*?)(?=^## |\Z)",
         texts["references/uat.md"],
@@ -1505,6 +1595,13 @@ def mutation_matrix(root: Path) -> tuple[int, list[str]]:
                 mutated_fragment("references/core-runtime.md", fragment),
             )
         )
+    for label, fragment in PUBLIC_RUNTIME_LANGUAGE_REQUIREMENTS.items():
+        cases.append(
+            (
+                f"public_runtime_language_owner_missing_{label}",
+                mutated_fragment("references/core-runtime.md", fragment),
+            )
+        )
     for label, fragment in SENDABLE_PACKET_REQUIREMENTS.items():
         cases.append(
             (
@@ -1607,6 +1704,13 @@ def mutation_matrix(root: Path) -> tuple[int, list[str]]:
         cases.append(
             (
                 f"execution_profile_uat_missing_{label}",
+                mutated_fragment("references/uat.md", fragment),
+            )
+        )
+    for label, fragment in PUBLIC_RUNTIME_LANGUAGE_UAT_REQUIREMENTS.items():
+        cases.append(
+            (
+                f"public_runtime_language_uat_missing_{label}",
                 mutated_fragment("references/uat.md", fragment),
             )
         )
@@ -1713,6 +1817,17 @@ def mutation_matrix(root: Path) -> tuple[int, list[str]]:
                     "references/core-runtime.md",
                     "## 執行強度閘門",
                     f"## 執行強度閘門\n\n{contradiction}。",
+                ),
+            )
+        )
+    for label, contradiction in PUBLIC_RUNTIME_LANGUAGE_FORBIDDEN.items():
+        cases.append(
+            (
+                f"public_runtime_language_contradiction_{label}",
+                mutated(
+                    "references/core-runtime.md",
+                    "## 公開 runtime 語言邊界",
+                    f"## 公開 runtime 語言邊界\n\n{contradiction}。",
                 ),
             )
         )

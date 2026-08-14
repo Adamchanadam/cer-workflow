@@ -8,6 +8,10 @@ description: "Run standalone CER, or use local /CER-auto to select the minimum s
 CER Core v1 is for Codex only. Claude Code requires a separate Skill that has not been provided. Do
 not claim that this Skill or repository currently supports Claude Code.
 
+Runtime-language boundary: future behavior starts in English `cer-workflow-en`; any
+Traditional Chinese entry only preserves Chinese triggers/replies. Owner:
+[core-runtime.md](references/core-runtime.md).
+
 ## Entry Routing
 
 1. For local `/CER-auto`, before any CER identity exists, read only "Execution Profile Gate" in

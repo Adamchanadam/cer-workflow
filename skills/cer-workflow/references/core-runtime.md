@@ -4,6 +4,7 @@
 
 - [角色](#角色)
 - [知識底座](#知識底座)
+- [公開 runtime 語言邊界](#公開-runtime-語言邊界)
 - [小熊卡 package 版本](#小熊卡-package-版本)
 - [操作指令](#操作指令)
 - [執行強度閘門](#執行強度閘門)
@@ -47,6 +48,26 @@ CER 不限於工程任務。凡任務依賴醫療、法律、金融、投資、�
 E1 的派工包只包含本批所需的知識底座摘要、來源座標與禁止越界範圍。R 的工作
 是依同一知識底座獨立反證高風險主張、來源使用、推論和結論，不只檢查格式。
 簡單低風險任務不為知識底座建立文件；必要內容直接放入自足派工或停點說明。
+
+## 公開 runtime 語言邊界
+
+<!-- cer-public-runtime-language-boundary-owner -->
+`PUBLIC_SKILL_BOUNDARY_V1` 是後續公開分發遷移邊界，不自動改變目前已安裝或已發布的
+package。未來公開 runtime 行為改動先以英文 `cer-workflow-en` package 作 canonical
+authoring／validation source；若保留繁中 package，它只能作相容入口與用戶語言鏡像，
+不得另定或覆蓋 CER 行為。
+
+英文 canonical runtime 不等於英文-only 操作。`/CER-auto`、`/CER-start`、
+`/CER-stop`、`/CER-close`、`/CER-status`、`/CER-help` 保持穩定 ASCII 指令；中文
+自然語意觸發仍須有效；面向使用者的回覆跟隨使用者或目標專案語言。不得只因 runtime
+正文是英文，就把中文輸入預設改成英文回答。
+
+`README.md`／`README.en.md` 只屬用戶展示與安裝說明，不能覆蓋 runtime owner。
+`RELEASE_NOTES.md` 維持現行先繁中後英文的 repository notes 方向。`uat.md` 中
+Full Audit、release-readiness、post-release manual UAT 或「本 Codex 專案」語境只屬
+maintainer release-QA，不是 ordinary execution、Goal、CER 工作法或 `/CER-help` 的一般
+runtime 步驟。刪除、退役或合併繁中 package，以及 public/global sync、install、commit、
+tag、release、npm publish 或 deploy，仍須另行授權、遷移驗收與讀回。
 
 ## 小熊卡 package 版本
 
@@ -143,6 +164,8 @@ C 將本輪工作線分類為 `mainline_outcome`、`diagnostic`、`mechanism_imp
 候選、草稿、診斷、衍生輸出及純審閱結果預設只可作 `working_material`。要採納為 `authoritative_input`，C 必須有使用者明示或已讀目標專案既有 owner 的來源錨點、採納依據及讀回證據；找不到時，下一批停在 `dispatch_blocked`。Reviewer verdict 被 C 用作裁決依據時，須按 `content_verdict`、`implementation_verdict`、`outcome_verdict`、`authority_promotion_verdict` 分層；內容或技術 PASS 不會自動形成 outcome PASS、authority promotion PASS 或主線進度；R 未審的維度只能標為 `not_reviewed`／`out_of_scope`，`out_of_scope` 不是 PASS，C 不得擴大 R 原本審閱範圍。只有 `outcome_anchor` 本身要求草稿、候選或樣稿作終點時，`working_candidate` 才可成為合法 `terminal_deliverable`；這仍不等於更新權威來源。
 
 若結果會改變當前階段、artifact 角色、下一產品路線、權威來源、progress claim 或後續批次輸入，C 必須先按目標專案既有持久化規則由適當 writer 完成回寫並讀回。`persistence_readback` 缺失、只說已保存但無 owner 讀回，或 `unmet_conditions` 尚未清零時，下一批只能消費為 `working_material`、診斷證據或保持 blocked，不得轉成 `authority_input`。持久真源互相矛盾、尚未同步或 artifact 角色未能判定時，`next_dispatch` 必須是 `blocked`；即使沒有下一批，C 亦不得把結果接納為 `terminal_deliverable`、報告進度或宣稱完成。同一終點集合包含多個 artifact 時，C 還須讀回每個被列為 `terminal_deliverable` 的最終狀態聲稱；若其中任何 artifact 仍寫着未接納、持久化待完成、舊階段或舊下一步，整組仍屬矛盾，該 artifact 必須降為 `evidence_only`／排除，或按原驗收修正並重驗，之後才可終端接納。CER 不指定固定 handoff、docs、registry 或資料庫，只要求目標專案 owner 的同步終態可讀回。
+
+長期、多批、高風險或非簡單正式 CER 批次在關閉、接納為終端成果或交給下一批前，C 必須在本結果處置門檻內讀回一個 compact delegation close bundle；這不是新 runtime owner、新 public command、KDL dependency 或平行 result-disposition schema，普通 ordinary execution、Goal 草稿和低風險小批不強制使用。bundle 可用短摘要或結構化摘要，但必須把既有 `messageId`、`batchId`、`batchSeq`、`payloadDigest`、assignee／return target、工具 schema／receipt 明示需要或提供的 hostId、`pre_dispatch_evidence`／`outcome_anchor` 指向、本批未完成條件、成功後可讀回成果差異、已凍結驗收、明示排除的非主線項、有限 repair budget、`delivery_state`、結果候選狀態、`acceptance_blockers`、`worker_regressions`、`adjacent_backlog`、`scope_change_requests`、本節 result disposition 效果及下一步裁決放在同一收口讀回。dispatch、result、ack 身份或 digest 不一致，或 `delivery_state` 仍是 `delivery_unknown`／`not_delivered` 時，不得接納結果、報告成果進度或派下一批。`acceptance_blockers` 和 `worker_regressions` 才可在 repair budget 未耗盡時導致有界修補；ack 不得重置 attempt 或調高 max_attempts。`adjacent_backlog` 只可另列，不能單獨造成主線修補；`scope_change_requests` 只能 blocked 或停問使用者重定終點，不能包裝成 bounded repair。`next_dispatch=close` 時不得殘留 acceptance blocker、worker regression、必需持久化缺失或未清零 `unmet_conditions`；validator 或 closure PASS 只證明協調閉環一致，不等於 outcome PASS、authority PASS、release-readiness、npm readiness 或 token-saving claim。
 
 <!-- cer-controller-drift-checkpoint-owner -->
 長期任務防失焦檢查點屬於本節唯一 owner，不另建監察角色、背景程序或固定表格。長期、多批或容易受上下文污染的任務，在 resume／上下文轉換、連續兩批沒有已接納成果差異、同類失敗第二次、E1／R 提出相鄰改向或替代交付、使用者改方向或補限制，以及 close／release／重大交付前，C 做一次有界 drift checkpoint：下一批是否仍改善 `outcome_anchor` 的未完成條件；成功後有甚麼可讀回成果差異；E1／R 或相鄰改善是否正在取代主線成果。任一項答不到，C 不得派正式實作批次，只可改做診斷、收窄驗收、停問使用者、終止路線，或在 C 不能可靠反證且風險足夠時建立 fresh R。checkpoint、活的任務簡報或路線圖更新不計作成果進度；不得觸發背景 monitoring、polling、自動 `wait_threads`、固定 R、固定 Full Audit，或套用到簡單、單步、低風險且終點唯一的任務。

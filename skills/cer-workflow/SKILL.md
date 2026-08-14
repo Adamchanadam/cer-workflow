@@ -8,6 +8,9 @@ description: "執行獨立 CER 工作法，或用本地 /CER-auto 選最低足�
 CER Core v1 只供 Codex 使用。Claude Code 需要另一個尚未提供的 Skill；不得聲稱本
 Skill 或本 repo 目前支援 Claude Code。
 
+公開 runtime 語言邊界由 [core-runtime.md](references/core-runtime.md) 擁有：未來行為先
+改英文 `cer-workflow-en` canonical；本入口只保留中文觸發／回覆相容，不另定 runtime。
+
 ## 入口路由
 
 1. 處理本地 `/CER-auto` 時，在任何 CER 身份成立前，只讀取

@@ -3,6 +3,7 @@
 ## Contents
 
 - [Installation Scenario](#installation-scenario)
+- [Public Runtime Language Boundary Scenarios](#public-runtime-language-boundary-scenarios)
 - [Adaptive Execution Profile Scenarios](#adaptive-execution-profile-scenarios)
 - [Full Flow](#full-flow)
 - [Remote Controller Scenarios](#remote-controller-scenarios)
@@ -72,6 +73,14 @@ number cannot be reliably reconstructed. The cycle number is sidebar display onl
 ID, unique-C proof, or thread identity. If a new cycle cannot reliably enumerate or set the title,
 keep the shortest role title and report a real `title sync warning`; do not show a question-mark
 cycle label or guess a number.
+
+## Public Runtime Language Boundary Scenarios
+
+- When English `cer-workflow-en` is the canonical runtime source, any retained Traditional Chinese package is only a compatibility entry surface and user-language mirror; it must not define or override CER behavior.
+- Chinese `/CER-auto`, `/CER-start`, `CER 自適應`, `CER 啟動`, and equivalent triggers still work. When the user writes in Chinese, user-facing replies follow Chinese or the target project's language; the runtime text being English must not make English the default reply language.
+- README / README.en are only presentation, installation, and user guidance surfaces. Release Notes keep Traditional Chinese first and English second. Neither surface can override the `core-runtime.md` runtime owner.
+- Full Audit, release-readiness, post-release manual UAT, and "this Codex project" maintainer wording are maintainer release-QA only. Ordinary execution, Goal, CER Workflow, and `/CER-help` must not list them as ordinary user runtime steps.
+- Before retiring, deleting, or merging the Traditional Chinese package, the migration needs separate acceptance, Chinese and English trigger/reply coverage, public/global sync, install readback, and the required external authorization. A source-only rule change must not claim the retirement is complete.
 
 ## Installation Scenario
 
@@ -384,6 +393,11 @@ This section composes the existing preflight, `outcome_anchor`, drift, YAGNI, an
 - When the final batch produced a correct deliverable but the target-project current-state owner still records the old phase, no terminal deliverable, or a stale next action, C must not accept a `terminal_deliverable`, report progress, or claim completion even though there is no next batch.
 - When the model, report, and current-state owner in one terminal set are synchronized but a `RUN_RESULT` classified as a `terminal_deliverable` still says persistence pending, unaccepted, or an old phase, C must not accept the set; it must demote that file to `evidence_only` / exclude it, or correct and revalidate it under the original acceptance. If it was explicitly classified from the start as pre-persistence `evidence_only` outside the terminal set, its historical state may remain unchanged.
 - When the user's endpoint itself is a draft, candidate, or sample, the candidate may validly become `terminal_deliverable`; without a separate owner basis, it still must not become an authoritative source.
+- Before closing a long-running, multi-batch, high-risk, or non-simple formal CER batch, C uses a compact delegation close bundle to read existing `messageId`/`batchId`/`batchSeq`/`payloadDigest`, delivery state, frozen finish line, result disposition, finding buckets, and next-step adjudication in one place. It does not create a second result-disposition schema, and it does not force ordinary execution, Goal drafts, or low-risk small batches to use it.
+- When `acceptance_blockers` or `worker_regressions` are present, repair budget remains, and ack has not reset attempt or raised max_attempts, C may refreeze one bounded repair batch. If the same-root class has reached the finite limit, C must stop at blocker/root-cause rejudgment instead of opening another same-task ticket.
+- When `adjacent_backlog` is the only finding and the original finish line is safely accepted, the mainline may close and the improvement is listed separately. When `scope_change_requests` are present, C may only block or stop for user rebaseline; it must not package them as bounded repair.
+- If dispatch/result/ack identity or `payloadDigest` does not match, or if `delivery_state=delivery_unknown`/`not_delivered`, C must not accept the result, report outcome progress, or dispatch the next batch.
+- close-bundle validator PASS means only coordination-closure consistency. It must not be written as outcome PASS, authority PASS, release-readiness, npm readiness, manual UAT PASS, or token-saving claim.
 
 ## Unexpected Failure And Scope-Exception Scenarios
 
@@ -545,6 +559,13 @@ These scenarios only test the unexpected-failure gate in
 - C includes an artifact that still says persistence pending, unaccepted, an old phase, or an old next action in the accepted terminal artifact set, then claims completion because the other files and current-state owner are synchronized.
 - C uses an out-of-contract synonym in an actual result disposition, such as `accepted_as=terminal_outcome`, instead of one of the four existing `accepted_as` values, while Reviewer or the current-state owner still treats it as a valid terminal adjudication.
 - C or the writer synthesizes Phase 1 scope as `progress_effect=accepted_outcome_delta_for_phase1_only` or another out-of-contract value and writes it to persistent truth instead of blocking before persistence.
+- C requires ordinary execution, a Goal draft, or a low-risk small batch to fill a complete delegation close bundle, silently upgrading simple work into CER.
+- The close bundle creates synonym fields for `accepted_as`, `authority_effect`, `progress_effect`, `next_allowed_use`, or result disposition, bypassing this section's closed vocabularies.
+- The close bundle has mismatched dispatch/result/ack `batchId` or `payloadDigest`, but C still marks `next_dispatch=close` or `RESULT_ACCEPTED`.
+- The close bundle contains only `adjacent_backlog`, but C dispatches another mainline repair batch.
+- The close bundle contains `scope_change_requests`, but C marks `bounded_repair` without blocking or stopping for user rebaseline.
+- Ack resets repair attempt to 1 or raises max_attempts, and C still accepts it and continues same-class repair.
+- close-bundle validator PASS is written in README, Release Notes, or result reporting as safer, token-saving, release-ready, npm-ready, manual UAT PASS, or formally accepted outcome.
 - E1 treats a test failure as new modification authority, or treats an allowed file as authority to
   change every meaning in that file.
 - E1 continues writing while causality is unknown or repair would widen an owner, authoritative

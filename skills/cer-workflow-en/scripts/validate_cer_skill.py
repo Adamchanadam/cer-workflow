@@ -28,6 +28,7 @@ TRUTH_SOURCE_INTAKE_OWNER_MARKER = "<!-- cer-truth-source-intake-gate-owner -->"
 DRIFT_CHECKPOINT_OWNER_MARKER = "<!-- cer-controller-drift-checkpoint-owner -->"
 RESULT_DISPOSITION_OWNER_MARKER = "<!-- cer-result-disposition-gate-owner -->"
 EXECUTION_PROFILE_OWNER_MARKER = "<!-- cer-execution-profile-gate-owner -->"
+PUBLIC_RUNTIME_LANGUAGE_OWNER_MARKER = "<!-- cer-public-runtime-language-boundary-owner -->"
 EXPECTED_DEFAULT_PROMPT = (
     "Use $cer-workflow-en with one writer for this work; create a fresh Reviewer in "
     "proportion to risk, and accelerate internally when useful without extra setup."
@@ -153,6 +154,40 @@ EXECUTION_PROFILE_FORBIDDEN = {
     "fixed_checkpoint": "Every route transition creates a fixed YAML checkpoint",
     "persistent_file_always_cer": "Every persistent-state file creates C/E/R",
     "unsafe_read_bundle": "Even different permissions or scope must be combined into one read",
+}
+
+PUBLIC_RUNTIME_LANGUAGE_REQUIREMENTS = {
+    "boundary_id": "`PUBLIC_SKILL_BOUNDARY_V1`",
+    "canonical_source": "English `cer-workflow-en` package as the canonical source",
+    "compatibility_mirror": "compatibility entry surface and user-language mirror",
+    "no_divergent_behavior": "must not define or override CER behavior",
+    "not_english_only": "An English canonical runtime is not English-only operation",
+    "stable_commands": "`/CER-auto`, `/CER-start`, `/CER-stop`, `/CER-close`, `/CER-status`, and `/CER-help`",
+    "chinese_triggers": "Chinese natural-language triggers must still work",
+    "reply_language": "user-facing replies follow the user's or target project's language",
+    "readme_boundary": "`README.md` / `README.en.md` are only user presentation and installation surfaces",
+    "release_notes_order": "Traditional Chinese first, then English",
+    "maintainer_qa": "maintainer release-QA, not an ordinary runtime step for ordinary execution, Goal, CER Workflow, or `/CER-help`",
+    "external_auth": "separate authorization, migration acceptance, and readback",
+}
+
+PUBLIC_RUNTIME_LANGUAGE_UAT_REQUIREMENTS = {
+    "no_divergent_zh": "must not define or override CER behavior",
+    "chinese_triggers": "Chinese `/CER-auto`, `/CER-start`, `CER 自適應`, `CER 啟動`, and equivalent triggers still work",
+    "reply_language": "user-facing replies follow Chinese or the target project's language",
+    "release_notes_order": "Release Notes keep Traditional Chinese first and English second",
+    "readme_not_owner": "Neither surface can override the `core-runtime.md` runtime owner",
+    "maintainer_qa": "maintainer release-QA only",
+    "not_user_step": "must not list them as ordinary user runtime steps",
+    "not_retired_by_source_only": "A source-only rule change must not claim the retirement is complete",
+}
+
+PUBLIC_RUNTIME_LANGUAGE_FORBIDDEN = {
+    "english_reply_default": "English canonical runtime means Chinese input defaults to English",
+    "readme_owner": "README is the runtime owner",
+    "full_audit_user_step": "Full Audit is an ordinary user runtime step",
+    "delete_zh_without_validation": "The Traditional Chinese package may be deleted without validation",
+    "zh_diverges": "The Traditional Chinese package may define separate CER behavior",
 }
 
 REVIEWER_PROPORTIONALITY_COUNTEREXAMPLES = {
@@ -535,6 +570,20 @@ RESULT_DISPOSITION_REQUIREMENTS = {
     "terminal_artifact_set_consistency": "C must also read back the final-state claim of every artifact classified as a `terminal_deliverable`",
     "closed_vocabulary": "`accepted_as`, `authority_effect`, `progress_effect`, and `prior_result_use` values above are closed vocabularies",
     "validate_before_persistence": "Before persistence, the proper writer must validate these fields against this section",
+    "close_bundle_scope": "Before closing, terminally accepting, or handing off any long-running, multi-batch, high-risk, or non-simple formal CER batch",
+    "close_bundle_not_schema": "not a new runtime owner, public command, KDL dependency, or parallel result-disposition schema",
+    "close_bundle_not_ordinary_goal": "ordinary execution, Goal drafts, and low-risk small batches do not have to use it",
+    "close_bundle_identity": "existing `messageId`, `batchId`, `batchSeq`, `payloadDigest`",
+    "close_bundle_finish_line": "`pre_dispatch_evidence`/`outcome_anchor` pointer, this batch's unfinished condition, readable outcome delta",
+    "close_bundle_buckets": "`acceptance_blockers`, `worker_regressions`, `adjacent_backlog`, `scope_change_requests`",
+    "close_bundle_identity_mismatch": "dispatch, result, and ack identity or digest do not match",
+    "close_bundle_delivery_blocks": "`delivery_state` is still `delivery_unknown`/`not_delivered`",
+    "close_bundle_repair_buckets": "Only `acceptance_blockers` and `worker_regressions` may cause a bounded repair while repair budget remains",
+    "close_bundle_budget_no_reset": "ack must not reset attempt or raise max_attempts",
+    "close_bundle_adjacent_backlog": "`adjacent_backlog` is recorded separately",
+    "close_bundle_scope_change": "`scope_change_requests` may only block or stop for user rebaseline",
+    "close_bundle_close_clear": "`next_dispatch=close` must have no remaining acceptance blocker",
+    "close_bundle_pass_limited": "Validator or closure PASS proves only coordination-closure consistency",
 }
 
 RESULT_DISPOSITION_UAT_REQUIREMENTS = {
@@ -557,6 +606,14 @@ RESULT_DISPOSITION_UAT_REQUIREMENTS = {
     "missing_unmet_readback": "Result disposition is missing `unmet_conditions` or `persistence_readback`",
     "next_allowed_use_rejected": "C uses `next_allowed_use` instead of the only valid `permitted_next_use`",
     "next_batch_source_named": "the next batch does not state whether it consumes accepted authority, working material, diagnostic evidence, or clean baseline",
+    "close_bundle_scope": "Before closing a long-running, multi-batch, high-risk, or non-simple formal CER batch",
+    "close_bundle_no_second_schema": "It does not create a second result-disposition schema",
+    "close_bundle_no_ordinary_goal": "does not force ordinary execution, Goal drafts, or low-risk small batches to use it",
+    "close_bundle_repair_budget": "ack has not reset attempt or raised max_attempts",
+    "close_bundle_adjacent_backlog": "`adjacent_backlog` is the only finding",
+    "close_bundle_scope_change": "`scope_change_requests` are present",
+    "close_bundle_identity_delivery": "dispatch/result/ack identity or `payloadDigest` does not match",
+    "close_bundle_pass_limited": "close-bundle validator PASS means only coordination-closure consistency",
 }
 
 RESULT_DISPOSITION_FORBIDDEN = {
@@ -571,6 +628,13 @@ RESULT_DISPOSITION_FORBIDDEN = {
     "missing_readback_authority": "Missing `persistence_readback` may still be authoritative input",
     "next_allowed_use_substitutes": "`next_allowed_use` may substitute for `permitted_next_use`",
     "unmet_conditions_dispatch": "C may dispatch the next batch before `unmet_conditions` are cleared",
+    "close_bundle_forces_ordinary": "delegation close bundle may be mandatory for ordinary execution, Goal drafts, or low-risk small batches",
+    "close_bundle_synonym_schema": "close bundle may create result-disposition synonym fields and replace this section's closed vocabularies",
+    "close_bundle_mismatch_close": "dispatch/result/ack identity mismatch may still be `RESULT_ACCEPTED`",
+    "close_bundle_adjacent_repair": "`adjacent_backlog` may by itself trigger mainline repair",
+    "close_bundle_scope_repair": "`scope_change_requests` may be packaged as `bounded_repair`",
+    "close_bundle_budget_reset": "ack may reset repair attempt or raise max_attempts",
+    "close_bundle_overclaim": "close-bundle validator PASS may claim outcome PASS, release-ready, npm-ready, or token saving",
 }
 
 
@@ -851,6 +915,10 @@ def validate_texts(root: Path, texts: dict[str, str]) -> list[str]:
         findings.append("execution profile owner marker must occur exactly once")
     if EXECUTION_PROFILE_OWNER_MARKER not in texts["references/core-runtime.md"]:
         findings.append("execution profile owner marker is not in core-runtime.md")
+    if all_markdown.count(PUBLIC_RUNTIME_LANGUAGE_OWNER_MARKER) != 1:
+        findings.append("public runtime language owner marker must occur exactly once")
+    if PUBLIC_RUNTIME_LANGUAGE_OWNER_MARKER not in texts["references/core-runtime.md"]:
+        findings.append("public runtime language owner marker is not in core-runtime.md")
 
     owner = re.sub(r"\s+", " ", texts["references/parallel-producers.md"])
     for label, required in OWNER_REQUIREMENTS.items():
@@ -880,6 +948,20 @@ def validate_texts(root: Path, texts: dict[str, str]) -> list[str]:
         for label, required in EXECUTION_PROFILE_REQUIREMENTS.items():
             if required not in execution_profile_owner:
                 findings.append(f"execution profile owner missing {label}")
+    public_runtime_match = re.search(
+        r"^## Public Runtime Language Boundary[ \t]*\n([\s\S]*?)(?=^## |\Z)",
+        core,
+        re.MULTILINE,
+    )
+    if not public_runtime_match:
+        findings.append("core-runtime.md lacks the public runtime language boundary owner section")
+    else:
+        public_runtime_owner = re.sub(r"\s+", " ", public_runtime_match.group(1))
+        if PUBLIC_RUNTIME_LANGUAGE_OWNER_MARKER not in public_runtime_owner:
+            findings.append("public runtime language marker is outside its owner section")
+        for label, required in PUBLIC_RUNTIME_LANGUAGE_REQUIREMENTS.items():
+            if required not in public_runtime_owner:
+                findings.append(f"public runtime language owner missing {label}")
     preflight_match = re.search(
         r"^## Controller Preflight[ \t]*\n([\s\S]*?)(?=^## Startup|\Z)",
         core,
@@ -990,6 +1072,9 @@ def validate_texts(root: Path, texts: dict[str, str]) -> list[str]:
     for label, forbidden in EXECUTION_PROFILE_FORBIDDEN.items():
         if forbidden in normalized_markdown:
             findings.append(f"execution-profile fixed contradiction present {label}")
+    for label, forbidden in PUBLIC_RUNTIME_LANGUAGE_FORBIDDEN.items():
+        if forbidden in normalized_markdown:
+            findings.append(f"public runtime language fixed contradiction present {label}")
     if "[parallel-producers.md](references/parallel-producers.md)" not in skill:
         findings.append("SKILL.md lacks direct progressive-disclosure route")
     if "The long-task drift checkpoint is owned only" not in skill:
@@ -1047,6 +1132,11 @@ def validate_texts(root: Path, texts: dict[str, str]) -> list[str]:
     for label, required in EXECUTION_PROFILE_UAT_REQUIREMENTS.items():
         if required not in uat:
             findings.append(f"uat.md missing execution-profile scenario {label}")
+    if "## Public Runtime Language Boundary Scenarios" not in texts["references/uat.md"]:
+        findings.append("uat.md lacks public runtime language boundary scenarios")
+    for label, required in PUBLIC_RUNTIME_LANGUAGE_UAT_REQUIREMENTS.items():
+        if required not in uat:
+            findings.append(f"uat.md missing public runtime language scenario {label}")
     unexpected_failure_uat_match = re.search(
         r"^## Unexpected Failure And Scope-Exception Scenarios[ \t]*\n([\s\S]*?)(?=^## |\Z)",
         texts["references/uat.md"],
@@ -1507,6 +1597,13 @@ def mutation_matrix(root: Path) -> tuple[int, list[str]]:
                 mutated_fragment("references/core-runtime.md", fragment),
             )
         )
+    for label, fragment in PUBLIC_RUNTIME_LANGUAGE_REQUIREMENTS.items():
+        cases.append(
+            (
+                f"public_runtime_language_owner_missing_{label}",
+                mutated_fragment("references/core-runtime.md", fragment),
+            )
+        )
     for label, fragment in SENDABLE_PACKET_REQUIREMENTS.items():
         cases.append(
             (
@@ -1609,6 +1706,13 @@ def mutation_matrix(root: Path) -> tuple[int, list[str]]:
         cases.append(
             (
                 f"execution_profile_uat_missing_{label}",
+                mutated_fragment("references/uat.md", fragment),
+            )
+        )
+    for label, fragment in PUBLIC_RUNTIME_LANGUAGE_UAT_REQUIREMENTS.items():
+        cases.append(
+            (
+                f"public_runtime_language_uat_missing_{label}",
                 mutated_fragment("references/uat.md", fragment),
             )
         )
@@ -1715,6 +1819,17 @@ def mutation_matrix(root: Path) -> tuple[int, list[str]]:
                     "references/core-runtime.md",
                     "## Execution Profile Gate",
                     f"## Execution Profile Gate\n\n{contradiction}.",
+                ),
+            )
+        )
+    for label, contradiction in PUBLIC_RUNTIME_LANGUAGE_FORBIDDEN.items():
+        cases.append(
+            (
+                f"public_runtime_language_contradiction_{label}",
+                mutated(
+                    "references/core-runtime.md",
+                    "## Public Runtime Language Boundary",
+                    f"## Public Runtime Language Boundary\n\n{contradiction}.",
                 ),
             )
         )

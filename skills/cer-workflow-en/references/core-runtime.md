@@ -4,6 +4,7 @@
 
 - [Roles](#roles)
 - [Knowledge Foundation](#knowledge-foundation)
+- [Public Runtime Language Boundary](#public-runtime-language-boundary)
 - [Bear-Card Package Version](#bear-card-package-version)
 - [Commands](#commands)
 - [Execution Profile Gate](#execution-profile-gate)
@@ -44,6 +45,28 @@ reference owns the complete activation, isolation, candidate convergence, and fa
 CER is not limited to engineering. When a task depends on medicine, law, finance, investment, policy, academia, business, design, operations, content, or other specialist knowledge, C defines a risk-proportionate knowledge foundation first: domain scope, authoritative sources, terminology, data year or version, quality standard, choices AI cannot make for the user, and uncertainty that must be disclosed. Prefer existing project sources of truth and user-provided sources. If a critical source is missing, stop and label the unknown. Do not turn general knowledge into a professional conclusion.
 
 An E1 batch contains only the knowledge-foundation summary, source coordinates, and boundaries needed for that batch. R independently tests high-risk claims, source use, reasoning, and conclusions against the same foundation, rather than checking format alone. Do not create a knowledge-foundation document for a simple low-risk task; include the necessary content in the self-contained dispatch or checkpoint.
+
+## Public Runtime Language Boundary
+
+<!-- cer-public-runtime-language-boundary-owner -->
+`PUBLIC_SKILL_BOUNDARY_V1` is the future public-distribution migration boundary; it does not
+automatically change the currently installed or published package. Future public runtime behavior
+changes are authored and validated first in the English `cer-workflow-en` package as the canonical
+source. If a Traditional Chinese package remains, it is only a compatibility entry surface and
+user-language mirror, and must not define or override CER behavior.
+
+An English canonical runtime is not English-only operation. `/CER-auto`, `/CER-start`,
+`/CER-stop`, `/CER-close`, `/CER-status`, and `/CER-help` remain stable ASCII commands; Chinese
+natural-language triggers must still work; user-facing replies follow the user's or target project's
+language. Do not default Chinese input to English merely because the runtime text is English.
+
+`README.md` / `README.en.md` are only user presentation and installation surfaces; they cannot
+override the runtime owner. `RELEASE_NOTES.md` keeps the current repository-notes direction:
+Traditional Chinese first, then English. Full Audit, release-readiness, post-release manual UAT, or
+"this Codex project" wording in `uat.md` is maintainer release-QA, not an ordinary runtime step for
+ordinary execution, Goal, CER Workflow, or `/CER-help`. Deleting, retiring, or merging the
+Traditional Chinese package, and any public/global sync, install, commit, tag, release, npm publish,
+or deploy, still require separate authorization, migration acceptance, and readback.
 
 ## Bear-Card Package Version
 
@@ -145,6 +168,8 @@ The `accepted_as`, `authority_effect`, `progress_effect`, and `prior_result_use`
 Candidates, drafts, diagnostics, derived outputs, and review-only results default to `working_material` only. To accept one as `authoritative_input`, C needs an explicit user decision or an actually read target-project owner anchor, acceptance evidence, and readback evidence; if any is missing, the next batch stays at `dispatch_blocked`. When C uses a Reviewer verdict as an adjudication basis, it must separate `content_verdict`, `implementation_verdict`, `outcome_verdict`, and `authority_promotion_verdict`; a content or technical PASS does not automatically become an outcome PASS, authority-promotion PASS, or mainline progress. Any dimension R did not review is only `not_reviewed` / `out_of_scope`, `out_of_scope` is not PASS, and C must not expand R's original review scope. Only when the `outcome_anchor` itself asks for a draft, candidate, or sample as the endpoint may a `working_candidate` become a valid `terminal_deliverable`; that still does not update an authoritative source.
 
 If a result changes the current phase, artifact role, next product route, authoritative source, progress claim, or later batch input, C must first have the proper writer update the target project's existing persistence surface and read it back under that project rules. When `persistence_readback` is missing, persistence is only claimed without owner readback, or `unmet_conditions` are not cleared, the next batch may consume the result only as `working_material` or diagnostic evidence, or remain blocked; it must not become `authority_input`. While persistent truths conflict, are not synchronized, or the artifact role cannot be determined, `next_dispatch` must be `blocked`; even when there is no next batch, C must not accept the result as a `terminal_deliverable`, report progress, or claim completion. When one terminal set contains multiple artifacts, C must also read back the final-state claim of every artifact classified as a `terminal_deliverable`; if any still says unaccepted, persistence pending, an old phase, or an old next action, the set remains contradictory, and that artifact must be demoted to `evidence_only` / excluded or corrected and revalidated under the original acceptance before terminal acceptance. CER does not prescribe a fixed handoff, docs, registry, or database; it requires only a readable synchronized terminal state from the target-project owner.
+
+Before closing, terminally accepting, or handing off any long-running, multi-batch, high-risk, or non-simple formal CER batch, C must read back a compact delegation close bundle inside this result disposition gate. It is not a new runtime owner, public command, KDL dependency, or parallel result-disposition schema, and ordinary execution, Goal drafts, and low-risk small batches do not have to use it. The bundle may be a short summary or a structured summary, but it must join the existing `messageId`, `batchId`, `batchSeq`, `payloadDigest`, assignee/return target, hostId only when the tool schema/receipt requires or provides it, `pre_dispatch_evidence`/`outcome_anchor` pointer, this batch's unfinished condition, readable outcome delta, frozen acceptance, explicit non-mainline exclusions, finite repair budget, `delivery_state`, result candidate status, `acceptance_blockers`, `worker_regressions`, `adjacent_backlog`, `scope_change_requests`, this section's result disposition effect, and next-step adjudication in one closure readback. If dispatch, result, and ack identity or digest do not match, or if `delivery_state` is still `delivery_unknown`/`not_delivered`, C must not accept the result, report outcome progress, or dispatch the next batch. Only `acceptance_blockers` and `worker_regressions` may cause a bounded repair while repair budget remains; ack must not reset attempt or raise max_attempts. `adjacent_backlog` is recorded separately and must not by itself cause mainline repair. `scope_change_requests` may only block or stop for user rebaseline; they must not be packaged as bounded repair. `next_dispatch=close` must have no remaining acceptance blocker, worker regression, required persistence gap, or uncleared `unmet_conditions`. Validator or closure PASS proves only coordination-closure consistency, not outcome PASS, authority PASS, release-readiness, npm readiness, or token-saving claim.
 
 <!-- cer-controller-drift-checkpoint-owner -->
 The long-task drift checkpoint is the sole owner in this section; do not create another monitoring role, background process, or fixed table for it. For long-running, multi-batch, or context-pollution-prone work, C performs one bounded drift checkpoint at resume/context transition, after two consecutive batches with no accepted outcome difference, on the second same-class failure, when E1/R proposes an adjacent direction change or substitute deliverable, when the user changes direction or adds constraints, and before close/release/major delivery: whether the next batch still improves an unfinished `outcome_anchor` condition; what readable outcome difference success will create; and whether E1/R or adjacent improvements are replacing the mainline outcome. If any item cannot be answered, C must not dispatch a formal implementation batch and may only switch to diagnostic work, narrow acceptance, stop for user decision, terminate the route, or create a fresh R when C cannot reliably disprove the risk and the risk level justifies it. A checkpoint, living task brief, or roadmap update does not count as outcome progress; it must not trigger background monitoring, polling, automatic `wait_threads`, fixed R, fixed Full Audit, or apply to simple, one-step, low-risk work with one clear endpoint.

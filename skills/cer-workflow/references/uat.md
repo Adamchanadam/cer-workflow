@@ -3,6 +3,7 @@
 ## 目錄
 
 - [安裝情景](#安裝情景)
+- [公開 runtime 語言邊界情景](#公開-runtime-語言邊界情景)
 - [自適應執行強度情景](#自適應執行強度情景)
 - [完整流程](#完整流程)
 - [Remote Controller 情景](#remote-controller-情景)
@@ -64,6 +65,14 @@ numbering 規則生效前已開始且無法可靠回推原 cycle number。cycle 
 辨識，不是 lock、run ID、唯一 C 證據或 thread 身份。若新 cycle 無法可靠枚舉或
 設定 title，保留最短 role title 並報真實 `title sync warning`；不得顯示問號 cycle
 標籤，不得猜測數字。
+
+## 公開 runtime 語言邊界情景
+
+- 英文 `cer-workflow-en` 作 canonical runtime source 時，繁中 package 若仍存在，只作相容入口與用戶語言鏡像；不得在繁中 package 另定或覆蓋 CER 行為。
+- 中文 `/CER-auto`、`/CER-start`、`CER 自適應`、`CER 啟動` 等觸發仍有效；使用者以中文輸入時，面向使用者的回覆跟隨中文或目標專案語言，不得因 runtime 正文是英文而預設改成英文回答。
+- README／README.en 只作展示、安裝與用戶說明；Release Notes 維持先繁中後英文；兩者不能覆蓋 `core-runtime.md` 的 runtime owner。
+- Full Audit／全面檢、release-readiness、post-release manual UAT 及「本 Codex 專案」維護語境只屬 maintainer release-QA；ordinary execution、Goal、CER 工作法或 `/CER-help` 不把它們列為一般用戶 runtime 步驟。
+- 退役、刪除或合併繁中 package 前，必須另有遷移驗收、中文／英文觸發與回覆覆蓋、public/global sync、install 讀回及相應外部授權；source-only 規則改動本身不得聲稱已完成退役。
 
 ## 安裝情景
 
@@ -326,6 +335,11 @@ numbering 規則生效前已開始且無法可靠回推原 cycle number。cycle 
 - 最後一批已產生正確交付物，但目標專案 current-state owner 仍寫着舊階段、沒有 terminal deliverable 或舊下一步時，即使沒有下一批，C 也不得接納 `terminal_deliverable`、報告進度或宣稱完成。
 - 同一終點集合的模型、報告和 current-state owner 已同步，但被列作 `terminal_deliverable` 的 `RUN_RESULT` 仍聲稱 persistence pending、未接納或舊階段時，C 不得接納整組；須把該檔降為 `evidence_only`／排除，或修正後按原驗收重驗。若它一開始已明示只作 pre-persistence `evidence_only` 且不屬終點集合，則可保留原始歷史狀態。
 - 使用者終點本身就是草稿、候選或樣稿時，候選可合法成為 `terminal_deliverable`；但除非另有 owner 依據，仍不得更新權威來源。
+- 長期、多批、高風險或非簡單正式 CER 批次關閉前，C 用 compact delegation close bundle 把既有 `messageId`／`batchId`／`batchSeq`／`payloadDigest`、delivery state、凍結 finish line、result disposition、finding buckets 及下一步裁決讀在同一處；它不建立第二套 result disposition schema，也不強制 ordinary execution、Goal 草稿或低風險小批使用。
+- `acceptance_blockers` 或 `worker_regressions` 有值、repair budget 未耗盡且 ack 未重置 attempt／調高 max_attempts 時，C 可重凍結一個有界修補批次；若同根因已達有限上限，C 必須停在 blocker／根因重判，而不是開下一張相同任務。
+- `adjacent_backlog` 唯一有值而原 finish line 已安全通過時，主線可 close，改善另列；`scope_change_requests` 有值時，只可 blocked 或停問使用者重定終點，不得包裝成 bounded repair。
+- dispatch／result／ack 身份或 `payloadDigest` 不一致，或 `delivery_state=delivery_unknown`／`not_delivered` 時，C 不得接納結果、報告成果進度或派下一批。
+- close-bundle validator PASS 只表示協調閉環一致；不得寫成 outcome PASS、authority PASS、release-readiness、npm readiness、manual UAT PASS 或 token-saving claim。
 
 ## 未預期失敗與範圍例外情景
 
@@ -463,6 +477,13 @@ numbering 規則生效前已開始且無法可靠回推原 cycle number。cycle 
 - C 把仍聲稱 persistence pending、未接納、舊階段或舊下一步的 artifact 列入 accepted terminal artifact set，並因其他檔案及 current-state owner 已同步而照常宣稱完成。
 - C 在實際 result disposition 使用規格外近義詞（例如 `accepted_as=terminal_outcome`）取代既有 `accepted_as` 四值之一，Reviewer 或 current-state owner 仍把它當成合法終點裁決。
 - C 或 writer 把 Phase 1 範圍合成 `progress_effect=accepted_outcome_delta_for_phase1_only` 或其他規格外值並寫入持久真源，而不是在持久化前阻塞。
+- C 要求 ordinary execution、Goal 草稿或低風險小批填完整 delegation close bundle，令簡單工作被隱性升級為 CER。
+- close bundle 另建 `accepted_as`、`authority_effect`、`progress_effect`、`next_allowed_use` 或 result-disposition 近義欄位，繞過本節封閉詞彙。
+- close bundle 的 dispatch／result／ack `batchId` 或 `payloadDigest` 不一致，C 仍標 `next_dispatch=close` 或 `RESULT_ACCEPTED`。
+- close bundle 只有 `adjacent_backlog`，C 卻派下一個主線 repair batch。
+- close bundle 有 `scope_change_requests`，C 卻標 `bounded_repair`，沒有 blocked 或停問使用者重定終點。
+- ack 把 repair attempt 重置為 1 或調高 max_attempts，C 仍接受並繼續同類修補。
+- close-bundle validator PASS 被 README、Release Notes 或結果回報寫成更安全、已省 token、release-ready、npm-ready、manual UAT PASS 或正式成果已接納。
 - E1 把測試失敗當成新增修改權，或把允許檔案當成可改該檔案所有語意。
 - 未預期失敗因果不明，或修正需要擴大 owner、權威來源、fallback、准入條件時，
   E1 仍繼續寫入或以測試變綠冒充正確。
