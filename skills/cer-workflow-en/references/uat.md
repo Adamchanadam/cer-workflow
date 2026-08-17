@@ -355,6 +355,10 @@ cycle label or guess a number.
 - Before a non-simple formal implementation batch, C can answer each truth-source intake question: who owns it, who actually uses it, how it takes effect, and what counterexample can disprove it. The answers are only a Controller preflight and self-contained-dispatch summary, not a second rule owner.
 - If C cannot answer any truth-source intake question, or if an answer depends on an unread required source, that completion condition is `critical missing`. C does not dispatch a formal implementation batch and only performs necessary read-only diagnosis, narrows the acceptance scope, or stops for user decision.
 - A formal packet for long-running, multi-batch, high-risk, or non-simple formal implementation work includes compact `pre_dispatch_evidence` that reads back the `outcome_anchor` pointer, target unfinished condition, expected outcome difference, truth-source intake four-question summary with source anchors, required-source read/unknown disposition, work-lane classification, and drift checkpoint conclusion or no-trigger reason; if it is missing, E1/R only returns a zero-write `BATCH_BLOCKED_MISSING_PRE_DISPATCH_EVIDENCE`.
+- Complex ordinary, Goal, and CER Workflow tasks must not skip task preflight / layer focus merely because of their route label. When a visible focus card is needed, it is read-only and appears before formal planning, writing, dispatch, or acceptance; it does not dispatch a batch.
+- Simple one-step low-risk work with one clear endpoint may still pass through a fast internal check and must not be forced to show a focus card or create a living task brief.
+- A focus card, preflight, living task brief, or roadmap update is not outcome progress, acceptance evidence, or product-quality proof. When technical PASS has no outcome delta, the focus judgment cannot be `aligned`.
+- CER only maps task preflight locally; it must not add a slash command, role, schema, or enum, and must not rewrite the four `/CER-auto` routes.
 
 ## Controller Long-Task Challenge Scenarios
 
@@ -533,6 +537,12 @@ These scenarios only test the unexpected-failure gate in
 - C expands the truth-source intake gate into default full-text ingestion, whole-repo review, fixed Full Audit, a second rule owner, or a fixed form workflow.
 - A long-running, multi-batch, high-risk, or non-simple formal implementation packet lacks `pre_dispatch_evidence`, or only says "C already judged" without readable support, and E1/R still writes, reviews, or fills in C's missing judgment.
 - C dispatches instead of stopping when critical endpoint, permission, or acceptance information is missing.
+- A complex Goal task skips task preflight / layer focus only because it is not full CER.
+- A complex ordinary task is written as never needing focus.
+- A simple low-risk one-step task is forced to show a focus card.
+- A focus card, preflight, or living task brief is counted as progress, acceptance, or product-quality evidence.
+- Technical PASS has no outcome delta, but the focus judgment is still marked `aligned`.
+- A focus rule inside CER adds a slash command, role, schema, or enum, or rewrites the four `/CER-auto` routes.
 - Long multi-batch work lacks `outcome_anchor`, or later E1/R rewrites the final outcome, completion conditions, substitute outcomes, or exclusions.
 - An implementation batch with zero expected outcome improvement and no necessary-prerequisite role is still dispatched.
 - Diagnostics, candidates, reviews, format pass, file consistency, logged issues, design completion, renaming, or version changes are automatically counted as mainline outcome progress.

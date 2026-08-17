@@ -5,6 +5,16 @@ has not entered an authorized release flow is explicitly marked as a candidate. 
 aborted, the affected content must be marked as candidate again or removed. Runtime authority
 remains the Skill references bundled with the version the user has installed.
 
+## v0.3.19
+
+This release maps task preflight / layer focus into the CER execution surface for complex work. The practical effect is to check the final outcome, the actual output for the current round, work level, truth sources, out-of-scope items, success evidence, technical PASS counterexamples that do not count as progress, and stopping conditions before process evidence is mistaken for product progress.
+
+- Complex ordinary, Goal, and CER Workflow tasks must not skip needed layer focus merely because of their route label; simple one-step low-risk work with one clear endpoint may still pass internally without a visible focus card
+- A visible focus card, preflight, living task brief, or roadmap update is not outcome progress, acceptance evidence, or product-quality proof
+- CER only maps task preflight locally; it adds no slash command, role, schema, or enum, and does not rewrite the four `/CER-auto` routes
+- Both language Skill packages are VERSION `0.3.19`, 8 files each, with 512 mutation cases passing
+- Post-release user manual UAT remains a separate follow-up
+
 ## v0.3.17
 
 This release ships the long-task closure guard and the public Skill runtime language boundary into the public version. The practical change is that the Controller has a clearer closure check at handoff or terminal points, keeping the original acceptable outcome in view instead of turning every adjacent discovery into the next mainline batch.

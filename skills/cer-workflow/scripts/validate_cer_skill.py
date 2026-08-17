@@ -463,6 +463,41 @@ LIVING_BRIEF_FORBIDDEN = {
     "r_initial_prompt_only": "R 只按最初 prompt 驗收",
 }
 
+TASK_PREFLIGHT_MAPPING_REQUIREMENTS = {
+    "global_owner_external": "通用任務前檢／層級對焦的唯一全域 owner 不在 CER Skill",
+    "cer_mapping_only": "本節只作 CER-specific mapping",
+    "no_redefine_eight": "不重定義該八項",
+    "route_label_not_skip": "複雜 ordinary／Goal／CER 工作法任務不得只因 route label 跳過必要層級對焦",
+    "simple_no_forced_card": "不強制顯示對焦卡",
+    "card_not_progress": "對焦卡、preflight、活的任務簡報或路線圖更新不計作成果進度",
+    "auto_routes_unchanged": "不改變 `/CER-auto` 四路線",
+    "no_new_surface": "不新增 CER role、schema、enum 或 slash command",
+}
+
+TASK_PREFLIGHT_UAT_REQUIREMENTS = {
+    "complex_routes_focus": "複雜 ordinary／Goal／CER 工作法任務不得只因 route label 跳過任務前檢／層級對焦",
+    "simple_internal": "簡單、單步、低風險且終點唯一的任務仍可內部快速通過",
+    "focus_not_quality": "對焦卡、preflight、活的任務簡報或路線圖更新不算成果進度、驗收證據或產品品質證明",
+    "technical_pass_not_aligned": "技術 PASS 但沒有成果差異時，不能標為 `對準`",
+    "cer_mapping_no_surface": "CER 對任務前檢只作本地映射",
+    "failure_complex_goal_skips": "複雜 Goal 任務只因不是 full CER 而跳過任務前檢／層級對焦",
+    "failure_ordinary_never_focus": "ordinary 複雜任務被規則寫成永不需要對焦",
+    "failure_simple_forced": "簡單低風險單步任務被強制顯示對焦卡",
+    "failure_focus_progress": "對焦卡、preflight 或活的任務簡報被算作 progress、驗收或產品品質證據",
+    "failure_technical_aligned": "技術 PASS 但沒有成果差異時，對焦判定仍標為 `對準`",
+    "failure_new_surface": "對焦規則在 CER 內新增 slash command、role、schema 或 enum",
+}
+
+TASK_PREFLIGHT_FORBIDDEN = {
+    "cer_owns_general": "CER Skill 是任務前檢八項的唯一 owner",
+    "focus_progress": "對焦卡本身可增加主線成果進度",
+    "focus_enum": "任務前檢新增 `focus_status` enum",
+    "focus_command": "`/CER-focus` 是 CER slash command",
+    "auto_fifth_route": "`/CER-auto` 因對焦改成第五路線",
+    "goal_never_focus": "Goal 路線永遠不需要層級對焦",
+    "simple_always_card": "低風險單步任務必須顯示對焦卡",
+}
+
 OUTCOME_ANCHOR_REQUIREMENTS = (
     "不可由後續批次自行改寫的 `outcome_anchor`",
     "不可接受的替代成果",
@@ -1040,6 +1075,15 @@ def validate_texts(root: Path, texts: dict[str, str]) -> list[str]:
     for label, forbidden in LIVING_BRIEF_FORBIDDEN.items():
         if forbidden in core_normalized:
             findings.append(f"living-brief fixed contradiction present {label}")
+    for label, required in TASK_PREFLIGHT_MAPPING_REQUIREMENTS.items():
+        if required not in core_normalized:
+            findings.append(f"task-preflight CER mapping missing {label}")
+    for label, required in TASK_PREFLIGHT_UAT_REQUIREMENTS.items():
+        if required not in uat:
+            findings.append(f"uat.md missing task-preflight counterexample {label}")
+    for label, forbidden in TASK_PREFLIGHT_FORBIDDEN.items():
+        if forbidden in normalized_markdown:
+            findings.append(f"task-preflight fixed contradiction present {label}")
     for label, forbidden in UNEXPECTED_FAILURE_FORBIDDEN.items():
         if forbidden in normalized_markdown:
             findings.append(f"unexpected-failure fixed contradiction present {label}")
@@ -1665,6 +1709,20 @@ def mutation_matrix(root: Path) -> tuple[int, list[str]]:
                 mutated_fragment("references/uat.md", fragment),
             )
         )
+    for label, fragment in TASK_PREFLIGHT_MAPPING_REQUIREMENTS.items():
+        cases.append(
+            (
+                f"task_preflight_mapping_missing_{label}",
+                mutated_fragment("references/core-runtime.md", fragment),
+            )
+        )
+    for label, fragment in TASK_PREFLIGHT_UAT_REQUIREMENTS.items():
+        cases.append(
+            (
+                f"task_preflight_uat_missing_{label}",
+                mutated_fragment("references/uat.md", fragment),
+            )
+        )
     for label, fragment in TRUTH_SOURCE_INTAKE_UAT_REQUIREMENTS.items():
         cases.append(
             (
@@ -1758,6 +1816,17 @@ def mutation_matrix(root: Path) -> tuple[int, list[str]]:
         cases.append(
             (
                 f"living_brief_contradiction_{label}",
+                mutated(
+                    "references/core-runtime.md",
+                    "## Controller preflight",
+                    f"## Controller preflight\n\n{contradiction}。",
+                ),
+            )
+        )
+    for label, contradiction in TASK_PREFLIGHT_FORBIDDEN.items():
+        cases.append(
+            (
+                f"task_preflight_contradiction_{label}",
                 mutated(
                     "references/core-runtime.md",
                     "## Controller preflight",

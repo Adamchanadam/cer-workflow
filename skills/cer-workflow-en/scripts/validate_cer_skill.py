@@ -463,6 +463,41 @@ LIVING_BRIEF_FORBIDDEN = {
     "r_initial_prompt_only": "R reviews only against the initial prompt",
 }
 
+TASK_PREFLIGHT_MAPPING_REQUIREMENTS = {
+    "global_owner_external": "The sole general owner for task preflight / layer focus is not the CER Skill",
+    "cer_mapping_only": "this section is only the CER-specific mapping",
+    "no_redefine_eight": "must not redefine the eight items",
+    "route_label_not_skip": "Complex ordinary, Goal, and CER Workflow tasks must not skip needed layer focus merely because of their route label",
+    "simple_no_forced_card": "must not be forced to show a focus card",
+    "card_not_progress": "A visible focus card, preflight, living task brief, or roadmap update is not outcome progress",
+    "auto_routes_unchanged": "must not change the four `/CER-auto` routes",
+    "no_new_surface": "add a CER role, schema, enum, or slash command",
+}
+
+TASK_PREFLIGHT_UAT_REQUIREMENTS = {
+    "complex_routes_focus": "Complex ordinary, Goal, and CER Workflow tasks must not skip task preflight / layer focus merely because of their route label",
+    "simple_internal": "Simple one-step low-risk work with one clear endpoint may still pass through a fast internal check",
+    "focus_not_quality": "A focus card, preflight, living task brief, or roadmap update is not outcome progress, acceptance evidence, or product-quality proof",
+    "technical_pass_not_aligned": "When technical PASS has no outcome delta, the focus judgment cannot be `aligned`",
+    "cer_mapping_no_surface": "CER only maps task preflight locally",
+    "failure_complex_goal_skips": "A complex Goal task skips task preflight / layer focus only because it is not full CER",
+    "failure_ordinary_never_focus": "A complex ordinary task is written as never needing focus",
+    "failure_simple_forced": "A simple low-risk one-step task is forced to show a focus card",
+    "failure_focus_progress": "A focus card, preflight, or living task brief is counted as progress, acceptance, or product-quality evidence",
+    "failure_technical_aligned": "Technical PASS has no outcome delta, but the focus judgment is still marked `aligned`",
+    "failure_new_surface": "A focus rule inside CER adds a slash command, role, schema, or enum",
+}
+
+TASK_PREFLIGHT_FORBIDDEN = {
+    "cer_owns_general": "the CER Skill is the sole owner of the eight task-preflight items",
+    "focus_progress": "a focus card itself may increase mainline outcome progress",
+    "focus_enum": "task preflight adds a `focus_status` enum",
+    "focus_command": "`/CER-focus` is a CER slash command",
+    "auto_fifth_route": "`/CER-auto` adds a fifth route because of focus",
+    "goal_never_focus": "the Goal route never needs layer focus",
+    "simple_always_card": "low-risk one-step work must show a focus card",
+}
+
 OUTCOME_ANCHOR_REQUIREMENTS = (
     "immutable `outcome_anchor`",
     "unacceptable substitute outcomes",
@@ -1042,6 +1077,15 @@ def validate_texts(root: Path, texts: dict[str, str]) -> list[str]:
     for label, forbidden in LIVING_BRIEF_FORBIDDEN.items():
         if forbidden in core_normalized:
             findings.append(f"living-brief fixed contradiction present {label}")
+    for label, required in TASK_PREFLIGHT_MAPPING_REQUIREMENTS.items():
+        if required not in core_normalized:
+            findings.append(f"task-preflight CER mapping missing {label}")
+    for label, required in TASK_PREFLIGHT_UAT_REQUIREMENTS.items():
+        if required not in uat:
+            findings.append(f"uat.md missing task-preflight counterexample {label}")
+    for label, forbidden in TASK_PREFLIGHT_FORBIDDEN.items():
+        if forbidden in normalized_markdown:
+            findings.append(f"task-preflight fixed contradiction present {label}")
     for label, forbidden in UNEXPECTED_FAILURE_FORBIDDEN.items():
         if forbidden in normalized_markdown:
             findings.append(f"unexpected-failure fixed contradiction present {label}")
@@ -1667,6 +1711,20 @@ def mutation_matrix(root: Path) -> tuple[int, list[str]]:
                 mutated_fragment("references/uat.md", fragment),
             )
         )
+    for label, fragment in TASK_PREFLIGHT_MAPPING_REQUIREMENTS.items():
+        cases.append(
+            (
+                f"task_preflight_mapping_missing_{label}",
+                mutated_fragment("references/core-runtime.md", fragment),
+            )
+        )
+    for label, fragment in TASK_PREFLIGHT_UAT_REQUIREMENTS.items():
+        cases.append(
+            (
+                f"task_preflight_uat_missing_{label}",
+                mutated_fragment("references/uat.md", fragment),
+            )
+        )
     for label, fragment in TRUTH_SOURCE_INTAKE_UAT_REQUIREMENTS.items():
         cases.append(
             (
@@ -1760,6 +1818,17 @@ def mutation_matrix(root: Path) -> tuple[int, list[str]]:
         cases.append(
             (
                 f"living_brief_contradiction_{label}",
+                mutated(
+                    "references/core-runtime.md",
+                    "## Controller Preflight",
+                    f"## Controller Preflight\n\n{contradiction}.",
+                ),
+            )
+        )
+    for label, contradiction in TASK_PREFLIGHT_FORBIDDEN.items():
+        cases.append(
+            (
+                f"task_preflight_contradiction_{label}",
                 mutated(
                     "references/core-runtime.md",
                     "## Controller Preflight",
